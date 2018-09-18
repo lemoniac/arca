@@ -11,5 +11,5 @@ emu:
 clean:
 	cd apps/asm; $(MAKE) clean
 	cd vm; $(MAKE) clean
-	rm asm
-	rm emu
+	rm -f asm
+	rm -f emu

@@ -4,4 +4,4 @@ asm: asm.cpp ../../cpu/opcodes.h
 	g++ -g -o asm asm.cpp $(CPPFLAGS)
 
 clean:
-	rm asm
+	rm -f asm

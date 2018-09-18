@@ -2,6 +2,17 @@
 #include "opcodes.h"
 #include "vm.h"
 
+VM::~VM()
+{
+    if(disk)
+        fclose(disk);
+}
+
+void VM::setDisk(const char *filename)
+{
+    disk = fopen(filename, "r+b");
+}
+
 void VM::init()
 {
     gpu.init();

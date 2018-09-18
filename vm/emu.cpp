@@ -8,9 +8,9 @@
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    if (argc != 2 && argc != 3)
     {
-        fprintf(stderr, "emu file\n");
+        fprintf(stderr, "emu file [diskimage]\n");
         return 1;
     }
 
@@ -22,6 +22,9 @@ int main(int argc, char **argv)
     }
 
     VM vm;
+
+    if(argc == 3)
+        vm.setDisk(argv[2]);
 
     fread(&vm.codesize,4, 1, file);
     fread(&vm.datasize,4, 1, file);
