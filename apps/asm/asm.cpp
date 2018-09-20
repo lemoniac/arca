@@ -11,6 +11,7 @@ class Parser {
     const std::regex label_re = std::regex("(\\S+):");
     const std::regex add_re = std::regex("r(\\d+) = r(\\d+) \\+ r(\\d+)");
     const std::regex sub_re = std::regex("r(\\d+) = r(\\d+) \\- r(\\d+)");
+    const std::regex and_re = std::regex("r(\\d+) = r(\\d+) & r(\\d+)");
     const std::regex assign_imm_re = std::regex("r(\\d+) = (\\d+)");
     const std::regex assign_reg_re = std::regex("r(\\d+) = r(\\d+)");
     const std::regex assign_ref_re = std::regex("r(\\d+) = &(\\w+)");
@@ -171,6 +172,8 @@ protected:
             add(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, sub_re) && match.size() > 1)
             sub(match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, and_re) && match.size() > 1)
+            andr(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, assign_reg_re) && match.size() > 1)
             assign_reg(match.str(1), match.str(2));
         else if(std::regex_match(line, match, assign_imm_re) && match.size() > 1)
@@ -269,6 +272,12 @@ protected:
     {
         std::cout << "r" << dst << " = r" << src0 << " - r" << src1 << std::endl;
         encode(SUB, std::stoi(dst), std::stoi(src0), std::stoi(src1));
+    }
+
+    void andr(const std::string &dst, const std::string &src0, const std::string &src1)
+    {
+        std::cout << "r" << dst << " = r" << src0 << " & r" << src1 << std::endl;
+        encode(AND, std::stoi(dst), std::stoi(src0), std::stoi(src1));
     }
 
     void jmp(const std::string &cond, const std::string &label)

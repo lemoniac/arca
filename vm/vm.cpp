@@ -97,6 +97,20 @@ void VM::run()
                 break;
             }
 
+            case AND: {
+                uint8_t dst = code[PC+1];
+                uint8_t src0 = code[PC+2];
+                uint8_t src1 = code[PC+3];
+                uint32_t res = regs[src0] & regs[src1];
+
+                is_zero = res == 0;
+
+                if (dst != 0)
+                    regs[dst] = res;
+
+                break;
+            }
+
             case INT:
                 interrupt(code[PC+1]);
                 break;
