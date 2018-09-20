@@ -23,12 +23,18 @@ struct block_t {
     uint16_t next_block;
 };
 
-struct file_t {
-    file_entry *entry;
+struct file_system;
 
+struct file_t {
+    int entry_id;
+    file_system *fs;
+    unsigned offset;
+
+    unsigned size() const;
+    bool empty() const;
     int seek(int n);
     int read(unsigned n, uint8_t *buffer);
-    int write(unsigned n, uint8_t *buffer);
+    int write(unsigned n, const uint8_t *buffer);
 };
 
 struct file_system {
@@ -43,10 +49,16 @@ struct file_system {
     int empty_entry();
     int empty_block();
 
-    int find_file(const char *name);
+    int find_file(const char *name) const;
 
     int read_sector(unsigned n, uint8_t *sector);
-    int write_sector(unsigned n, uint8_t *sector);
+    int write_sector(unsigned n, const uint8_t *sector);
+
+    file_t open(const char *filename);
+
+    int allocate_sector();
+
+    void flush();
 
     FILE *file;
     file_entry entries[ENTRIES_PER_SECTOR];
