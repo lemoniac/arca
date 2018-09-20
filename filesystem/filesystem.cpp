@@ -18,6 +18,8 @@ int file_system::init(const char *filesystem)
     }
 
     sectors[0] = sectors[1] = 1;
+
+    dirty = false;
 }
 
 void file_system::finalize()
@@ -142,8 +144,12 @@ file_t file_system::open(const char *filename)
 
 void file_system::flush()
 {
-    write_sector(0, (uint8_t *)entries);
-    write_sector(1, (uint8_t *)blocks);
+    if(dirty)
+    {
+        write_sector(0, (uint8_t *)entries);
+        write_sector(1, (uint8_t *)blocks);
+        dirty = false;
+    }
 }
 
 int file_system::allocate_sector()
@@ -160,6 +166,10 @@ int file_system::allocate_sector()
     return -1;
 }
 
+bool file_system::connected() const
+{
+    return file != 0;
+}
 
 unsigned file_t::size() const
 {
@@ -205,7 +215,6 @@ int file_t::write(unsigned n, const uint8_t *buffer)
         if(s < 0)
             return -1;
         b.sector[sector_id] = s;
-        fs->flush();
     }
 
     uint8_t tmp[SECTOR_SIZE];
@@ -217,6 +226,8 @@ int file_t::write(unsigned n, const uint8_t *buffer)
 
     if(offset > size())
         fs->entries[entry_id].size += n;
+
+    fs->dirty = true;
 
     return n;
 }

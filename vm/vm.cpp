@@ -1,16 +1,16 @@
 #include <iostream>
 #include "opcodes.h"
 #include "vm.h"
+#include "filesystem.h"
 
 VM::~VM()
 {
-    if(disk)
-        fclose(disk);
+    fs.finalize();
 }
 
 void VM::setDisk(const char *filename)
 {
-    disk = fopen(filename, "r+b");
+    fs.init(filename);
 }
 
 void VM::init()

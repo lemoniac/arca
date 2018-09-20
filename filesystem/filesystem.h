@@ -60,10 +60,14 @@ struct file_system {
 
     void flush();
 
-    FILE *file;
+    bool connected() const;
+
+    FILE *file = 0;
     file_entry entries[ENTRIES_PER_SECTOR];
     block_t blocks[ENTRIES_PER_SECTOR];
     uint8_t sectors[65536 / SECTOR_SIZE];
+
+    bool dirty;
 };
 
 

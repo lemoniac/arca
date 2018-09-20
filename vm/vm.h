@@ -1,7 +1,7 @@
 #ifndef ARCA__VM__H
 #define ARCA__VM__H
 
-#include <stdio.h>
+#include "filesystem.h"
 #include "gpu.h"
 
 class VM {
@@ -21,9 +21,6 @@ public:
 
     GPU gpu;
 
-    const unsigned SectorSize = 512;
-    FILE *disk = NULL;
-
     ~VM();
 
     void setDisk(const char *filename);
@@ -32,8 +29,11 @@ public:
 
     void run();
 
+
 protected:
     void interrupt(uint8_t n);
+
+    file_system fs;
 };
 
 #endif//ARCA__VM__H

@@ -40,31 +40,29 @@ void VM::interrupt(uint8_t n)
             switch(regs[1])
             {
                 case 0: // has disk
-                    regs[1] = (disk == NULL)?0:1;
+                    regs[1] = fs.connected()?1:0;
                     break;
 
                 case 1: { // read sector
-                    if(!disk)
+                    if(!fs.connected())
                     {
                         regs[1] = 0;
                         return;
                     }
 
-                    int err = fseek(disk, regs[2] * SectorSize, SEEK_SET);
-                    size_t res = fread(data + regs[3], 1, SectorSize, disk);
+                    fs.read_sector(regs[2], data + regs[3]);
                     regs[1] = 1;
                     break;
                 }
 
                 case 2: { // write sector
-                    if(!disk)
+                    if(!fs.connected())
                     {
                         regs[1] = 0;
                         return;
                     }
 
-                    int err = fseek(disk, regs[2] * SectorSize, SEEK_SET);
-                    size_t res = fwrite(data + regs[3], 1, SectorSize, disk);
+                    fs.write_sector(regs[2], data + regs[3]);
                     regs[1] = 1;
                     break;
                 }
