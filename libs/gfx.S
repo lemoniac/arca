@@ -21,7 +21,6 @@ set_cursor:
 puts:
     r1 = 10
     r3 = r2
-    r6 = 1
 
     print_loop:
         r2 = *r3
@@ -31,7 +30,7 @@ puts:
 
         int 16
 
-        r3 = r3 + r6
+        r3 += 1
         jmp print_loop
 
     print_loop_exit:

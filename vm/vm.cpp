@@ -111,6 +111,19 @@ void VM::run()
                 break;
             }
 
+            case INC: {
+                uint8_t dst = code[PC+1];
+                uint16_t imm = *(uint16_t *)(code+PC+2);
+                uint32_t res = regs[dst] + imm;
+
+                is_zero = res == 0;
+
+                if (dst != 0)
+                    regs[dst] = res;
+
+                break;
+            }
+
             case INT:
                 interrupt(code[PC+1]);
                 break;
@@ -152,6 +165,8 @@ void VM::run()
 
         PC += 4;
     }
+
+    gpu.flush();
 
     for(int i = 0; i < 32; i++)
         std::cout << "r" << i << ": " << regs[i] << "    ";

@@ -25,7 +25,8 @@ int file_system::init(const char *filesystem)
 void file_system::finalize()
 {
     flush();
-    fclose(file);
+    if(file != 0)
+        fclose(file);
 }
 
 int file_system::create_file(const char *filename)
@@ -144,7 +145,7 @@ file_t file_system::open(const char *filename)
 
 void file_system::flush()
 {
-    if(dirty)
+    if(file && dirty)
     {
         write_sector(0, (uint8_t *)entries);
         write_sector(1, (uint8_t *)blocks);

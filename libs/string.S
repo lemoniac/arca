@@ -4,7 +4,6 @@
 strlen:
     r1 = 0
     r3 = r2
-    r6 = 1
 
     strlen_loop:
         r2 = *r3
@@ -12,8 +11,8 @@ strlen:
         r0 = r2 - r0
         jmp.z print_loop_exit
 
-        r1 = r1 + r6
-        r3 = r3 + r6
+        r1 += 1
+        r3 += 1
         jmp print_loop
 
     strlen_loop_exit:
@@ -40,7 +39,7 @@ memset:
         *r2 = r3
         jmp.z memset_end
 
-        r2 = r2 + r6
+        r2 += 1
 
         jmp memset_loop
 

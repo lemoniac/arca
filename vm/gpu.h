@@ -10,6 +10,7 @@ public:
     void setCursor(unsigned x, unsigned y);
     void drawChar(uint8_t c);
     void clearScreen(unsigned color);
+    void flush();
 
 protected:
     SDL_Window *window;

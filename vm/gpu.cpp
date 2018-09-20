@@ -74,3 +74,8 @@ void GPU::clearScreen(unsigned color)
 
     SDL_UpdateWindowSurface(window);
 }
+
+void GPU::flush()
+{
+    SDL_UpdateWindowSurface(window);
+}

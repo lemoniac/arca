@@ -12,6 +12,7 @@ class Parser {
     const std::regex add_re = std::regex("r(\\d+) = r(\\d+) \\+ r(\\d+)");
     const std::regex sub_re = std::regex("r(\\d+) = r(\\d+) \\- r(\\d+)");
     const std::regex and_re = std::regex("r(\\d+) = r(\\d+) & r(\\d+)");
+    const std::regex inc_re = std::regex("r(\\d+) \\+= (\\d+)");
     const std::regex assign_imm_re = std::regex("r(\\d+) = (\\d+)");
     const std::regex assign_reg_re = std::regex("r(\\d+) = r(\\d+)");
     const std::regex assign_ref_re = std::regex("r(\\d+) = &(\\w+)");
@@ -174,6 +175,8 @@ protected:
             sub(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, and_re) && match.size() > 1)
             andr(match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, inc_re) && match.size() > 1)
+            inc(match.str(1), match.str(2));
         else if(std::regex_match(line, match, assign_reg_re) && match.size() > 1)
             assign_reg(match.str(1), match.str(2));
         else if(std::regex_match(line, match, assign_imm_re) && match.size() > 1)
@@ -280,6 +283,12 @@ protected:
         encode(AND, std::stoi(dst), std::stoi(src0), std::stoi(src1));
     }
 
+    void inc(const std::string &dst, const std::string &imm)
+    {
+        std::cout << "r" << dst << " += " << imm << std::endl;
+        encode(INC, std::stoi(dst), std::stoi(imm));
+    }
+
     void jmp(const std::string &cond, const std::string &label)
     {
         unsigned address;
@@ -331,7 +340,6 @@ protected:
         std::cout << "int " << int_n << std::endl;
         encode(INT, std::stoi(int_n), 0, 0);
     }
-
 
     void encode(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1)
     {

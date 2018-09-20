@@ -15,6 +15,7 @@ const unsigned MUL = 12;
 const unsigned DIV = 13;
 const unsigned SHR = 14;
 const unsigned SHL = 15;
+const unsigned INC = 16;
 
 const unsigned JMP = 20;
 const unsigned JMPR = 21;
