@@ -67,5 +67,20 @@ void VM::interrupt(uint8_t n)
                     break;
                 }
             }
+
+        case 0x16:
+            switch(regs[1])
+            {
+                case 0:
+                    if(keys.empty())
+                        regs[1] = 0;
+                    else
+                    {
+                        regs[1] = keys[0];
+                        keys.pop_front();
+                    }
+                    break;
+            }
+            break;
     }
 }

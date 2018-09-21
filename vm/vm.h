@@ -1,6 +1,7 @@
 #ifndef ARCA__VM__H
 #define ARCA__VM__H
 
+#include <deque>
 #include "filesystem.h"
 #include "gpu.h"
 
@@ -29,11 +30,15 @@ public:
 
     void run();
 
+    bool step();
 
 protected:
+
     void interrupt(uint8_t n);
 
     file_system fs;
+
+    std::deque<char> keys;
 };
 
 #endif//ARCA__VM__H
