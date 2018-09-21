@@ -26,11 +26,14 @@ int main(int argc, char **argv)
     if(argc == 3)
         vm.setDisk(argv[2]);
 
-    fread(&vm.codesize,4, 1, file);
-    fread(&vm.datasize,4, 1, file);
+    //fread(&vm.codesize,4, 1, file);
+    //fread(&vm.datasize,4, 1, file);
 
+    fseek(file, 0, SEEK_END);
+    vm.codesize = ftell(file);
+    fseek(file, 0, SEEK_SET);
     fread(vm.code, vm.codesize, 1, file);
-    fread(vm.data, vm.datasize, 1, file);
+    //fread(vm.data, vm.datasize, 1, file);
 
     vm.init();
     vm.run();

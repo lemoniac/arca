@@ -14,8 +14,8 @@ public:
 
     uint32_t regs[32] = {};
 
-    uint8_t code[16 * 1024];
-    uint8_t data[16 * 1024];
+    uint8_t code[64 * 1024];
+    //uint8_t data[16 * 1024];
 
     bool is_zero;
 

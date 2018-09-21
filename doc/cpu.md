@@ -31,6 +31,8 @@ where *op* is an arithmetic operator: +, -, *, / or a logical one: &, |, >> , <<
 
 rd = !rs
 
+rd += imm
+
 
 ### Jump
 

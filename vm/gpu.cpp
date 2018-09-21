@@ -63,7 +63,8 @@ void GPU::drawChar(uint8_t c)
     if(cursor_x >= 640)
     {
         cursor_x = 0;
-        cursor_y += 16;
+        if(cursor_y < 480 - 16)
+            cursor_y += 16;
     }
 }
 

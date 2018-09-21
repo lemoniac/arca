@@ -1,5 +1,3 @@
-.text
-
 # int strlen(const char *string)
 strlen:
     r1 = 0

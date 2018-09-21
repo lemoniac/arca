@@ -32,10 +32,10 @@ class Parser {
     const std::regex data_char_re = std::regex("char (\\w+) = \"(.*)\"");
 
     std::map<std::string, unsigned> labels;
-    std::map<std::string, unsigned> symbols; // name, address
+    //std::map<std::string, unsigned> symbols; // name, address
 
     unsigned PC = 0;
-    unsigned DP = 0; // data pointer
+    //unsigned DP = 0; // data pointer
 
     uint8_t code[16 * 1024];
     uint8_t data[16 * 1024];
@@ -84,6 +84,7 @@ public:
         if(l.size() == 0 || l[0] == '#')
             return;
 
+/*
         if(l == ".data")
         {
             segment = Data;
@@ -100,6 +101,16 @@ public:
             parseDataSegment(l);
         else
             parseTextSegment(l);
+            */
+
+        if(!parseDataSegment(l))
+        {
+            if(!parseTextSegment(l))
+            {
+                std::cout << "???" << std::endl;
+                std::cout << line << std::endl;
+            }
+        }
     }
 
     void resolveUnknownLabels()
@@ -119,15 +130,15 @@ public:
     void dump(const char *filename)
     {
         FILE *file = fopen(filename, "wb");
-        fwrite(&PC, 4, 1, file);
-        fwrite(&DP, 4, 1, file);
+        //fwrite(&PC, 4, 1, file);
+        //fwrite(&DP, 4, 1, file);
 
         fwrite(code, PC, 1, file);
-        fwrite(data, DP, 1, file);
+        //fwrite(data, DP, 1, file);
     }
 
 protected:
-    void parseDataSegment(const std::string &line)
+    bool parseDataSegment(const std::string &line)
     {
         std::smatch match;
         if(std::regex_match(line, match, data_int_re) && match.size() > 1)
@@ -136,35 +147,38 @@ protected:
             createCharVariable(match.str(1), match.str(2));
         else if(std::regex_match(line, match, include_re) && match.size() > 1)
             include(match.str(1));
-        else if(std::regex_match(line, match, label_re) && match.size() > 1)
-            symbols[match.str(1)] = DP;
+        //else if(std::regex_match(line, match, label_re) && match.size() > 1)
+        //    symbols[match.str(1)] = DP;
+        else
+            return false;
 
+        return true;
     }
 
     void createIntVariable(const std::string &name, int value)
     {
-        *(int *)(data + DP) = value;
-        symbols[name] = DP;
-        DP += 4;
+        *(int *)(code + PC) = value;
+        labels[name] = PC;
+        PC += 4;
     }
 
     void createCharVariable(const std::string &name, const std::string &value)
     {
-        symbols[name] = DP;
+        labels[name] = PC;
         for(unsigned i = 0; i < value.size(); i++)
         {
-            *(int *)(data + DP) = value[i];
-            DP++;
+            *(int *)(code + PC) = value[i];
+            PC++;
         }
     }
 
-    void parseTextSegment(const std::string &line)
+    bool parseTextSegment(const std::string &line)
     {
         std::smatch match;
         if(std::regex_match(line, match, label_re) && match.size() > 1)
         {
             addLabel(match.str(1));
-            return;
+            return true;
         }
 
         std::cout << PC << "   ";
@@ -206,10 +220,9 @@ protected:
         else if(std::regex_match(line, match, include_re) && match.size() > 1)
             include(match.str(1));
         else
-        {
-            std::cout << "???" << std::endl;
-            std::cout << line << std::endl;
-        }
+            return false;
+
+        return true;
     }
 
     void addLabel(const std::string &label)
@@ -232,30 +245,29 @@ protected:
         encode(MOVR, std::stoi(dst), std::stoi(src), 0);
     }
 
-    void assign_ref(const std::string &dst, const std::string &src)
+    void assign_ref(const std::string &dst, const std::string &label)
     {
-        unsigned address = symbols[src];
+        unsigned address = resolveLabel(label);
         std::cout << "r" << dst << " = " << address << std::endl;
         encode(MOVI, std::stoi(dst), address);
     }
 
     void assign_deref(const std::string &dst, const std::string &src)
     {
-        unsigned address = symbols[src];
         std::cout << "r" << dst << " = *r" << src << std::endl;
         encode(LOADR, std::stoi(dst), std::stoi(src), 0);
     }
 
-    void load(const std::string &dst, const std::string &src)
+    void load(const std::string &dst, const std::string &label)
     {
-        unsigned address = symbols[src];
+        unsigned address = resolveLabel(label);
         std::cout << "r" << dst << " = [" << address << "]" <<  std::endl;
         encode(LOAD, std::stoi(dst), address);
     }
 
-    void store(const std::string &dst, const std::string &src)
+    void store(const std::string &src, const std::string &label)
     {
-        unsigned address = symbols[dst];
+        unsigned address = resolveLabel(label);
         std::cout << "[" << address << "] = r" << src << std::endl;
         encode(STORE, std::stoi(src), address);
     }
@@ -291,15 +303,7 @@ protected:
 
     void jmp(const std::string &cond, const std::string &label)
     {
-        unsigned address;
-        if(labels.find(label) == labels.end())
-        {
-            address = 0;
-            unk_labels.emplace_back(Label{label, PC + 2});
-        }
-        else
-            address = labels[label];
-
+        unsigned address = resolveLabel(label);
         unsigned cond_n = 0;
         if(cond == "")
             cond_n = 0;
@@ -329,7 +333,7 @@ protected:
         }
         else
             address = labels[label];
-            
+
         encode(JAL, std::stoi(dst), address);
 
         std::cout << "jal r" << dst << " " << address << std::endl;
@@ -343,6 +347,8 @@ protected:
 
     void encode(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1)
     {
+        PC += PC & 3; // align
+
         code[PC] = opcode;
         code[PC+1] = dst;
         code[PC+2] = src0;
@@ -362,6 +368,20 @@ protected:
     void include(const std::string &filename)
     {
         parse(filename);
+    }
+
+    unsigned resolveLabel(const std::string &label)
+    {
+        unsigned address;
+        if(labels.find(label) == labels.end())
+        {
+            address = 0;
+            unk_labels.emplace_back(Label{label, PC + 2});
+        }
+        else
+            address = labels[label];
+
+        return address;
     }
 };
 

@@ -20,7 +20,7 @@ void VM::init()
 
 void VM::run()
 {
-    while(PC < codesize)
+    while(PC < 65536)
     {
         uint8_t opcode = code[PC];
         switch(opcode)
@@ -42,14 +42,14 @@ void VM::run()
             case LOAD: {
                 uint8_t dst = code[PC+1];
                 uint16_t addr = *(uint16_t *)(code+PC+2);
-                regs[dst] = *(unsigned *)(data + addr);
+                regs[dst] = *(unsigned *)(code + addr);
                 break;
             }
 
             case STORE: {
                 uint8_t src = code[PC+1];
                 uint16_t addr = *(uint16_t *)(code+PC+2);
-                *(unsigned *)(data + addr) = regs[src];
+                *(unsigned *)(code + addr) = regs[src];
                 break;
             }
 
@@ -57,7 +57,7 @@ void VM::run()
                 uint8_t dst = code[PC+1];
                 uint16_t addr = regs[code[PC+2]];
                 uint8_t off = code[PC+3];
-                regs[dst] = *(unsigned *)(data + addr + off);
+                regs[dst] = *(unsigned *)(code + addr + off);
                 break;
             }
 
@@ -65,7 +65,7 @@ void VM::run()
                 uint8_t addr = regs[code[PC+1]];
                 uint8_t value = regs[code[PC+2]];
                 uint8_t off = code[PC+3];
-                data[addr + off] = value;
+                code[addr + off] = value;
                 break;
             }
 
@@ -160,6 +160,7 @@ void VM::run()
 
             default:
                 std::cerr << "unknown opcode " << unsigned(code[PC]) << std::endl;
+                PC = 65536;
                 break;
         }
 

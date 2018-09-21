@@ -1,4 +1,3 @@
-.text
 # clear_screen
 #    r2 = color
 clear_screen:

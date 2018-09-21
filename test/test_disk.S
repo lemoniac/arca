@@ -1,16 +1,14 @@
-.data
-    char ok = "done"
-    int ok_z = 0
-    char err = "error: disk not found"
-    int err_z = 0
+jmp main
 
-    char str = "test123"
-    int std_z = 0
+char ok = "done"
+int ok_z = 0
+char err = "error: disk not found"
+int err_z = 0
 
-.text
-    jmp main
+char str = "test123"
+int std_z = 0
 
-    .include ../libs/gfx.S
+.include ../libs/gfx.S
 
 main:
 

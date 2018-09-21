@@ -50,7 +50,7 @@ void VM::interrupt(uint8_t n)
                         return;
                     }
 
-                    fs.read_sector(regs[2], data + regs[3]);
+                    fs.read_sector(regs[2], code + regs[3]);
                     regs[1] = 1;
                     break;
                 }
@@ -62,7 +62,7 @@ void VM::interrupt(uint8_t n)
                         return;
                     }
 
-                    fs.write_sector(regs[2], data + regs[3]);
+                    fs.write_sector(regs[2], code + regs[3]);
                     regs[1] = 1;
                     break;
                 }

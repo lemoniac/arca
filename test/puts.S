@@ -1,11 +1,9 @@
-.data
-    char str = "hello world!"
-    int str_z = 0
+jmp start
 
-.text
-    jmp start
+char str = "hello world!"
+int str_z = 0
 
-    .include ../libs/gfx.S
+.include ../libs/gfx.S
 
 start:
     r2 = 255
