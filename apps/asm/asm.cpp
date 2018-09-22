@@ -22,6 +22,7 @@ class Parser {
     const std::regex store_reg_re = std::regex("\\*r(\\d+) = r(\\d+)");
     const std::regex jmp_reg_re = std::regex("jmp r(\\d+)");
     const std::regex jmp_re = std::regex("jmp(\\..+)? (\\S+)");
+    const std::regex jal_reg_re = std::regex("jal r(\\d+) r(\\d+)");
     const std::regex jal_re = std::regex("jal r(\\d+) (\\S+)");
     const std::regex int_re = std::regex("int (\\d+)");
     const std::regex call_re = std::regex("call (\\w+)");
@@ -211,6 +212,8 @@ protected:
             jmp(match.str(1), match.str(2));
         else if(std::regex_match(line, match, jal_re) && match.size() > 1)
             jal(match.str(1), match.str(2));
+        else if(std::regex_match(line, match, jal_reg_re) && match.size() > 1)
+            jalr(match.str(1), match.str(2));
         else if(std::regex_match(line, match, call_re) && match.size() > 1)
             jal("15", match.str(1));
         else if(std::regex_match(line, match, int_re) && match.size() > 1)
@@ -337,6 +340,13 @@ protected:
         encode(JAL, std::stoi(dst), address);
 
         std::cout << "jal r" << dst << " " << address << std::endl;
+    }
+
+    void jalr(const std::string &dst, const std::string &src)
+    {
+        encode(JALR, std::stoi(dst), std::stoi(src), 0);
+
+        std::cout << "jalr r" << dst << " r" << src << std::endl;
     }
 
     void interrupt(const std::string &int_n)

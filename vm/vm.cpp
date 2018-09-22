@@ -181,6 +181,15 @@ bool VM::step()
             break;
         }
 
+        case JALR:
+        {
+            uint8_t dst = code[PC+1];
+            uint8_t src = code[PC+2];
+            regs[dst] = PC + 4;
+            PC = regs[src] - 4;
+            break;
+        }
+
         default:
             std::cerr << "unknown opcode " << unsigned(code[PC]) << std::endl;
             return false;

@@ -20,6 +20,7 @@ const unsigned INC = 16;
 const unsigned JMP = 20;
 const unsigned JMPR = 21;
 const unsigned JAL = 22;
+const unsigned JALR = 23;
 
 const unsigned AND = 30;
 const unsigned OR = 31;
