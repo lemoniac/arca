@@ -1,37 +1,36 @@
 #ifndef ARCA__OPCODES__H
 #define ARCA__OPCODES__H
 
-const unsigned MOVI = 1;
-const unsigned MOVR = 2;
+#define MOVI 1
+#define MOVR 2
 
-const unsigned LOAD = 3;
-const unsigned STORE = 4;
-const unsigned LOADR = 5;
-const unsigned STORER = 6;
+#define LOAD   3
+#define STORE  4
+#define LOADR  5
+#define STORER 6
 
-const unsigned ADD = 10;
-const unsigned SUB = 11;
-const unsigned MUL = 12;
-const unsigned DIV = 13;
-const unsigned SHR = 14;
-const unsigned SHL = 15;
-const unsigned INC = 16;
+#define ADD 10
+#define SUB 11
+#define MUL 12
+#define DIV 13
+#define SHR 14
+#define SHL 15
+#define INC 16
 
-const unsigned JMP = 20;
-const unsigned JMPR = 21;
-const unsigned JAL = 22;
-const unsigned JALR = 23;
+#define JMP  20
+#define JMPR 21
+#define JAL  22
+#define JALR 23
 
-const unsigned AND = 30;
-const unsigned OR = 31;
-const unsigned XOR = 32;
-const unsigned NOT = 33;
+#define AND 30
+#define OR  31
+#define XOR 32
+#define NOT 33
 
-const unsigned INT = 100;
+#define INT 100
 
-
-const unsigned COND_ALLWAYS = 0;
-const unsigned COND_ZERO = 1;
-const unsigned COND_NOTZERO = 2;
+#define COND_ALLWAYS 0
+#define COND_ZERO    1
+#define COND_NOTZERO 2
 
 #endif//ARCA__OPCODES__H
