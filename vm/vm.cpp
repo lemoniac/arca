@@ -99,6 +99,7 @@ bool VM::step()
             uint32_t res = regs[src0] + regs[src1];
 
             is_zero = res == 0;
+            sign = (res >> 31) == 1;
 
             if (dst != 0)
                 regs[dst] = res;
@@ -113,6 +114,7 @@ bool VM::step()
             uint32_t res = regs[src0] - regs[src1];
 
             is_zero = res == 0;
+            sign = (res >> 31) == 1;
 
             if (dst != 0)
                 regs[dst] = res;
@@ -161,6 +163,8 @@ bool VM::step()
                 case COND_ALLWAYS: jmp = true; break;
                 case COND_ZERO: jmp = is_zero; break;
                 case COND_NOTZERO: jmp = !is_zero; break;
+                case COND_SIGN: jmp = sign; break;
+                case COND_NOSIGN: jmp != sign; break;
             }
             if(jmp)
                 PC = imm - 4;

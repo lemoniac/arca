@@ -22,15 +22,24 @@
 #define JAL  22
 #define JALR 23
 
-#define AND 30
-#define OR  31
-#define XOR 32
-#define NOT 33
+#define AND  30
+#define ANDI 31
+#define OR   32
+#define ORI  33
+#define XOR  34
+#define XORI 35
+#define NOT  36
 
 #define INT 100
 
 #define COND_ALLWAYS 0
 #define COND_ZERO    1
 #define COND_NOTZERO 2
+#define COND_SIGN    3
+#define COND_NOSIGN  4
+#define COND_LT      5
+#define COND_LTU     6
+#define COND_GE      7
+#define COND_GEU     8
 
 #endif//ARCA__OPCODES__H

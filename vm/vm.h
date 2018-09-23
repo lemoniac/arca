@@ -19,6 +19,7 @@ public:
     //uint8_t data[16 * 1024];
 
     bool is_zero;
+    bool sign;
 
     GPU gpu;
 

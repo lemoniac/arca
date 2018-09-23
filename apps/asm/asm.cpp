@@ -13,7 +13,7 @@ class Parser {
     const std::regex sub_re = std::regex("r(\\d+) = r(\\d+) \\- r(\\d+)");
     const std::regex and_re = std::regex("r(\\d+) = r(\\d+) & r(\\d+)");
     const std::regex inc_re = std::regex("r(\\d+) \\+= (\\d+)");
-    const std::regex assign_imm_re = std::regex("r(\\d+) = (\\d+)");
+    const std::regex assign_imm_re = std::regex("r(\\d+) = (-?\\d+)");
     const std::regex assign_reg_re = std::regex("r(\\d+) = r(\\d+)");
     const std::regex assign_ref_re = std::regex("r(\\d+) = &(\\w+)");
     const std::regex assign_deref_re = std::regex("r(\\d+) = \\*r(\\d+)");
@@ -314,7 +314,19 @@ protected:
             cond_n = COND_ZERO;
         else if(cond == ".nz")
             cond_n = COND_NOTZERO;
-            
+        else if(cond == ".s")
+            cond_n = COND_SIGN;
+        else if(cond == ".ns")
+            cond_n = COND_NOSIGN;
+        else if(cond == ".lt")
+            cond_n = COND_LT;
+        else if(cond == ".ltu")
+            cond_n = COND_LTU;
+        else if(cond == ".ge")
+            cond_n = COND_GE;
+        else if(cond == ".geu")
+            cond_n = COND_GEU;
+
         encode(JMP, cond_n, address);
 
         std::cout << "jmp " << cond << " " << address << std::endl;
