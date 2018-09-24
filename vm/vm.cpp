@@ -194,6 +194,56 @@ bool VM::step()
             break;
         }
 
+        case SYSTEM: {
+            uint8_t fun = code[PC+1];
+            switch(fun)
+            {
+                case SYSTEM_CR_SET: {
+                    if(privilegeLevel == 0)
+                    {
+                        std::cerr << "General Protection Fault" << std::endl;
+                        return false;
+                    }
+                    uint8_t src = code[PC+2];
+                    uint8_t dst = code[PC+3];
+                    CR[dst] = regs[src];
+                    break;
+                }
+
+                case SYSTEM_CR_READ: {
+                    if(privilegeLevel == 0)
+                    {
+                        std::cerr << "General Protection Fault" << std::endl;
+                        return false;
+                    }
+                    uint8_t src = code[PC+2];
+                    uint8_t dst = code[PC+3];
+                    regs[src] = CR[dst];
+                    break;
+                }
+
+                case SYSTEM_CALL: {
+                    CR[CR_RETURNADDR] = PC + 4;
+                    PC = CR[CR_ENTRYPOINT] - 4;
+                    privilegeLevel = 1;
+                    break;
+                }
+
+                case SYSTEM_RETURN: {
+                    if(privilegeLevel == 0)
+                    {
+                        std::cerr << "General Protection Fault" << std::endl;
+                        return false;
+                    }
+
+                    PC = CR[CR_RETURNADDR] - 4;
+                    privilegeLevel = 0;
+                    break;
+                }
+            }
+            break;
+        }
+
         default:
             std::cerr << "unknown opcode " << unsigned(code[PC]) << std::endl;
             return false;

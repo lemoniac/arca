@@ -18,8 +18,13 @@ public:
     uint8_t code[64 * 1024];
     //uint8_t data[16 * 1024];
 
-    bool is_zero;
-    bool sign;
+    bool is_zero = false;
+    bool sign = false;
+
+    unsigned privilegeLevel = 1;
+
+    // control registers
+    unsigned CR[256];
 
     GPU gpu;
 

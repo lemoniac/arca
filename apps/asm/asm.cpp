@@ -27,7 +27,11 @@ class Parser {
     const std::regex int_re = std::regex("int (\\d+)");
     const std::regex call_re = std::regex("call (\\w+)");
 
+    const std::regex set_cr_re = std::regex("cr(\\d+) = r(\\d+)");
+    const std::regex read_cr_re = std::regex("r(\\d+) = cr(\\d+)");
+
     const std::regex include_re = std::regex("\\.include ([\\w\\./]+)");
+    const std::regex org_re = std::regex("\\.org (\\d+)");
 
     const std::regex data_int_re = std::regex("int (\\w+) = (\\d+)");
     const std::regex data_char_re = std::regex("char (\\w+) = \"(.*)\"");
@@ -40,6 +44,8 @@ class Parser {
 
     uint8_t code[16 * 1024];
     uint8_t data[16 * 1024];
+
+    unsigned base_address = 0;
 
     Segment segment = Data;
 
@@ -159,18 +165,21 @@ protected:
     void createIntVariable(const std::string &name, int value)
     {
         *(int *)(code + PC) = value;
-        labels[name] = PC;
+        addLabel(name);
         PC += 4;
     }
 
     void createCharVariable(const std::string &name, const std::string &value)
     {
-        labels[name] = PC;
+        addLabel(name);
         for(unsigned i = 0; i < value.size(); i++)
         {
             *(int *)(code + PC) = value[i];
             PC++;
         }
+
+        code[PC] = 0;
+        PC++;
     }
 
     bool parseTextSegment(const std::string &line)
@@ -182,7 +191,7 @@ protected:
             return true;
         }
 
-        std::cout << PC << "   ";
+        std::cout << (PC + base_address) << "   ";
 
         if(std::regex_match(line, match, add_re) && match.size() > 1)
             add(match.str(1), match.str(2), match.str(3));
@@ -200,6 +209,10 @@ protected:
             assign_ref(match.str(1), match.str(2));
         else if(std::regex_match(line, match, assign_deref_re) && match.size() > 1)
             assign_deref(match.str(1), match.str(2));
+        else if(std::regex_match(line, match, set_cr_re) && match.size() > 1)
+            system(SYSTEM_CR_SET, match.str(2), match.str(1));
+        else if(std::regex_match(line, match, read_cr_re) && match.size() > 1)
+            system(SYSTEM_CR_READ, match.str(2), match.str(1));
         else if(std::regex_match(line, match, load_re) && match.size() > 1)
             load(match.str(1), match.str(2));
         else if(std::regex_match(line, match, store_reg_re) && match.size() > 1)
@@ -220,8 +233,12 @@ protected:
             interrupt(match.str(1));
         else if(line == "ret")
             jmp_reg("15");
+        else if(line == "syscall")
+            system(SYSTEM_CALL, "0", "0");
         else if(std::regex_match(line, match, include_re) && match.size() > 1)
             include(match.str(1));
+        else if(std::regex_match(line, match, org_re) && match.size() > 1)
+            org(match.str(1));
         else
             return false;
 
@@ -231,7 +248,7 @@ protected:
     void addLabel(const std::string &label)
     {
         if(labels.find(label) == labels.end())
-            labels[label] = PC;
+            labels[label] = PC + base_address;
         else
             std::cerr << "error: duplicated label '" << label << "'" << std::endl; 
     }
@@ -367,6 +384,12 @@ protected:
         encode(INT, std::stoi(int_n), 0, 0);
     }
 
+    void system(unsigned fun, const std::string &src, const std::string &dst)
+    {
+        std::cout << "SYSTEM " << fun << " " << src << " " << dst << std::endl;
+        encode(SYSTEM, fun, std::stoi(src), std::stoi(dst));
+    }
+
     void encode(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1)
     {
         PC += PC & 3; // align
@@ -390,6 +413,11 @@ protected:
     void include(const std::string &filename)
     {
         parse(filename);
+    }
+
+    void org(const std::string &base)
+    {
+        base_address = std::stoi(base);
     }
 
     unsigned resolveLabel(const std::string &label)

@@ -107,6 +107,15 @@ int main(int argc, char **argv)
                     break;
                 }
 
+                case SYSTEM: {
+                    uint8_t fun = buffer[i+1];
+                    if(fun == SYSTEM_CALL)
+                        printf("syscall\n");
+                    else
+                        printf("SYSTEM %u\n", fun);
+                    break;
+                }
+
                 default:
                     printf("??? %2u %2u %2u %2u\n", buffer[i], buffer[i+1], buffer[i+2], buffer[i+3]);
             }
