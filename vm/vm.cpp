@@ -122,6 +122,21 @@ bool VM::step()
             break;
         }
 
+        case SUBI: {
+            uint8_t dst = code[PC+1];
+            uint8_t src = code[PC+2];
+            uint8_t imm = code[PC+3];
+            uint32_t res = regs[src] - imm;
+
+            is_zero = res == 0;
+            sign = (res >> 31) == 1;
+
+            if (dst != 0)
+                regs[dst] = res;
+
+            break;
+        }
+
         case AND: {
             uint8_t dst = code[PC+1];
             uint8_t src0 = code[PC+2];
@@ -164,7 +179,7 @@ bool VM::step()
                 case COND_ZERO: jmp = is_zero; break;
                 case COND_NOTZERO: jmp = !is_zero; break;
                 case COND_SIGN: jmp = sign; break;
-                case COND_NOSIGN: jmp != sign; break;
+                case COND_NOSIGN: jmp = !sign; break;
             }
             if(jmp)
                 PC = imm - 4;

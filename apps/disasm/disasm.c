@@ -63,6 +63,14 @@ int main(int argc, char **argv)
                     break;
                 }
 
+                case SUBI: {
+                    uint8_t dst = buffer[i+1];
+                    uint8_t src = buffer[i+2];
+                    uint8_t imm = buffer[i+3];
+                    printf("r%u = r%u - %u\n", dst, src, imm);
+                    break;
+                }
+
                 case AND: {
                     uint8_t dst = buffer[i+1];
                     uint8_t src0 = buffer[i+2];

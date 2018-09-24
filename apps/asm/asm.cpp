@@ -11,6 +11,7 @@ class Parser {
     const std::regex label_re = std::regex("(\\S+):");
     const std::regex add_re = std::regex("r(\\d+) = r(\\d+) \\+ r(\\d+)");
     const std::regex sub_re = std::regex("r(\\d+) = r(\\d+) \\- r(\\d+)");
+    const std::regex subi_re = std::regex("r(\\d+) = r(\\d+) \\- (\\d+)");
     const std::regex and_re = std::regex("r(\\d+) = r(\\d+) & r(\\d+)");
     const std::regex inc_re = std::regex("r(\\d+) \\+= (\\d+)");
     const std::regex assign_imm_re = std::regex("r(\\d+) = (-?\\d+)");
@@ -178,8 +179,8 @@ protected:
             PC++;
         }
 
-        code[PC] = 0;
-        PC++;
+        //code[PC] = 0;
+        //PC++;
     }
 
     bool parseTextSegment(const std::string &line)
@@ -197,6 +198,8 @@ protected:
             add(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, sub_re) && match.size() > 1)
             sub(match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, subi_re) && match.size() > 1)
+            subi(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, and_re) && match.size() > 1)
             andr(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, inc_re) && match.size() > 1)
@@ -307,6 +310,12 @@ protected:
     {
         std::cout << "r" << dst << " = r" << src0 << " - r" << src1 << std::endl;
         encode(SUB, std::stoi(dst), std::stoi(src0), std::stoi(src1));
+    }
+
+    void subi(const std::string &dst, const std::string &src, const std::string &imm)
+    {
+        std::cout << "r" << dst << " = r" << src << " - " << imm << std::endl;
+        encode(SUBI, std::stoi(dst), std::stoi(src), std::stoi(imm));
     }
 
     void andr(const std::string &dst, const std::string &src0, const std::string &src1)

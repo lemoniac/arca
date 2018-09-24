@@ -9,26 +9,28 @@
 #define LOADR  5
 #define STORER 6
 
-#define ADD 10
-#define SUB 11
-#define MUL 12
-#define DIV 13
-#define SHR 14
-#define SHL 15
-#define INC 16
+#define ADD  10
+#define ADDI 11
+#define SUB  12
+#define SUBI 13
+#define MUL  14
+#define DIV  15
+#define SHR  16
+#define SHL  17
+#define INC  18
 
-#define JMP  20
-#define JMPR 21
-#define JAL  22
-#define JALR 23
+#define JMP  30
+#define JMPR 31
+#define JAL  32
+#define JALR 33
 
-#define AND  30
-#define ANDI 31
-#define OR   32
-#define ORI  33
-#define XOR  34
-#define XORI 35
-#define NOT  36
+#define AND  40
+#define ANDI 41
+#define OR   42
+#define ORI  43
+#define XOR  44
+#define XORI 45
+#define NOT  46
 
 #define INT 100
 #define SYSTEM 101
