@@ -36,6 +36,7 @@ class Parser {
 
     const std::regex data_int_re = std::regex("int (\\w+) = (\\d+)");
     const std::regex data_char_re = std::regex("char (\\w+) = \"(.*)\"");
+    const std::regex data_array_re = std::regex("char (\\w+)\\[(\\d+)\\]");
 
     std::map<std::string, unsigned> labels;
     //std::map<std::string, unsigned> symbols; // name, address
@@ -153,6 +154,8 @@ protected:
             createIntVariable(match.str(1), std::stoi(match.str(2)));
         else if(std::regex_match(line, match, data_char_re) && match.size() > 1)
             createCharVariable(match.str(1), match.str(2));
+        else if(std::regex_match(line, match, data_array_re) && match.size() > 1)
+            createArrayVariable(match.str(1), std::stoi(match.str(2)));
         else if(std::regex_match(line, match, include_re) && match.size() > 1)
             include(match.str(1));
         //else if(std::regex_match(line, match, label_re) && match.size() > 1)
@@ -168,6 +171,12 @@ protected:
         *(int *)(code + PC) = value;
         addLabel(name);
         PC += 4;
+    }
+
+    void createArrayVariable(const std::string &name, int size)
+    {
+        addLabel(name);
+        PC += size;
     }
 
     void createCharVariable(const std::string &name, const std::string &value)
@@ -238,6 +247,8 @@ protected:
             jmp_reg("15");
         else if(line == "syscall")
             system(SYSTEM_CALL, "0", "0");
+        else if(line == "sysret")
+            system(SYSTEM_RETURN, "0", "0");
         else if(std::regex_match(line, match, include_re) && match.size() > 1)
             include(match.str(1));
         else if(std::regex_match(line, match, org_re) && match.size() > 1)
