@@ -24,7 +24,7 @@ public:
     unsigned privilegeLevel = 1;
 
     // control registers
-    unsigned CR[256];
+    unsigned CR[256] = {};
 
     GPU gpu;
 
@@ -41,10 +41,13 @@ public:
 protected:
 
     void interrupt(uint8_t n);
+    void enterKernelMode(unsigned entrypoint, unsigned exitpoint);
 
     file_system fs;
 
     std::deque<char> keys;
+
+    bool interruptsEnabled = false;
 };
 
 #endif//ARCA__VM__H

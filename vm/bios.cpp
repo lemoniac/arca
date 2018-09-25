@@ -1,5 +1,6 @@
 #include <iostream>
 #include "vm.h"
+#include "opcodes.h"
 
 void VM::interrupt(uint8_t n)
 {
@@ -82,5 +83,17 @@ void VM::interrupt(uint8_t n)
                     break;
             }
             break;
+
+        default: {
+            if(interruptsEnabled)
+            {
+                unsigned *idt = (unsigned *)(RAM + CR[CR_IDT]);
+                if(idt[n] != 0)
+                {
+                    regs[1] = n;
+                    enterKernelMode(idt[n], PC);
+                }
+            }
+        }
     }
 }

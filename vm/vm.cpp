@@ -20,6 +20,7 @@ void VM::init()
 
 void VM::run()
 {
+    unsigned t0 = SDL_GetTicks();
     SDL_Event event;
     while(PC < 65536)
     {
@@ -30,6 +31,13 @@ void VM::run()
                 if(keys.size() < 16)
                     keys.push_back(event.key.keysym.sym);
             }
+        }
+
+        unsigned t = SDL_GetTicks();
+        if(t - t0 >= 10)
+        {
+            t0 = t;
+            interrupt(1);
         }
 
         if(!step())
@@ -241,12 +249,7 @@ bool VM::step()
                     break;
                 }
 
-                case SYSTEM_CALL: {
-                    CR[CR_RETURNADDR] = PC + 4;
-                    PC = CR[CR_ENTRYPOINT] - 4;
-                    privilegeLevel = 1;
-                    break;
-                }
+                case SYSTEM_CALL: enterKernelMode(CR[CR_ENTRYPOINT] - 4, PC + 4); break;
 
                 case SYSTEM_RETURN: {
                     if(privilegeLevel == 0)
@@ -270,6 +273,14 @@ bool VM::step()
 
     PC += 4;
 
+    CR[CR_COUNTER]++;
+
     return true;
 }
 
+void VM::enterKernelMode(unsigned entrypoint, unsigned exitpoint)
+{
+    CR[CR_RETURNADDR] = exitpoint;
+    PC = entrypoint;
+    privilegeLevel = 1;
+}
