@@ -45,58 +45,62 @@ void VM::run()
 
 bool VM::step()
 {
-    uint8_t opcode = code[PC];
+    uint8_t *baseaddr = RAM;
+    if(privilegeLevel == 0)
+        baseaddr+= CR[CR_BASEADDR];
+
+    uint8_t opcode = baseaddr[PC];
     switch(opcode)
     {
         case MOVI: {
-            uint8_t dst = code[PC+1];
-            uint16_t imm = *(uint16_t *)(code+PC+2);
+            uint8_t dst = baseaddr[PC+1];
+            uint16_t imm = *(uint16_t *)(baseaddr+PC+2);
             regs[dst] = imm;
         }
         break;
 
         case MOVR: {
-            uint8_t dst = code[PC+1];
-            uint8_t src = code[PC+2];
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src = baseaddr[PC+2];
             regs[dst] = regs[src];
         }
         break;
 
         case LOAD: {
-            uint8_t dst = code[PC+1];
-            uint16_t addr = *(uint16_t *)(code+PC+2);
-            regs[dst] = *(unsigned *)(code + addr);
+            uint8_t dst = baseaddr[PC+1];
+            uint16_t addr = *(uint16_t *)(baseaddr+PC+2);
+            regs[dst] = *(unsigned *)(baseaddr + addr);
             break;
         }
 
         case STORE: {
-            uint8_t src = code[PC+1];
-            uint16_t addr = *(uint16_t *)(code+PC+2);
-            *(unsigned *)(code + addr) = regs[src];
+            uint8_t src = baseaddr[PC+1];
+            uint16_t addr = *(uint16_t *)(baseaddr+PC+2);
+            *(unsigned *)(baseaddr + addr) = regs[src];
             break;
         }
 
         case LOADR: {
-            uint8_t dst = code[PC+1];
-            uint16_t addr = regs[code[PC+2]];
-            uint8_t off = code[PC+3];
-            regs[dst] = *(unsigned *)(code + addr + off);
+            uint8_t dst = baseaddr[PC+1];
+            uint16_t addr = regs[baseaddr[PC+2]];
+            uint8_t off = baseaddr[PC+3];
+            regs[dst] = *(unsigned *)(baseaddr + addr + off);
             break;
         }
 
         case STORER: {
-            uint8_t addr = regs[code[PC+1]];
-            uint8_t value = regs[code[PC+2]];
-            uint8_t off = code[PC+3];
-            code[addr + off] = value;
+            uint8_t addr = regs[baseaddr[PC+1]];
+            uint8_t value = regs[baseaddr[PC+2]];
+            uint8_t off = baseaddr[PC+3];
+            baseaddr[addr + off] = value;
             break;
         }
 
         case ADD: {
-            uint8_t dst = code[PC+1];
-            uint8_t src0 = code[PC+2];
-            uint8_t src1 = code[PC+3];
-            uint32_t res = regs[src0] + regs[src1];
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src0 = baseaddr[PC+2];
+            uint8_t src1 = baseaddr[PC+3];
+            uint32_t res = baseaddr[src0] + regs[src1];
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -108,10 +112,10 @@ bool VM::step()
         }
 
         case SUB: {
-            uint8_t dst = code[PC+1];
-            uint8_t src0 = code[PC+2];
-            uint8_t src1 = code[PC+3];
-            uint32_t res = regs[src0] - regs[src1];
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src0 = baseaddr[PC+2];
+            uint8_t src1 = baseaddr[PC+3];
+            uint32_t res = baseaddr[src0] - regs[src1];
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -123,10 +127,10 @@ bool VM::step()
         }
 
         case SUBI: {
-            uint8_t dst = code[PC+1];
-            uint8_t src = code[PC+2];
-            uint8_t imm = code[PC+3];
-            uint32_t res = regs[src] - imm;
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src = baseaddr[PC+2];
+            uint8_t imm = baseaddr[PC+3];
+            uint32_t res = baseaddr[src] - imm;
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -138,9 +142,9 @@ bool VM::step()
         }
 
         case AND: {
-            uint8_t dst = code[PC+1];
-            uint8_t src0 = code[PC+2];
-            uint8_t src1 = code[PC+3];
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src0 = baseaddr[PC+2];
+            uint8_t src1 = baseaddr[PC+3];
             uint32_t res = regs[src0] & regs[src1];
 
             is_zero = res == 0;
@@ -152,8 +156,8 @@ bool VM::step()
         }
 
         case INC: {
-            uint8_t dst = code[PC+1];
-            uint16_t imm = *(uint16_t *)(code+PC+2);
+            uint8_t dst = baseaddr[PC+1];
+            uint16_t imm = *(uint16_t *)(baseaddr+PC+2);
             uint32_t res = regs[dst] + imm;
 
             is_zero = res == 0;
@@ -165,13 +169,13 @@ bool VM::step()
         }
 
         case INT:
-            interrupt(code[PC+1]);
+            interrupt(baseaddr[PC+1]);
             break;
 
         case JMP:
         {
-            uint8_t cond = code[PC+1];
-            uint16_t imm = *(uint16_t *)(code+PC+2);
+            uint8_t cond = baseaddr[PC+1];
+            uint16_t imm = *(uint16_t *)(baseaddr+PC+2);
             bool jmp = false;
             switch(cond)
             {
@@ -188,13 +192,13 @@ bool VM::step()
         }
 
         case JMPR:
-            PC = regs[code[PC+1]] - 4;
+            PC = regs[baseaddr[PC+1]] - 4;
             break;
 
         case JAL:
         {
-            uint8_t dst = code[PC+1];
-            uint16_t imm = *(uint16_t *)(code+PC+2);
+            uint8_t dst = baseaddr[PC+1];
+            uint16_t imm = *(uint16_t *)(baseaddr+PC+2);
             regs[dst] = PC + 4;
             PC = imm - 4;
             break;
@@ -202,15 +206,15 @@ bool VM::step()
 
         case JALR:
         {
-            uint8_t dst = code[PC+1];
-            uint8_t src = code[PC+2];
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src = baseaddr[PC+2];
             regs[dst] = PC + 4;
             PC = regs[src] - 4;
             break;
         }
 
         case SYSTEM: {
-            uint8_t fun = code[PC+1];
+            uint8_t fun = baseaddr[PC+1];
             switch(fun)
             {
                 case SYSTEM_CR_SET: {
@@ -219,8 +223,8 @@ bool VM::step()
                         std::cerr << "General Protection Fault" << std::endl;
                         return false;
                     }
-                    uint8_t src = code[PC+2];
-                    uint8_t dst = code[PC+3];
+                    uint8_t src = baseaddr[PC+2];
+                    uint8_t dst = baseaddr[PC+3];
                     CR[dst] = regs[src];
                     break;
                 }
@@ -231,8 +235,8 @@ bool VM::step()
                         std::cerr << "General Protection Fault" << std::endl;
                         return false;
                     }
-                    uint8_t src = code[PC+2];
-                    uint8_t dst = code[PC+3];
+                    uint8_t src = baseaddr[PC+2];
+                    uint8_t dst = baseaddr[PC+3];
                     regs[src] = CR[dst];
                     break;
                 }
@@ -260,7 +264,7 @@ bool VM::step()
         }
 
         default:
-            std::cerr << "unknown opcode " << unsigned(code[PC]) << std::endl;
+            std::cerr << "unknown opcode " << unsigned(baseaddr[PC]) << std::endl;
             return false;
     }
 

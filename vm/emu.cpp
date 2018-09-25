@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     fseek(file, 0, SEEK_END);
     vm.codesize = ftell(file);
     fseek(file, 0, SEEK_SET);
-    fread(vm.code, vm.codesize, 1, file);
+    fread(vm.RAM, vm.codesize, 1, file);
     //fread(vm.data, vm.datasize, 1, file);
 
     vm.init();

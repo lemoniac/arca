@@ -55,5 +55,6 @@
 #define CR_COUNTER   10
 #define CR_TIME      11
 #define CR_IDT       12
+#define CR_BASEADDR  20
 
 #endif//ARCA__OPCODES__H
