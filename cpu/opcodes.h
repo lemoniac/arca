@@ -16,8 +16,10 @@
 #define MUL  14
 #define DIV  15
 #define SHR  16
-#define SHL  17
-#define INC  18
+#define SHRI 17
+#define SHL  18
+#define SHLI 19
+#define INC  20
 
 #define JMP  30
 #define JMPR 31

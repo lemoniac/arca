@@ -108,7 +108,7 @@ bool VM::step()
             uint8_t dst = baseaddr[PC+1];
             uint8_t src0 = baseaddr[PC+2];
             uint8_t src1 = baseaddr[PC+3];
-            uint32_t res = baseaddr[src0] + regs[src1];
+            uint32_t res = regs[src0] + regs[src1];
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -123,7 +123,7 @@ bool VM::step()
             uint8_t dst = baseaddr[PC+1];
             uint8_t src0 = baseaddr[PC+2];
             uint8_t src1 = baseaddr[PC+3];
-            uint32_t res = baseaddr[src0] - regs[src1];
+            uint32_t res = regs[src0] - regs[src1];
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -138,7 +138,52 @@ bool VM::step()
             uint8_t dst = baseaddr[PC+1];
             uint8_t src = baseaddr[PC+2];
             uint8_t imm = baseaddr[PC+3];
-            uint32_t res = baseaddr[src] - imm;
+            uint32_t res = regs[src] - imm;
+
+            is_zero = res == 0;
+            sign = (res >> 31) == 1;
+
+            if (dst != 0)
+                regs[dst] = res;
+
+            break;
+        }
+
+        case MUL: {
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src0 = baseaddr[PC+2];
+            uint8_t src1 = baseaddr[PC+3];
+            uint32_t res = regs[src0] * regs[src1];
+
+            is_zero = res == 0;
+            sign = (res >> 31) == 1;
+
+            if (dst != 0)
+                regs[dst] = res;
+
+            break;
+        }
+
+        case SHRI: {
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src = baseaddr[PC+2];
+            uint8_t imm = baseaddr[PC+3];
+            uint32_t res = regs[src] >> imm;
+
+            is_zero = res == 0;
+            sign = (res >> 31) == 1;
+
+            if (dst != 0)
+                regs[dst] = res;
+
+            break;
+        }
+
+        case SHLI: {
+            uint8_t dst = baseaddr[PC+1];
+            uint8_t src = baseaddr[PC+2];
+            uint8_t imm = baseaddr[PC+3];
+            uint32_t res = regs[src] << imm;
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;

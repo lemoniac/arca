@@ -31,6 +31,7 @@ void VM::interrupt(uint8_t n)
                     break;
 
                 case 5: gpu.clearScreen(regs[2]); break;
+                case 6: gpu.flush(); break;
 
                 case 10: gpu.drawChar(regs[2]); break;
                 case 11: gpu.setCursor(regs[2], regs[3]); break;

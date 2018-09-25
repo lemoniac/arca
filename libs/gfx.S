@@ -3,7 +3,7 @@
 clear_screen:
     r1 = 5
     int 16
-    jmp r15
+    ret
 
 
 # set_cursor
@@ -12,7 +12,7 @@ clear_screen:
 set_cursor:
     r1 = 11
     int 16
-    jmp r15
+    ret
 
 
 # puts
@@ -34,4 +34,20 @@ puts:
 
     print_loop_exit:
 
+    ret
+
+
+# set_pixel
+#    r2 = x
+#    r3 = y
+#    r4 = color
+set_pixel:
+    r1 = 0
+    int 16
+    ret
+
+
+gfx_flush:
+    r1 = 6
+    int 16
     ret

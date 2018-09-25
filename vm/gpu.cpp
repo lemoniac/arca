@@ -28,8 +28,6 @@ void GPU::drawPixel(unsigned x, unsigned y, uint8_t r, uint8_t g, uint8_t b)
     s[offset] = r;
     s[offset+1] = g;
     s[offset+2] = b;
-
-    SDL_UpdateWindowSurface(window);     
 }
 
 void GPU::setCursor(unsigned x, unsigned y)
