@@ -8,21 +8,23 @@ enum Segment {Data, Text};
 
 class Parser {
 
+    #define NUMBER "-?\\d+|\\'.\\'"
+
     const std::regex label_re = std::regex("(\\S+):");
     const std::regex add_re = std::regex("r(\\d+) = r(\\d+) \\+ r(\\d+)");
-    const std::regex addi_re = std::regex("r(\\d+) = r(\\d+) \\+ (\\d+)");
+    const std::regex addi_re = std::regex("r(\\d+) = r(\\d+) \\+ (" NUMBER ")");
     const std::regex sub_re = std::regex("r(\\d+) = r(\\d+) \\- r(\\d+)");
-    const std::regex subi_re = std::regex("r(\\d+) = r(\\d+) \\- (\\d+)");
+    const std::regex subi_re = std::regex("r(\\d+) = r(\\d+) \\- (" NUMBER ")");
     const std::regex mul_re = std::regex("r(\\d+) = r(\\d+) \\* r(\\d+)");
-    const std::regex muli_re = std::regex("r(\\d+) = r(\\d+) \\* (\\d+)");
+    const std::regex muli_re = std::regex("r(\\d+) = r(\\d+) \\* (" NUMBER ")");
     const std::regex shri_re = std::regex("r(\\d+) = r(\\d+) >> (\\d+)");
-    const std::regex shli_re = std::regex("r(\\d+) = r(\\d+) << (\\d+)");
+    const std::regex shli_re = std::regex("r(\\d+) = r(\\d+) << (" NUMBER ")");
     const std::regex and_re = std::regex("r(\\d+) = r(\\d+) & r(\\d+)");
-    const std::regex andi_re = std::regex("r(\\d+) = r(\\d+) & (\\d+)");
+    const std::regex andi_re = std::regex("r(\\d+) = r(\\d+) & (" NUMBER ")");
     const std::regex or_re = std::regex("r(\\d+) = r(\\d+) \\| r(\\d+)");
-    const std::regex ori_re = std::regex("r(\\d+) = r(\\d+) \\| (\\d+)");
+    const std::regex ori_re = std::regex("r(\\d+) = r(\\d+) \\| (" NUMBER ")");
     const std::regex inc_re = std::regex("r(\\d+) \\+= (\\d+)");
-    const std::regex assign_imm_re = std::regex("r(\\d+) = (-?\\d+)");
+    const std::regex assign_imm_re = std::regex("r(\\d+) = (" NUMBER ")");
     const std::regex assign_reg_re = std::regex("r(\\d+) = r(\\d+)");
     const std::regex assign_ref_re = std::regex("r(\\d+) = &(\\w+)");
     const std::regex assign_deref_re = std::regex("r(\\d+) = \\*r(\\d+)");
@@ -303,10 +305,17 @@ protected:
             std::cerr << "error: duplicated label '" << label << "'" << std::endl; 
     }
 
-    void assign_imm(const std::string &dst, const std::string &val)
+    void assign_imm(const std::string &dst, const std::string &imm)
     {
-        std::cout << "r" << dst << " = " << val << std::endl;
-        encode(MOVI, std::stoi(dst), std::stoi(val));
+        std::cout << "r" << dst << " = " << imm << std::endl;
+
+        int value;
+        if(imm.size() == 3 && imm[0] == '\'')
+            value = imm[1];
+        else
+            value = std::stoi(imm);
+
+        encode(MOVI, std::stoi(dst), value);
     }
 
     void assign_reg(const std::string &dst, const std::string &src)
@@ -356,7 +365,12 @@ protected:
     void arithi(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src, const std::string &imm)
     {
         std::cout << "r" << dst << " = r" << src << " " << op << " " << imm << std::endl;
-        encode(opcode, std::stoi(dst), std::stoi(src), std::stoi(imm));
+        int value;
+        if(imm.size() == 3 && imm[0] == '\'')
+            value = imm[1];
+        else
+            value = std::stoi(imm);
+        encode(opcode, std::stoi(dst), std::stoi(src), value);
     }
 
     void andr(const std::string &dst, const std::string &src0, const std::string &src1)
