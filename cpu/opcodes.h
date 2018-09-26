@@ -14,12 +14,14 @@
 #define SUB  12
 #define SUBI 13
 #define MUL  14
-#define DIV  15
-#define SHR  16
-#define SHRI 17
-#define SHL  18
-#define SHLI 19
-#define INC  20
+#define MULI 15
+#define DIV  16
+#define DIVI 17
+#define SHR  18
+#define SHRI 19
+#define SHL  20
+#define SHLI 21
+#define INC  22
 
 #define JMP  30
 #define JMPR 31

@@ -10,12 +10,17 @@ class Parser {
 
     const std::regex label_re = std::regex("(\\S+):");
     const std::regex add_re = std::regex("r(\\d+) = r(\\d+) \\+ r(\\d+)");
+    const std::regex addi_re = std::regex("r(\\d+) = r(\\d+) \\+ (\\d+)");
     const std::regex sub_re = std::regex("r(\\d+) = r(\\d+) \\- r(\\d+)");
     const std::regex subi_re = std::regex("r(\\d+) = r(\\d+) \\- (\\d+)");
     const std::regex mul_re = std::regex("r(\\d+) = r(\\d+) \\* r(\\d+)");
+    const std::regex muli_re = std::regex("r(\\d+) = r(\\d+) \\* (\\d+)");
     const std::regex shri_re = std::regex("r(\\d+) = r(\\d+) >> (\\d+)");
     const std::regex shli_re = std::regex("r(\\d+) = r(\\d+) << (\\d+)");
     const std::regex and_re = std::regex("r(\\d+) = r(\\d+) & r(\\d+)");
+    const std::regex andi_re = std::regex("r(\\d+) = r(\\d+) & (\\d+)");
+    const std::regex or_re = std::regex("r(\\d+) = r(\\d+) \\| r(\\d+)");
+    const std::regex ori_re = std::regex("r(\\d+) = r(\\d+) \\| (\\d+)");
     const std::regex inc_re = std::regex("r(\\d+) \\+= (\\d+)");
     const std::regex assign_imm_re = std::regex("r(\\d+) = (-?\\d+)");
     const std::regex assign_reg_re = std::regex("r(\\d+) = r(\\d+)");
@@ -220,18 +225,28 @@ protected:
 
         if(std::regex_match(line, match, add_re) && match.size() > 1)
             arith(ADD, "+", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, addi_re) && match.size() > 1)
+            arithi(ADDI, "+", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, sub_re) && match.size() > 1)
             arith(SUB, "-", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, subi_re) && match.size() > 1)
             arithi(SUBI, "-", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, mul_re) && match.size() > 1)
             arith(MUL, "*", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, muli_re) && match.size() > 1)
+            arithi(MULI, "*", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, shri_re) && match.size() > 1)
             arithi(SHRI, ">>", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, shli_re) && match.size() > 1)
             arithi(SHLI, "<<", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, and_re) && match.size() > 1)
-            andr(match.str(1), match.str(2), match.str(3));
+            arithi(AND, "&", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, andi_re) && match.size() > 1)
+            arithi(ANDI, "&", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, or_re) && match.size() > 1)
+            arithi(OR, "|", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, ori_re) && match.size() > 1)
+            arithi(ORI, "|", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, inc_re) && match.size() > 1)
             inc(match.str(1), match.str(2));
         else if(std::regex_match(line, match, assign_reg_re) && match.size() > 1)
