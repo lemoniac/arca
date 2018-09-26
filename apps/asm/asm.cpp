@@ -27,7 +27,7 @@ class Parser {
     const std::regex assign_imm_re = std::regex("r(\\d+) = (" NUMBER ")");
     const std::regex assign_reg_re = std::regex("r(\\d+) = r(\\d+)");
     const std::regex assign_ref_re = std::regex("r(\\d+) = &(\\w+)");
-    const std::regex assign_deref_re = std::regex("r(\\d+) = \\*r(\\d+)");
+    const std::regex assign_deref_re = std::regex("r(\\d+) = \\*r(\\d+)(\\+\\d+)?");
     const std::regex load_re = std::regex("r(\\d+) = (\\w+)");
     const std::regex store_re = std::regex("(\\w+) = r(\\d+)");
     const std::regex store_reg_re = std::regex("\\*r(\\d+) = r(\\d+)");
@@ -258,7 +258,7 @@ protected:
         else if(std::regex_match(line, match, assign_ref_re) && match.size() > 1)
             assign_ref(match.str(1), match.str(2));
         else if(std::regex_match(line, match, assign_deref_re) && match.size() > 1)
-            assign_deref(match.str(1), match.str(2));
+            assign_deref(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, set_cr_re) && match.size() > 1)
             system(SYSTEM_CR_SET, match.str(2), match.str(1));
         else if(std::regex_match(line, match, read_cr_re) && match.size() > 1)
@@ -331,10 +331,13 @@ protected:
         encode(MOVI, std::stoi(dst), address);
     }
 
-    void assign_deref(const std::string &dst, const std::string &src)
+    void assign_deref(const std::string &dst, const std::string &src, const std::string &off)
     {
-        std::cout << "r" << dst << " = *r" << src << std::endl;
-        encode(LOADR, std::stoi(dst), std::stoi(src), 0);
+        int offset = 0;
+        std::cout << "r" << dst << " = *r" << src << off << std::endl;
+        if(off != "")
+            offset = std::stoi(off);
+        encode(LOADR, std::stoi(dst), std::stoi(src), offset);
     }
 
     void load(const std::string &dst, const std::string &label)
