@@ -75,6 +75,11 @@ bool VM::step()
         }
         break;
 
+        case LUI: {
+            decodeC(dst, imm);
+            regs[dst] = imm << 12;
+        }
+
         case LOAD: {
             decodeC(dst, imm);
             regs[dst] = *(unsigned *)(baseaddr + imm);
@@ -326,20 +331,16 @@ bool VM::step()
             break;
 
         case JAL:
-        {
             decodeC(dst, imm);
             regs[dst] = PC + 4;
             PC = imm - 4;
             break;
-        }
 
         case JALR:
-        {
-            decodeA(dst, src0, src1);
+            decodeB(dst, src0, imm);
             regs[dst] = PC + 4;
-            PC = regs[src0] - 4;
+            PC = regs[src0] - 4 + imm;
             break;
-        }
 
         case SYSTEM: {
             unsigned fun;

@@ -33,7 +33,7 @@ class Parser {
     const std::regex store_reg_re = std::regex("\\*r(\\d+)(\\+\\d+)? = r(\\d+)");
     const std::regex jmp_reg_re = std::regex("jmp r(\\d+)");
     const std::regex jmp_re = std::regex("jmp(\\..+)? (\\S+)");
-    const std::regex jal_reg_re = std::regex("jal r(\\d+) r(\\d+)");
+    const std::regex jal_reg_re = std::regex("jal r(\\d+) r(\\d+)(\\+d+)?");
     const std::regex jal_re = std::regex("jal r(\\d+) (\\S+)");
     const std::regex int_re = std::regex("int (\\d+)");
     const std::regex call_re = std::regex("call (\\w+)");
@@ -89,6 +89,7 @@ public:
         }
 
         fclose(file);
+        file = 0;
     }
 
     void parseLine(const char *line)
@@ -276,7 +277,7 @@ protected:
         else if(std::regex_match(line, match, jal_re) && match.size() > 1)
             jal(match.str(1), match.str(2));
         else if(std::regex_match(line, match, jal_reg_re) && match.size() > 1)
-            jalr(match.str(1), match.str(2));
+            jalr(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, call_re) && match.size() > 1)
             jal("15", match.str(1));
         else if(std::regex_match(line, match, int_re) && match.size() > 1)
@@ -436,11 +437,15 @@ protected:
         std::cout << "jal r" << dst << " " << address << std::endl;
     }
 
-    void jalr(const std::string &dst, const std::string &src)
+    void jalr(const std::string &dst, const std::string &src, const std::string &off)
     {
-        encodeA(JALR, std::stoi(dst), std::stoi(src), 0);
+        int offset = 0;
+        if(off != "")
+            offset = std::stoi(off);
 
-        std::cout << "jalr r" << dst << " r" << src << std::endl;
+        encodeB(JALR, std::stoi(dst), std::stoi(src), offset);
+
+        std::cout << "jalr r" << dst << " r" << src << off << std::endl;
     }
 
     void interrupt(const std::string &int_n)
@@ -459,6 +464,7 @@ protected:
     //      7      5      5      5      10
     void encodeA(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1)
     {
+        PC += PC & 3; // align
         unsigned inst = opcode | (dst << 7) | (src0 << 12) | (src1 << 17);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
@@ -468,6 +474,7 @@ protected:
     //      7      5     5       15
     void encodeB(uint8_t opcode, uint8_t dst, uint8_t src, unsigned imm)
     {
+        PC += PC & 3; // align
         unsigned inst = opcode | (dst << 7) | (src << 12) | ((imm & 0x7FFF) << 17);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
@@ -477,6 +484,7 @@ protected:
     //      7      5       20
     void encodeC(uint8_t opcode, uint8_t dst, unsigned imm)
     {
+        PC += PC & 3; // align
         unsigned inst = opcode | (dst << 7) | ((imm & 0xFFFFF) << 12);
         *(unsigned *)(code + PC) = inst;
         PC += 4;

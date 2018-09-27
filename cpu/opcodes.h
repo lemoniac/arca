@@ -3,11 +3,12 @@
 
 #define MOVI 1
 #define MOVR 2
+#define LUI  3
 
-#define LOAD   3
-#define STORE  4
-#define LOADR  5
-#define STORER 6
+#define LOAD   4
+#define STORE  5
+#define LOADR  6
+#define STORER 7
 
 #define ADD  10
 #define ADDI 11
