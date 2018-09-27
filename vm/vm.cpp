@@ -57,57 +57,53 @@ bool VM::step()
     if(privilegeLevel == 0)
         baseaddr+= CR[CR_BASEADDR];
 
-    uint8_t opcode = baseaddr[PC];
+
+    currentInst = *(unsigned *)(baseaddr + PC);
+    uint8_t opcode = currentInst & 0x7f;
+    unsigned dst, src0, src1, imm;
     switch(opcode)
     {
         case MOVI: {
-            uint8_t dst = baseaddr[PC+1];
-            uint16_t imm = *(uint16_t *)(baseaddr+PC+2);
+            decodeC(dst, imm);
             regs[dst] = imm;
         }
         break;
 
         case MOVR: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
-            regs[dst] = regs[src];
+            decodeA(dst, src0, src1);
+            regs[dst] = regs[src0];
         }
         break;
 
         case LOAD: {
-            uint8_t dst = baseaddr[PC+1];
-            uint16_t addr = *(uint16_t *)(baseaddr+PC+2);
-            regs[dst] = *(unsigned *)(baseaddr + addr);
+            decodeC(dst, imm);
+            regs[dst] = *(unsigned *)(baseaddr + imm);
             break;
         }
 
         case STORE: {
-            uint8_t src = baseaddr[PC+1];
-            uint16_t addr = *(uint16_t *)(baseaddr+PC+2);
-            *(unsigned *)(baseaddr + addr) = regs[src];
+            decodeC(src0, imm);
+            *(unsigned *)(baseaddr + imm) = regs[src0];
             break;
         }
 
         case LOADR: {
-            uint8_t dst = baseaddr[PC+1];
-            uint16_t addr = regs[baseaddr[PC+2]];
-            uint8_t off = baseaddr[PC+3];
-            regs[dst] = *(unsigned *)(baseaddr + addr + off);
+            decodeB(dst, src0, imm);
+            unsigned addr = regs[src0];
+            regs[dst] = *(unsigned *)(baseaddr + addr + imm);
             break;
         }
 
         case STORER: {
-            uint8_t addr = regs[baseaddr[PC+1]];
-            uint8_t value = regs[baseaddr[PC+2]];
-            uint8_t off = baseaddr[PC+3];
-            baseaddr[addr + off] = value;
+            decodeB(dst, src0, imm);
+            unsigned addr = regs[dst];
+            uint8_t value = regs[src0];
+            baseaddr[addr + imm] = value;
             break;
         }
 
         case ADD: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src0 = baseaddr[PC+2];
-            uint8_t src1 = baseaddr[PC+3];
+            decodeA(dst, src0, src1);
             uint32_t res = regs[src0] + regs[src1];
 
             is_zero = res == 0;
@@ -119,10 +115,21 @@ bool VM::step()
             break;
         }
 
+        case ADDI: {
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] + imm;
+
+            is_zero = res == 0;
+            sign = (res >> 31) == 1;
+
+            if (dst != 0)
+                regs[dst] = res;
+
+            break;
+        }
+
         case SUB: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src0 = baseaddr[PC+2];
-            uint8_t src1 = baseaddr[PC+3];
+            decodeA(dst, src0, src1);
             uint32_t res = regs[src0] - regs[src1];
 
             is_zero = res == 0;
@@ -135,10 +142,8 @@ bool VM::step()
         }
 
         case SUBI: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
-            uint8_t imm = baseaddr[PC+3];
-            uint32_t res = regs[src] - imm;
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] - imm;
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -150,9 +155,7 @@ bool VM::step()
         }
 
         case MUL: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src0 = baseaddr[PC+2];
-            uint8_t src1 = baseaddr[PC+3];
+            decodeA(dst, src0, src1);
             uint32_t res = regs[src0] * regs[src1];
 
             is_zero = res == 0;
@@ -165,10 +168,8 @@ bool VM::step()
         }
 
         case MULI: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
-            uint8_t imm = baseaddr[PC+3];
-            uint32_t res = regs[src] * imm;
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] * imm;
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -180,9 +181,7 @@ bool VM::step()
         }
 
         case DIV: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src0 = baseaddr[PC+2];
-            uint8_t src1 = baseaddr[PC+3];
+            decodeA(dst, src0, src1);
             uint32_t res = regs[src0] / regs[src1];
 
             is_zero = res == 0;
@@ -195,10 +194,8 @@ bool VM::step()
         }
 
         case DIVI: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
-            uint8_t imm = baseaddr[PC+3];
-            uint32_t res = regs[src] / imm;
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] / imm;
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -210,10 +207,8 @@ bool VM::step()
         }
 
         case SHRI: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
-            uint8_t imm = baseaddr[PC+3];
-            uint32_t res = regs[src] >> imm;
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] >> imm;
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -225,10 +220,8 @@ bool VM::step()
         }
 
         case SHLI: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
-            uint8_t imm = baseaddr[PC+3];
-            uint32_t res = regs[src] << imm;
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] << imm;
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -240,9 +233,7 @@ bool VM::step()
         }
 
         case AND: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src0 = baseaddr[PC+2];
-            uint8_t src1 = baseaddr[PC+3];
+            decodeA(dst, src0, src1);
             uint32_t res = regs[src0] & regs[src1];
 
             is_zero = res == 0;
@@ -254,10 +245,8 @@ bool VM::step()
         }
 
         case ANDI: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
-            uint8_t imm = baseaddr[PC+3];
-            uint32_t res = regs[src] & imm;
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] & imm;
 
             is_zero = res == 0;
 
@@ -268,9 +257,7 @@ bool VM::step()
         }
 
         case OR: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src0 = baseaddr[PC+2];
-            uint8_t src1 = baseaddr[PC+3];
+            decodeA(dst, src0, src1);
             uint32_t res = regs[src0] | regs[src1];
 
             is_zero = res == 0;
@@ -282,10 +269,8 @@ bool VM::step()
         }
 
         case ORI: {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
-            uint8_t imm = baseaddr[PC+3];
-            uint32_t res = regs[src] | imm;
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] | imm;
 
             is_zero = res == 0;
 
@@ -296,8 +281,7 @@ bool VM::step()
         }
 
         case INC: {
-            uint8_t dst = baseaddr[PC+1];
-            uint16_t imm = *(uint16_t *)(baseaddr+PC+2);
+            decodeC(dst, imm);
             uint32_t res = regs[dst] + imm;
 
             is_zero = res == 0;
@@ -309,13 +293,18 @@ bool VM::step()
         }
 
         case INT:
-            interrupt(baseaddr[PC+1]);
+        {
+            unsigned n, _;
+            decodeC(n, _);
+            interrupt(n);
             break;
+        }
 
         case JMP:
         {
-            uint8_t cond = baseaddr[PC+1];
-            uint16_t imm = *(uint16_t *)(baseaddr+PC+2);
+            unsigned cond;
+            unsigned imm;
+            decodeC(cond, imm);
             bool jmp = false;
             switch(cond)
             {
@@ -332,13 +321,13 @@ bool VM::step()
         }
 
         case JMPR:
-            PC = regs[baseaddr[PC+1]] - 4;
+            decodeC(src0, imm);
+            PC = regs[src0] - 4;
             break;
 
         case JAL:
         {
-            uint8_t dst = baseaddr[PC+1];
-            uint16_t imm = *(uint16_t *)(baseaddr+PC+2);
+            decodeC(dst, imm);
             regs[dst] = PC + 4;
             PC = imm - 4;
             break;
@@ -346,15 +335,15 @@ bool VM::step()
 
         case JALR:
         {
-            uint8_t dst = baseaddr[PC+1];
-            uint8_t src = baseaddr[PC+2];
+            decodeA(dst, src0, src1);
             regs[dst] = PC + 4;
-            PC = regs[src] - 4;
+            PC = regs[src0] - 4;
             break;
         }
 
         case SYSTEM: {
-            uint8_t fun = baseaddr[PC+1];
+            unsigned fun;
+            decodeA(fun, dst, src0);
             switch(fun)
             {
                 case SYSTEM_CR_SET: {
@@ -363,9 +352,7 @@ bool VM::step()
                         std::cerr << "General Protection Fault" << std::endl;
                         return false;
                     }
-                    uint8_t src = baseaddr[PC+2];
-                    uint8_t dst = baseaddr[PC+3];
-                    CR[dst] = regs[src];
+                    CR[dst] = regs[src0];
                     break;
                 }
 
@@ -375,9 +362,7 @@ bool VM::step()
                         std::cerr << "General Protection Fault" << std::endl;
                         return false;
                     }
-                    uint8_t src = baseaddr[PC+2];
-                    uint8_t dst = baseaddr[PC+3];
-                    regs[src] = CR[dst];
+                    regs[src0] = CR[dst];
                     break;
                 }
 
@@ -415,4 +400,25 @@ void VM::enterKernelMode(unsigned entrypoint, unsigned exitpoint)
     CR[CR_RETURNADDR] = exitpoint;
     PC = entrypoint;
     privilegeLevel = 1;
+}
+
+
+void VM::decodeA(unsigned &dst, unsigned &src0, unsigned &src1)
+{
+    dst = (currentInst >> 7) & 0x1f;
+    src0 = (currentInst >> 12) & 0x1f;
+    src1 = (currentInst >> 17) & 0x1f;
+}
+
+void VM::decodeB(unsigned &dst, unsigned &src, unsigned &imm)
+{
+    dst = (currentInst >> 7) & 0x1f;
+    src = (currentInst >> 12) & 0x1f;
+    imm = (currentInst >> 17);
+}
+
+void VM::decodeC(unsigned &dst, unsigned &imm)
+{
+    dst = (currentInst >> 7) & 0x1f;
+    imm = (currentInst >> 12);
 }

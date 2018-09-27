@@ -43,6 +43,11 @@ protected:
     void interrupt(uint8_t n);
     void enterKernelMode(unsigned entrypoint, unsigned exitpoint);
 
+    unsigned currentInst;
+    void decodeA(unsigned &dst, unsigned &src0, unsigned &src1);
+    void decodeB(unsigned &dst, unsigned &src, unsigned &imm);
+    void decodeC(unsigned &dst, unsigned &imm);
+
     file_system fs;
 
     std::deque<char> keys;

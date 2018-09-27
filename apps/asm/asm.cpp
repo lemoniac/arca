@@ -30,7 +30,7 @@ class Parser {
     const std::regex assign_deref_re = std::regex("r(\\d+) = \\*r(\\d+)(\\+\\d+)?");
     const std::regex load_re = std::regex("r(\\d+) = (\\w+)");
     const std::regex store_re = std::regex("(\\w+) = r(\\d+)");
-    const std::regex store_reg_re = std::regex("\\*r(\\d+) = r(\\d+)");
+    const std::regex store_reg_re = std::regex("\\*r(\\d+)(\\+\\d+)? = r(\\d+)");
     const std::regex jmp_reg_re = std::regex("jmp r(\\d+)");
     const std::regex jmp_re = std::regex("jmp(\\..+)? (\\S+)");
     const std::regex jal_reg_re = std::regex("jal r(\\d+) r(\\d+)");
@@ -135,7 +135,7 @@ public:
                 continue;
             }
 
-            *(int16_t *)(code + label.address) = labels[label.name];
+            *(unsigned *)(code + label.address) |= labels[label.name] << 12;
         }
     }
 
@@ -266,7 +266,7 @@ protected:
         else if(std::regex_match(line, match, load_re) && match.size() > 1)
             load(match.str(1), match.str(2));
         else if(std::regex_match(line, match, store_reg_re) && match.size() > 1)
-            storer(match.str(1), match.str(2));
+            storer(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, store_re) && match.size() > 1)
             store(match.str(1), match.str(2));
         else if(std::regex_match(line, match, jmp_reg_re) && match.size() > 1)
@@ -309,26 +309,26 @@ protected:
     {
         std::cout << "r" << dst << " = " << imm << std::endl;
 
-        int value;
+        unsigned value;
         if(imm.size() == 3 && imm[0] == '\'')
             value = imm[1];
         else
             value = std::stoi(imm);
 
-        encode(MOVI, std::stoi(dst), value);
+        encodeC(MOVI, std::stoi(dst), value);
     }
 
     void assign_reg(const std::string &dst, const std::string &src)
     {
         std::cout << "r" << dst << " = r" << src << std::endl;
-        encode(MOVR, std::stoi(dst), std::stoi(src), 0);
+        encodeA(MOVR, std::stoi(dst), std::stoi(src), 0);
     }
 
     void assign_ref(const std::string &dst, const std::string &label)
     {
         unsigned address = resolveLabel(label);
         std::cout << "r" << dst << " = " << address << std::endl;
-        encode(MOVI, std::stoi(dst), address);
+        encodeC(MOVI, std::stoi(dst), address);
     }
 
     void assign_deref(const std::string &dst, const std::string &src, const std::string &off)
@@ -337,32 +337,36 @@ protected:
         std::cout << "r" << dst << " = *r" << src << off << std::endl;
         if(off != "")
             offset = std::stoi(off);
-        encode(LOADR, std::stoi(dst), std::stoi(src), offset);
+        encodeB(LOADR, std::stoi(dst), std::stoi(src), offset);
     }
 
     void load(const std::string &dst, const std::string &label)
     {
         unsigned address = resolveLabel(label);
         std::cout << "r" << dst << " = [" << address << "]" <<  std::endl;
-        encode(LOAD, std::stoi(dst), address);
+        encodeC(LOAD, std::stoi(dst), address);
     }
 
     void store(const std::string &src, const std::string &label)
     {
         unsigned address = resolveLabel(label);
         std::cout << "[" << address << "] = r" << src << std::endl;
-        encode(STORE, std::stoi(src), address);
+        encodeC(STORE, std::stoi(src), address);
     }
 
-    void storer(const std::string &dst, const std::string &src)
+    void storer(const std::string &dst, const std::string &off, const std::string &src)
     {
-        encode(STORER, std::stoi(dst), std::stoi(src), 0);
+        int offset = 0;
+        std::cout << "*r" << dst << off << " = r" << src << off << std::endl;
+        if(off != "")
+            offset = std::stoi(off);
+        encodeB(STORER, std::stoi(dst), std::stoi(src), offset);
     }
 
     void arith(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src0, const std::string &src1)
     {
         std::cout << "r" << dst << " = r" << src0 << " " << op << " r" << src1 << std::endl;
-        encode(opcode, std::stoi(dst), std::stoi(src0), std::stoi(src1));
+        encodeA(opcode, std::stoi(dst), std::stoi(src0), std::stoi(src1));
     }
 
     void arithi(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src, const std::string &imm)
@@ -373,19 +377,13 @@ protected:
             value = imm[1];
         else
             value = std::stoi(imm);
-        encode(opcode, std::stoi(dst), std::stoi(src), value);
-    }
-
-    void andr(const std::string &dst, const std::string &src0, const std::string &src1)
-    {
-        std::cout << "r" << dst << " = r" << src0 << " & r" << src1 << std::endl;
-        encode(AND, std::stoi(dst), std::stoi(src0), std::stoi(src1));
+        encodeB(opcode, std::stoi(dst), std::stoi(src), value);
     }
 
     void inc(const std::string &dst, const std::string &imm)
     {
         std::cout << "r" << dst << " += " << imm << std::endl;
-        encode(INC, std::stoi(dst), std::stoi(imm));
+        encodeC(INC, std::stoi(dst), std::stoi(imm));
     }
 
     void jmp(const std::string &cond, const std::string &label)
@@ -411,7 +409,7 @@ protected:
         else if(cond == ".geu")
             cond_n = COND_GEU;
 
-        encode(JMP, cond_n, address);
+        encodeC(JMP, cond_n, address);
 
         std::cout << "jmp " << cond << " " << address << std::endl;
     }
@@ -419,7 +417,7 @@ protected:
     void jmp_reg(const std::string &reg)
     {
         std::cout << "jmp r" << reg << std::endl;
-        encode(JMPR, std::stoi(reg), 0, 0);
+        encodeC(JMPR, std::stoi(reg), 0);
     }
 
     void jal(const std::string &dst, const std::string &label)
@@ -433,14 +431,14 @@ protected:
         else
             address = labels[label];
 
-        encode(JAL, std::stoi(dst), address);
+        encodeC(JAL, std::stoi(dst), address);
 
         std::cout << "jal r" << dst << " " << address << std::endl;
     }
 
     void jalr(const std::string &dst, const std::string &src)
     {
-        encode(JALR, std::stoi(dst), std::stoi(src), 0);
+        encodeA(JALR, std::stoi(dst), std::stoi(src), 0);
 
         std::cout << "jalr r" << dst << " r" << src << std::endl;
     }
@@ -448,32 +446,39 @@ protected:
     void interrupt(const std::string &int_n)
     {
         std::cout << "int " << int_n << std::endl;
-        encode(INT, std::stoi(int_n), 0, 0);
+        encodeC(INT, std::stoi(int_n), 0);
     }
 
     void system(unsigned fun, const std::string &src, const std::string &dst)
     {
         std::cout << "SYSTEM " << fun << " " << src << " " << dst << std::endl;
-        encode(SYSTEM, fun, std::stoi(src), std::stoi(dst));
+        encodeA(SYSTEM, fun, std::stoi(src), std::stoi(dst));
     }
 
-    void encode(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1)
+    // | opcode | dst | src0 | src1 | unused |
+    //      7      5      5      5      10
+    void encodeA(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1)
     {
-        PC += PC & 3; // align
-
-        code[PC] = opcode;
-        code[PC+1] = dst;
-        code[PC+2] = src0;
-        code[PC+3] = src1;
+        unsigned inst = opcode | (dst << 7) | (src0 << 12) | (src1 << 17);
+        *(unsigned *)(code + PC) = inst;
         PC += 4;
     }
 
-    void encode(uint8_t opcode, uint8_t dst, uint16_t imm)
-    {        
-        code[PC] = opcode;
-        code[PC+1] = dst;
-        *(int16_t *)(&code[PC+2]) = imm;
+    // | opcode | dst | src | immediate |
+    //      7      5     5       15
+    void encodeB(uint8_t opcode, uint8_t dst, uint8_t src, unsigned imm)
+    {
+        unsigned inst = opcode | (dst << 7) | (src << 12) | ((imm & 0x7FFF) << 17);
+        *(unsigned *)(code + PC) = inst;
+        PC += 4;
+    }
 
+    // | opcode | dst | immediate |
+    //      7      5       20
+    void encodeC(uint8_t opcode, uint8_t dst, unsigned imm)
+    {
+        unsigned inst = opcode | (dst << 7) | ((imm & 0xFFFFF) << 12);
+        *(unsigned *)(code + PC) = inst;
         PC += 4;
     }
 
@@ -493,7 +498,7 @@ protected:
         if(labels.find(label) == labels.end())
         {
             address = 0;
-            unk_labels.emplace_back(Label{label, PC + 2});
+            unk_labels.emplace_back(Label{label, PC});
         }
         else
             address = labels[label];
