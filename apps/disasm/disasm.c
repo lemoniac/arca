@@ -78,7 +78,6 @@ int main(int argc, char **argv)
                         case ALU_DIV: op = "/"; break;
                         case ALU_SHL: op = "<<"; break;
                         case ALU_SHR: op = ">>"; break;
-                        case ALU_INC: op = "++"; break;
 
                         case ALU_AND: op = "&"; break;
                         case ALU_OR:  op = "|"; break;
@@ -124,7 +123,7 @@ int main(int argc, char **argv)
                         default: printf(".??");
                     }
 
-                    printf(" %u\n", imm);
+                    printf(" %u\n", imm << 1);
                     break;
                 }
 
@@ -135,7 +134,7 @@ int main(int argc, char **argv)
 
                 case JAL: {
                     decodeC(inst, &dst, &imm);
-                    printf("jal r%u %u\n", dst, imm);
+                    printf("jal r%u %u\n", dst, (imm << 1));
                     break;
                 }
 

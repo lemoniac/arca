@@ -118,7 +118,6 @@ bool VM::step()
                 case ALU_DIV: res = regs[src0] / regs[src1]; break;
                 case ALU_SHL: res = regs[src0] << regs[src1]; break;
                 case ALU_SHR: res = regs[src0] >> regs[src1]; break;
-                case ALU_INC: res = regs[dst] + regs[src0]; break;
 
                 case ALU_AND: res = regs[src0] & regs[src1]; break;
                 case ALU_OR:  res = regs[src0] | regs[src1]; break;
@@ -270,7 +269,7 @@ bool VM::step()
                 case COND_NOSIGN: jmp = !sign; break;
             }
             if(jmp)
-                PC = imm - 4;
+                PC = (imm << 1) - 4;
 
             break;
         }
@@ -283,7 +282,7 @@ bool VM::step()
         case JAL:
             decodeC(dst, imm);
             regs[dst] = PC + 4;
-            PC = imm - 4;
+            PC = (imm << 1) - 4;
             break;
 
         case JALR:

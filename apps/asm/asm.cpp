@@ -64,6 +64,7 @@ class Parser {
     struct Label {
         std::string name;
         unsigned address;
+        unsigned align;
     };
 
     std::vector<Label> unk_labels;
@@ -136,7 +137,7 @@ public:
                 continue;
             }
 
-            *(unsigned *)(code + label.address) |= labels[label.name] << 12;
+            *(unsigned *)(code + label.address) |= labels[label.name] << (12 - label.align);
         }
     }
 
@@ -389,7 +390,7 @@ protected:
 
     void jmp(const std::string &cond, const std::string &label)
     {
-        unsigned address = resolveLabel(label);
+        unsigned address = resolveLabel(label, 1);
         unsigned cond_n = 0;
         if(cond == "")
             cond_n = 0;
@@ -410,7 +411,7 @@ protected:
         else if(cond == ".geu")
             cond_n = COND_GEU;
 
-        encodeC(JMP, cond_n, address);
+        encodeC(JMP, cond_n, address >> 1);
 
         std::cout << "jmp " << cond << " " << address << std::endl;
     }
@@ -427,12 +428,12 @@ protected:
         if(labels.find(label) == labels.end())
         {
             address = 0;
-            unk_labels.emplace_back(Label{label, PC + 2});
+            unk_labels.emplace_back(Label{label, PC + 2, 1});
         }
         else
             address = labels[label];
 
-        encodeC(JAL, std::stoi(dst), address);
+        encodeC(JAL, std::stoi(dst), address >> 1);
 
         std::cout << "jal r" << dst << " " << address << std::endl;
     }
@@ -500,13 +501,13 @@ protected:
         base_address = std::stoi(base);
     }
 
-    unsigned resolveLabel(const std::string &label)
+    unsigned resolveLabel(const std::string &label, unsigned align = 0)
     {
         unsigned address;
         if(labels.find(label) == labels.end())
         {
             address = 0;
-            unk_labels.emplace_back(Label{label, PC});
+            unk_labels.emplace_back(Label{label, PC, align});
         }
         else
             address = labels[label];
