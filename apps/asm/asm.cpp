@@ -227,15 +227,15 @@ protected:
         std::cout << (PC + base_address) << "   ";
 
         if(std::regex_match(line, match, add_re) && match.size() > 1)
-            arith(ADD, "+", match.str(1), match.str(2), match.str(3));
+            arith(ALU_ADD, "+", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, addi_re) && match.size() > 1)
             arithi(ADDI, "+", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, sub_re) && match.size() > 1)
-            arith(SUB, "-", match.str(1), match.str(2), match.str(3));
+            arith(ALU_SUB, "-", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, subi_re) && match.size() > 1)
             arithi(SUBI, "-", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, mul_re) && match.size() > 1)
-            arith(MUL, "*", match.str(1), match.str(2), match.str(3));
+            arith(ALU_MUL, "*", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, muli_re) && match.size() > 1)
             arithi(MULI, "*", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, shri_re) && match.size() > 1)
@@ -243,11 +243,11 @@ protected:
         else if(std::regex_match(line, match, shli_re) && match.size() > 1)
             arithi(SHLI, "<<", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, and_re) && match.size() > 1)
-            arithi(AND, "&", match.str(1), match.str(2), match.str(3));
+            arith(ALU_AND, "&", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, andi_re) && match.size() > 1)
             arithi(ANDI, "&", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, or_re) && match.size() > 1)
-            arithi(OR, "|", match.str(1), match.str(2), match.str(3));
+            arith(ALU_OR, "|", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, ori_re) && match.size() > 1)
             arithi(ORI, "|", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, inc_re) && match.size() > 1)
@@ -367,7 +367,7 @@ protected:
     void arith(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src0, const std::string &src1)
     {
         std::cout << "r" << dst << " = r" << src0 << " " << op << " r" << src1 << std::endl;
-        encodeA(opcode, std::stoi(dst), std::stoi(src0), std::stoi(src1));
+        encodeA(ALU, std::stoi(dst), std::stoi(src0), std::stoi(src1), opcode);
     }
 
     void arithi(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src, const std::string &imm)
@@ -384,7 +384,7 @@ protected:
     void inc(const std::string &dst, const std::string &imm)
     {
         std::cout << "r" << dst << " += " << imm << std::endl;
-        encodeC(INC, std::stoi(dst), std::stoi(imm));
+        encodeC(INCI, std::stoi(dst), std::stoi(imm));
     }
 
     void jmp(const std::string &cond, const std::string &label)
@@ -462,10 +462,10 @@ protected:
 
     // | opcode | dst | src0 | src1 | unused |
     //      7      5      5      5      10
-    void encodeA(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1)
+    void encodeA(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1, unsigned other = 0)
     {
         PC += PC & 3; // align
-        unsigned inst = opcode | (dst << 7) | (src0 << 12) | (src1 << 17);
+        unsigned inst = opcode | (dst << 7) | (src0 << 12) | (src1 << 17) | (other << 22);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
     }

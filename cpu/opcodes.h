@@ -10,35 +10,35 @@
 #define LOADR  6
 #define STORER 7
 
-#define ADD  10
+#define ALU  10
 #define ADDI 11
-#define SUB  12
-#define SUBI 13
-#define MUL  14
-#define MULI 15
-#define DIV  16
-#define DIVI 17
-#define SHR  18
-#define SHRI 19
-#define SHL  20
-#define SHLI 21
-#define INC  22
+#define SUBI 12
+#define MULI 13
+#define DIVI 14
+#define SHLI 15
+#define SHRI 16
+#define INCI 17
+#define ANDI 18
+#define XORI 19
+#define ORI  20
 
 #define JMP  30
 #define JMPR 31
 #define JAL  32
 #define JALR 33
 
-#define AND  40
-#define ANDI 41
-#define OR   42
-#define ORI  43
-#define XOR  44
-#define XORI 45
-#define NOT  46
-
 #define INT 100
 #define SYSTEM 101
+
+#define ALU_ADD  0
+#define ALU_SUB  1
+#define ALU_MUL  2
+#define ALU_DIV  3
+#define ALU_SHR  4
+#define ALU_SHL  5
+#define ALU_AND  6
+#define ALU_OR   7
+#define ALU_XOR  8
 
 #define COND_ALLWAYS 0
 #define COND_ZERO    1

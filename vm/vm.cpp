@@ -70,7 +70,7 @@ bool VM::step()
         break;
 
         case MOVR: {
-            decodeA(dst, src0, src1);
+            decodeA(dst, src0, src1, imm);
             regs[dst] = regs[src0];
         }
         break;
@@ -107,9 +107,23 @@ bool VM::step()
             break;
         }
 
-        case ADD: {
-            decodeA(dst, src0, src1);
-            uint32_t res = regs[src0] + regs[src1];
+        case ALU: {
+            uint32_t res = 0;
+            decodeA(dst, src0, src1, imm);
+            switch(imm)
+            {
+                case ALU_ADD: res = regs[src0] + regs[src1]; break;
+                case ALU_SUB: res = regs[src0] - regs[src1]; break;
+                case ALU_MUL: res = regs[src0] * regs[src1]; break;
+                case ALU_DIV: res = regs[src0] / regs[src1]; break;
+                case ALU_SHL: res = regs[src0] << regs[src1]; break;
+                case ALU_SHR: res = regs[src0] >> regs[src1]; break;
+                case ALU_INC: res = regs[dst] + regs[src0]; break;
+
+                case ALU_AND: res = regs[src0] & regs[src1]; break;
+                case ALU_OR:  res = regs[src0] | regs[src1]; break;
+                case ALU_XOR: res = regs[src0] ^ regs[src1]; break;
+            }
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -133,19 +147,6 @@ bool VM::step()
             break;
         }
 
-        case SUB: {
-            decodeA(dst, src0, src1);
-            uint32_t res = regs[src0] - regs[src1];
-
-            is_zero = res == 0;
-            sign = (res >> 31) == 1;
-
-            if (dst != 0)
-                regs[dst] = res;
-
-            break;
-        }
-
         case SUBI: {
             decodeB(dst, src0, imm);
             uint32_t res = regs[src0] - imm;
@@ -159,35 +160,9 @@ bool VM::step()
             break;
         }
 
-        case MUL: {
-            decodeA(dst, src0, src1);
-            uint32_t res = regs[src0] * regs[src1];
-
-            is_zero = res == 0;
-            sign = (res >> 31) == 1;
-
-            if (dst != 0)
-                regs[dst] = res;
-
-            break;
-        }
-
         case MULI: {
             decodeB(dst, src0, imm);
             uint32_t res = regs[src0] * imm;
-
-            is_zero = res == 0;
-            sign = (res >> 31) == 1;
-
-            if (dst != 0)
-                regs[dst] = res;
-
-            break;
-        }
-
-        case DIV: {
-            decodeA(dst, src0, src1);
-            uint32_t res = regs[src0] / regs[src1];
 
             is_zero = res == 0;
             sign = (res >> 31) == 1;
@@ -237,33 +212,9 @@ bool VM::step()
             break;
         }
 
-        case AND: {
-            decodeA(dst, src0, src1);
-            uint32_t res = regs[src0] & regs[src1];
-
-            is_zero = res == 0;
-
-            if (dst != 0)
-                regs[dst] = res;
-
-            break;
-        }
-
         case ANDI: {
             decodeB(dst, src0, imm);
             uint32_t res = regs[src0] & imm;
-
-            is_zero = res == 0;
-
-            if (dst != 0)
-                regs[dst] = res;
-
-            break;
-        }
-
-        case OR: {
-            decodeA(dst, src0, src1);
-            uint32_t res = regs[src0] | regs[src1];
 
             is_zero = res == 0;
 
@@ -285,7 +236,7 @@ bool VM::step()
             break;
         }
 
-        case INC: {
+        case INCI: {
             decodeC(dst, imm);
             uint32_t res = regs[dst] + imm;
 
@@ -296,7 +247,6 @@ bool VM::step()
 
             break;
         }
-
         case INT:
         {
             unsigned n, _;
@@ -344,7 +294,7 @@ bool VM::step()
 
         case SYSTEM: {
             unsigned fun;
-            decodeA(fun, dst, src0);
+            decodeA(fun, dst, src0, imm);
             switch(fun)
             {
                 case SYSTEM_CR_SET: {
@@ -404,11 +354,12 @@ void VM::enterKernelMode(unsigned entrypoint, unsigned exitpoint)
 }
 
 
-void VM::decodeA(unsigned &dst, unsigned &src0, unsigned &src1)
+void VM::decodeA(unsigned &dst, unsigned &src0, unsigned &src1, unsigned &imm)
 {
     dst = (currentInst >> 7) & 0x1f;
     src0 = (currentInst >> 12) & 0x1f;
     src1 = (currentInst >> 17) & 0x1f;
+    imm = currentInst >> 22;
 }
 
 void VM::decodeB(unsigned &dst, unsigned &src, unsigned &imm)

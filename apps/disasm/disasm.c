@@ -2,11 +2,12 @@
 #include <stdint.h>
 #include "opcodes.h"
 
-void decodeA(unsigned inst, unsigned *dst, unsigned *src0, unsigned *src1)
+void decodeA(unsigned inst, unsigned *dst, unsigned *src0, unsigned *src1, unsigned *imm)
 {
     *dst = (inst >> 7) & 0x1f;
     *src0 = (inst >> 12) & 0x1f;
     *src1 = (inst >> 17) & 0x1f;
+    *imm = inst >> 22;
 }
 
 void decodeB(unsigned inst, unsigned *dst, unsigned *src, unsigned *imm)
@@ -48,7 +49,7 @@ int main(int argc, char **argv)
                 }
 
                 case MOVR: {
-                    decodeA(inst, &dst, &src0, &src1);
+                    decodeA(inst, &dst, &src0, &src1, &imm);
                     printf("r%u = r%u\n", dst, src0);
                     break;
                 }
@@ -66,9 +67,24 @@ int main(int argc, char **argv)
                     break;
                 }
 
-                case ADD: {
-                    decodeA(inst, &dst, &src0, &src1);
-                    printf("r%u = r%u + r%u\n", dst, src0, src1);
+                case ALU: {;
+                    char *op = "?";
+                    decodeA(inst, &dst, &src0, &src1, &imm);
+                    switch(imm)
+                    {
+                        case ALU_ADD: op = "+"; break;
+                        case ALU_SUB: op = "-"; break;
+                        case ALU_MUL: op = "+"; break;
+                        case ALU_DIV: op = "/"; break;
+                        case ALU_SHL: op = "<<"; break;
+                        case ALU_SHR: op = ">>"; break;
+                        case ALU_INC: op = "++"; break;
+
+                        case ALU_AND: op = "&"; break;
+                        case ALU_OR:  op = "|"; break;
+                        case ALU_XOR: op = "^"; break;
+                    }
+                    printf("r%u = r%u %s r%u\n", dst, src0, op, src1);
                     break;
                 }
 
@@ -78,25 +94,13 @@ int main(int argc, char **argv)
                     break;
                 }
 
-                case SUB: {
-                    decodeA(inst, &dst, &src0, &src1);
-                    printf("r%u = r%u - r%u\n", dst, src0, src1);
-                    break;
-                }
-
                 case SUBI: {
                     decodeB(inst, &dst, &src0, &imm);
                     printf("r%u = r%u - %u\n", dst, src0, imm);
                     break;
                 }
 
-                case AND: {
-                    decodeA(inst, &dst, &src0, &src1);
-                    printf("r%u = r%u & r%u\n", dst, src0, src1);
-                    break;
-                }
-
-                case INC: {
+                case INCI: {
                     decodeC(inst, &dst, &imm);
                     printf("r%u += %u\n", dst, imm);
                     break;
@@ -112,6 +116,7 @@ int main(int argc, char **argv)
                     printf("jmp");
                     switch(dst)
                     {
+                        case COND_ALLWAYS: break;
                         case COND_ZERO: printf(".z"); break;
                         case COND_NOTZERO: printf(".nz"); break;
                         case COND_SIGN: printf(".s"); break;
