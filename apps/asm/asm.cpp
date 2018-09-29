@@ -1,10 +1,74 @@
 #include <stdio.h>
 #include <regex>
 #include <iostream>
+#include <deque>
 #include <map>
 #include "opcodes.h"
 
-enum Segment {Data, Text};  
+enum Segment {Data, Text};
+
+enum class Type { Address, Char, UInt16, Int, Struct };
+
+
+// add r1, r1, sizeof(S)
+struct Struct {
+    struct Member {
+        Member(std::string &&name, Type type, unsigned elem):
+            name(std::move(name)), type(type), elem(elem)
+        {}
+
+        std::string name;
+        Type type;
+        unsigned elem;
+        unsigned offset = 0;
+
+        unsigned size() const
+        {
+            switch(type)
+            {
+                case Type::Char: return elem;
+                case Type::Int: return 4 * elem;
+                case Type::UInt16: return 2 * elem;
+            }
+
+            return 0;
+        }
+    };
+
+    std::vector<Member> member;
+    int size = -1;
+
+    int getSize()
+    {
+        if(size == -1)
+        {
+            size = 0;
+            for(const auto &m : member)
+                size += m.size();
+        }
+
+        return size;
+    }
+
+    int getOffset(const std::string &name)
+    {
+        int off = 0;
+        unsigned c = 0;
+
+        for(const auto &m : member)
+        {
+            if(m.name == name)
+                break;
+            off += m.size();
+            c++;
+        }
+
+        if(c == member.size())
+            return -1;
+
+        return off;
+    }
+};
 
 class Parser {
 
@@ -31,6 +95,7 @@ class Parser {
     const std::regex load_re = std::regex("r(\\d+) = (\\w+)");
     const std::regex store_re = std::regex("(\\w+) = r(\\d+)");
     const std::regex store_reg_re = std::regex("\\*r(\\d+)(\\+\\d+)? = r(\\d+)");
+    const std::regex store_reg_struct_re = std::regex("\\*r(\\d+)\\.([\\w|\\.]+) = r(\\d+)");
     const std::regex jmp_reg_re = std::regex("jmp r(\\d+)");
     const std::regex jmp_re = std::regex("jmp(\\..+)? (\\S+)");
     const std::regex jal_reg_re = std::regex("jal r(\\d+) r(\\d+)(\\+d+)?");
@@ -44,11 +109,29 @@ class Parser {
     const std::regex include_re = std::regex("\\.include ([\\w\\./]+)");
     const std::regex org_re = std::regex("\\.org (\\d+)");
 
+    const std::regex struct_re = std::regex("\\.struct (\\w+)");
+    const std::regex def_int_re = std::regex("int (\\w+)");
+    const std::regex def_char_re = std::regex("char (\\w+)(\\[\\d+\\])?");
+    const std::regex def_uint16_re = std::regex("uint16 (\\w+)");
+
     const std::regex data_int_re = std::regex("int (\\w+) = (\\d+)");
     const std::regex data_char_re = std::regex("char (\\w+) = \"(.*)\"");
     const std::regex data_array_re = std::regex("char (\\w+)\\[(\\d+)\\]");
+    const std::regex struct_def_re = std::regex("struct (\\w+) (\\w+)");
 
-    std::map<std::string, unsigned> labels;
+    struct Symbol {
+        Symbol(unsigned address, Type type, const std::string &structName):
+            address(address), type(type), structName(structName)
+        {}
+
+        Symbol() {}
+    
+        unsigned address;
+        Type type;
+        std::string structName;
+    };
+
+    std::map<std::string, Symbol> labels;
     //std::map<std::string, unsigned> symbols; // name, address
 
     unsigned PC = 0;
@@ -61,6 +144,8 @@ class Parser {
 
     Segment segment = Data;
 
+    std::map<std::string, Struct> structs;
+
     struct Label {
         std::string name;
         unsigned address;
@@ -69,6 +154,7 @@ class Parser {
 
     std::vector<Label> unk_labels;
 
+    std::deque<FILE *> fileStack;
     FILE *file;
 public:
     void parse(const std::string &filename)
@@ -79,6 +165,8 @@ public:
             std::cerr << "error: file not found: " << filename << std::endl;
             return;
         }
+        fileStack.push_back(file);
+
         char *line = NULL;
         size_t len;
 
@@ -90,7 +178,9 @@ public:
         }
 
         fclose(file);
-        file = 0;
+        fileStack.pop_back();
+        if(!fileStack.empty())
+            file = fileStack.back();
     }
 
     void parseLine(const char *line)
@@ -137,7 +227,7 @@ public:
                 continue;
             }
 
-            *(unsigned *)(code + label.address) |= labels[label.name] << (12 - label.align);
+            *(unsigned *)(code + label.address) |= labels[label.name].address << (12 - label.align);
         }
     }
 
@@ -182,6 +272,8 @@ protected:
             createArrayVariable(match.str(1), std::stoi(match.str(2)));
         else if(std::regex_match(line, match, include_re) && match.size() > 1)
             include(match.str(1));
+        else if(std::regex_match(line, match, struct_def_re) && match.size() > 1)
+            createStruct(match.str(1), match.str(2));
         //else if(std::regex_match(line, match, label_re) && match.size() > 1)
         //    symbols[match.str(1)] = DP;
         else
@@ -193,19 +285,25 @@ protected:
     void createIntVariable(const std::string &name, int value)
     {
         *(int *)(code + PC) = value;
-        addLabel(name);
+        addLabel(Type::Int, name);
         PC += 4;
     }
 
     void createArrayVariable(const std::string &name, int size)
     {
-        addLabel(name);
+        addLabel(Type::Char, name);
         PC += size;
+    }
+
+    void createStruct(const std::string &structName, const std::string &name)
+    {
+        addLabel(Type::Struct, name, structName);
+        PC += structs[structName].getSize();
     }
 
     void createCharVariable(const std::string &name, const std::string &value)
     {
-        addLabel(name);
+        addLabel(Type::Char, name);
         for(unsigned i = 0; i < value.size(); i++)
         {
             *(int *)(code + PC) = value[i];
@@ -221,7 +319,7 @@ protected:
         std::smatch match;
         if(std::regex_match(line, match, label_re) && match.size() > 1)
         {
-            addLabel(match.str(1));
+            addLabel(Type::Address, match.str(1));
             return true;
         }
 
@@ -269,6 +367,8 @@ protected:
             load(match.str(1), match.str(2));
         else if(std::regex_match(line, match, store_reg_re) && match.size() > 1)
             storer(match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, store_reg_struct_re) && match.size() > 1)
+            storer_struct(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, store_re) && match.size() > 1)
             store(match.str(1), match.str(2));
         else if(std::regex_match(line, match, jmp_reg_re) && match.size() > 1)
@@ -293,16 +393,18 @@ protected:
             include(match.str(1));
         else if(std::regex_match(line, match, org_re) && match.size() > 1)
             org(match.str(1));
+        else if(std::regex_match(line, match, struct_re) && match.size() > 1)
+            parseStruct(match.str(1));
         else
             return false;
 
         return true;
     }
 
-    void addLabel(const std::string &label)
+    void addLabel(Type type, const std::string &label, const std::string &structName = "")
     {
         if(labels.find(label) == labels.end())
-            labels[label] = PC + base_address;
+            labels[label] = Symbol(PC + base_address, type, structName);
         else
             std::cerr << "error: duplicated label '" << label << "'" << std::endl; 
     }
@@ -359,9 +461,38 @@ protected:
     void storer(const std::string &dst, const std::string &off, const std::string &src)
     {
         int offset = 0;
-        std::cout << "*r" << dst << off << " = r" << src << off << std::endl;
+        std::cout << "*r" << dst << off << " = r" << src << std::endl;
         if(off != "")
             offset = std::stoi(off);
+        encodeB(STORER, std::stoi(dst), std::stoi(src), offset);
+    }
+
+    void storer_struct(const std::string &dst, const std::string &struct_field, const std::string &src)
+    {
+        size_t dot = struct_field.find(".");
+        if(dot == std::string::npos)
+        {
+            std::cerr << "expected struct.field" << std::endl;
+            return;
+        }
+        std::string structName = std::string(struct_field.begin(), struct_field.begin() + dot);
+        std::string field = std::string(struct_field.begin() + dot + 1, struct_field.end());
+
+        if(structs.find(structName) == structs.end())
+        {
+            std::cerr << "unknown struct " << structName << std::endl;
+            return;
+        }
+
+        int offset = structs[structName].getOffset(field);
+        if(offset == -1)
+        {
+            std::cerr << "unknown field '" << field << "' in struct " << structName << std::endl;
+            return;
+        }
+
+        std::cout << "*r" << dst << "+" << offset << " = r" << src << std::endl;
+
         encodeB(STORER, std::stoi(dst), std::stoi(src), offset);
     }
 
@@ -431,7 +562,7 @@ protected:
             unk_labels.emplace_back(Label{label, PC + 2, 1});
         }
         else
-            address = labels[label];
+            address = labels[label].address;
 
         encodeC(JAL, std::stoi(dst), address >> 1);
 
@@ -501,6 +632,41 @@ protected:
         base_address = std::stoi(base);
     }
 
+    void parseStructLine(const std::string &l, Struct &str)
+    {
+        std::smatch match;
+        if(std::regex_match(l, match, def_char_re) && match.size() > 1)
+            str.member.emplace_back(match.str(1), Type::Char, 1);
+        else if(std::regex_match(l, match, def_int_re) && match.size() > 1)
+            str.member.emplace_back(match.str(1), Type::Int, 1);
+        else if(std::regex_match(l, match, def_uint16_re) && match.size() > 1)
+            str.member.emplace_back(match.str(1), Type::UInt16, 1);
+    }
+
+    void parseStruct(const std::string &name)
+    {
+        Struct str;
+
+        char *line = NULL;
+        size_t len;
+
+        while(!feof(file))
+        {
+            int res = getline(&line, &len, file);
+            if(res != -1)
+            {
+                std::string l = cleanLine(line);
+                if(l.empty())
+                    continue;
+                if(l == ".endstruct")
+                    break;
+                parseStructLine(l, str);
+            }
+        }
+        
+        structs[name] = str;
+    }
+
     unsigned resolveLabel(const std::string &label, unsigned align = 0)
     {
         unsigned address;
@@ -510,7 +676,7 @@ protected:
             unk_labels.emplace_back(Label{label, PC, align});
         }
         else
-            address = labels[label];
+            address = labels[label].address;
 
         return address;
     }
@@ -533,16 +699,7 @@ int main(int argc, char **argv)
     }
 
     Parser parser;
-
-    char *line = NULL;
-    size_t len;
-
-    while(!feof(file))
-    {
-        int res = getline(&line, &len, file);
-        if(res != -1)
-            parser.parseLine(line);
-    }
+    parser.parse(argv[1]);
 
     parser.resolveUnknownLabels();
 
