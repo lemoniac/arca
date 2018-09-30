@@ -97,12 +97,12 @@ bool VM::step()
             decodeD(dst, src0, width, imm);
             int off = extendSign(imm, 14);
             unsigned addr = regs[dst] + off;
-            uint8_t value = regs[src0];
+            unsigned value = regs[src0];
             switch(width)
             {
-                case MEM_STOREW: *(unsigned *)(baseaddr + addr) = regs[dst]; break;
-                case MEM_STOREH: *(uint16_t *)(baseaddr + addr) = regs[dst]; break;
-                case MEM_STOREB: *(uint8_t *)(baseaddr + addr) = regs[dst]; break;
+                case MEM_STOREW: *(unsigned *)(baseaddr + addr) = value; break;
+                case MEM_STOREH: *(uint16_t *)(baseaddr + addr) = value; break;
+                case MEM_STOREB: *(uint8_t *)(baseaddr + addr) = value; break;
             }
             break;
         }

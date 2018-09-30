@@ -595,7 +595,7 @@ protected:
     void push(const std::string &reg)
     {
         std::cout << "*r14 = r" << reg << std::endl;
-        encodeA(STORER, 14, std::stoi(reg), 0);
+        encodeD(STORER, 14, std::stoi(reg), MEM_STOREW, 0);
         std::cout << "r14 -= 4" << std::endl;
         encodeA(SUBI, 14, 14, 4);
     }
@@ -605,7 +605,7 @@ protected:
         std::cout << "r14 += 4" << std::endl;
         encodeA(ADDI, 14, 14, 4);
         std::cout << "r" << reg << " = *r14" << std::endl;
-        encodeA(LOADR, std::stoi(reg), 14, 0);
+        encodeD(LOADR, std::stoi(reg), 14, MEM_LOADW, 0);
     }
 
     void system(unsigned fun, const std::string &src, const std::string &dst)
