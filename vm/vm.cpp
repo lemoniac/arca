@@ -80,18 +80,6 @@ bool VM::step()
             regs[dst] = imm << 12;
         }
 
-        case LOAD: {
-            decodeC(dst, imm);
-            regs[dst] = *(unsigned *)(baseaddr + imm);
-            break;
-        }
-
-        case STORE: {
-            decodeC(src0, imm);
-            *(unsigned *)(baseaddr + imm) = regs[src0];
-            break;
-        }
-
         case LOADR: {
             decodeB(dst, src0, imm);
             unsigned addr = regs[src0];

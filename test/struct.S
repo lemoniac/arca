@@ -21,3 +21,7 @@ start:
     r10 += 4
     r2 = *r10
     int 0
+
+    r10 = &point
+    r2 = *r10.point_s.y
+    int 0

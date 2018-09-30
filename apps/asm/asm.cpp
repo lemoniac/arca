@@ -91,11 +91,10 @@ class Parser {
     const std::regex assign_imm_re = std::regex("r(\\d+) = (" NUMBER ")");
     const std::regex assign_reg_re = std::regex("r(\\d+) = r(\\d+)");
     const std::regex assign_ref_re = std::regex("r(\\d+) = &(\\w+)");
-    const std::regex assign_deref_re = std::regex("r(\\d+) = \\*r(\\d+)(\\+\\d+)?");
-    const std::regex load_re = std::regex("r(\\d+) = (\\w+)");
-    const std::regex store_re = std::regex("(\\w+) = r(\\d+)");
-    const std::regex store_reg_re = std::regex("\\*r(\\d+)(\\+\\d+)? = r(\\d+)");
-    const std::regex store_reg_struct_re = std::regex("\\*r(\\d+)\\.([\\w|\\.]+) = r(\\d+)");
+    const std::regex assign_deref_re = std::regex("r(\\d+) = \\*r(\\d+)([\\+|-]\\d+)?");
+    const std::regex loadr_struct_re = std::regex("r(\\d+) = \\*r(\\d+)\\.([\\w|\\.]+)");
+    const std::regex store_reg_re = std::regex("\\*r(\\d+)([\\+|-]\\d+)? = r(\\d+)");
+    const std::regex storer_struct_re = std::regex("\\*r(\\d+)\\.([\\w|\\.]+) = r(\\d+)");
     const std::regex jmp_reg_re = std::regex("jmp r(\\d+)");
     const std::regex jmp_re = std::regex("jmp(\\..+)? (\\S+)");
     const std::regex jal_reg_re = std::regex("jal r(\\d+) r(\\d+)(\\+d+)?");
@@ -363,14 +362,12 @@ protected:
             system(SYSTEM_CR_SET, match.str(2), match.str(1));
         else if(std::regex_match(line, match, read_cr_re) && match.size() > 1)
             system(SYSTEM_CR_READ, match.str(2), match.str(1));
-        else if(std::regex_match(line, match, load_re) && match.size() > 1)
-            load(match.str(1), match.str(2));
+        else if(std::regex_match(line, match, loadr_struct_re) && match.size() > 1)
+            loadr_struct(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, store_reg_re) && match.size() > 1)
             storer(match.str(1), match.str(2), match.str(3));
-        else if(std::regex_match(line, match, store_reg_struct_re) && match.size() > 1)
+        else if(std::regex_match(line, match, storer_struct_re) && match.size() > 1)
             storer_struct(match.str(1), match.str(2), match.str(3));
-        else if(std::regex_match(line, match, store_re) && match.size() > 1)
-            store(match.str(1), match.str(2));
         else if(std::regex_match(line, match, jmp_reg_re) && match.size() > 1)
             jmp_reg(match.str(1));
         else if(std::regex_match(line, match, jmp_re) && match.size() > 1)
@@ -444,18 +441,15 @@ protected:
         encodeB(LOADR, std::stoi(dst), std::stoi(src), offset);
     }
 
-    void load(const std::string &dst, const std::string &label)
+    void loadr_struct(const std::string &dst, const std::string &src, const std::string &struct_field)
     {
-        unsigned address = resolveLabel(label);
-        std::cout << "r" << dst << " = [" << address << "]" <<  std::endl;
-        encodeC(LOAD, std::stoi(dst), address);
-    }
+        int offset = getFieldOffset(struct_field);
+        if(offset < 0)
+            return;
 
-    void store(const std::string &src, const std::string &label)
-    {
-        unsigned address = resolveLabel(label);
-        std::cout << "[" << address << "] = r" << src << std::endl;
-        encodeC(STORE, std::stoi(src), address);
+        std::cout << "r" << dst << " = *r" << src << "+" << offset << std::endl;
+
+        encodeB(LOADR, std::stoi(dst), std::stoi(src), offset);
     }
 
     void storer(const std::string &dst, const std::string &off, const std::string &src)
@@ -469,27 +463,9 @@ protected:
 
     void storer_struct(const std::string &dst, const std::string &struct_field, const std::string &src)
     {
-        size_t dot = struct_field.find(".");
-        if(dot == std::string::npos)
-        {
-            std::cerr << "expected struct.field" << std::endl;
+        int offset = getFieldOffset(struct_field);
+        if(offset < 0)
             return;
-        }
-        std::string structName = std::string(struct_field.begin(), struct_field.begin() + dot);
-        std::string field = std::string(struct_field.begin() + dot + 1, struct_field.end());
-
-        if(structs.find(structName) == structs.end())
-        {
-            std::cerr << "unknown struct " << structName << std::endl;
-            return;
-        }
-
-        int offset = structs[structName].getOffset(field);
-        if(offset == -1)
-        {
-            std::cerr << "unknown field '" << field << "' in struct " << structName << std::endl;
-            return;
-        }
 
         std::cout << "*r" << dst << "+" << offset << " = r" << src << std::endl;
 
@@ -666,6 +642,34 @@ protected:
         
         structs[name] = str;
     }
+
+    int getFieldOffset(const std::string &struct_field)
+    {
+        size_t dot = struct_field.find(".");
+        if(dot == std::string::npos)
+        {
+            std::cerr << "expected struct.field" << std::endl;
+            return -1;
+        }
+        std::string structName = std::string(struct_field.begin(), struct_field.begin() + dot);
+        std::string field = std::string(struct_field.begin() + dot + 1, struct_field.end());
+
+        if(structs.find(structName) == structs.end())
+        {
+            std::cerr << "unknown struct " << structName << std::endl;
+            return -1;
+        }
+
+        int offset = structs[structName].getOffset(field);
+        if(offset == -1)
+        {
+            std::cerr << "unknown field '" << field << "' in struct " << structName << std::endl;
+            return -1;
+        }
+
+        return offset;
+    }
+
 
     unsigned resolveLabel(const std::string &label, unsigned align = 0)
     {

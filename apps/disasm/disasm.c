@@ -67,6 +67,13 @@ int main(int argc, char **argv)
                     break;
                 }
 
+                case STORER: {
+                    decodeB(inst, &dst, &src0, &imm);
+                    char sgn = imm < 0? '-' : '+';
+                    printf("*r%u%c%u = r%u\n", dst, sgn, imm, src0);
+                    break;
+                }
+
                 case ALU: {;
                     char *op = "?";
                     decodeA(inst, &dst, &src0, &src1, &imm);
