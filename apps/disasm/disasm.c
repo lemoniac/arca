@@ -23,6 +23,13 @@ void decodeC(unsigned inst, unsigned *dst, unsigned *imm)
     *imm = (inst >> 12);
 }
 
+int extendSign(unsigned imm, unsigned bit)
+{
+    if(imm & (1 << bit))
+        return imm | 0xFFFFFFFF << bit;
+    return imm;
+}
+
 int main(int argc, char **argv)
 {
     FILE *file = fopen(argv[1], "rb");
@@ -54,23 +61,18 @@ int main(int argc, char **argv)
                     break;
                 }
 
-                case LOAD: {
-                    uint8_t dst = buffer[i+1];
-                    uint16_t addr = *(uint16_t *)(buffer+i+2);
-                    printf("r%u = [%u]\n", dst, addr);
-                    break;
-                }
-
                 case LOADR: {
                     decodeB(inst, &dst, &src0, &imm);
-                    printf("r%u = r%u[%u]\n", dst, src0, imm);
+                    int imm_i = extendSign(imm, 14);
+                    printf("r%u = r%u[%i]\n", dst, src0, imm_i);
                     break;
                 }
 
                 case STORER: {
                     decodeB(inst, &dst, &src0, &imm);
-                    char sgn = imm < 0? '-' : '+';
-                    printf("*r%u%c%u = r%u\n", dst, sgn, imm, src0);
+                    int imm_i = extendSign(imm, 14);
+                    char sgn = imm_i < 0? ' ' : '+';
+                    printf("*r%u%c%i = r%u\n", dst, sgn, imm_i, src0);
                     break;
                 }
 

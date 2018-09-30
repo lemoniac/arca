@@ -48,6 +48,8 @@ protected:
     void decodeB(unsigned &dst, unsigned &src, unsigned &imm);
     void decodeC(unsigned &dst, unsigned &imm);
 
+    int extendSign(unsigned imm, unsigned bit);
+
     file_system fs;
 
     std::deque<char> keys;

@@ -82,16 +82,18 @@ bool VM::step()
 
         case LOADR: {
             decodeB(dst, src0, imm);
+            int off = extendSign(imm, 14);
             unsigned addr = regs[src0];
-            regs[dst] = *(unsigned *)(baseaddr + addr + imm);
+            regs[dst] = *(unsigned *)(baseaddr + addr + off);
             break;
         }
 
         case STORER: {
             decodeB(dst, src0, imm);
+            int off = extendSign(imm, 14);
             unsigned addr = regs[dst];
             uint8_t value = regs[src0];
-            baseaddr[addr + imm] = value;
+            baseaddr[addr + off] = value;
             break;
         }
 
@@ -360,4 +362,11 @@ void VM::decodeC(unsigned &dst, unsigned &imm)
 {
     dst = (currentInst >> 7) & 0x1f;
     imm = (currentInst >> 12);
+}
+
+int VM::extendSign(unsigned imm, unsigned bit)
+{
+    if(imm & (1 << bit))
+        return imm | 0xFFFFFFFF << bit;
+    return imm;
 }
