@@ -102,6 +102,9 @@ class Parser {
     const std::regex int_re = std::regex("int (\\d+)");
     const std::regex call_re = std::regex("call (\\w+)");
 
+    const std::regex push_re = std::regex("push r(\\d+)");
+    const std::regex pop_re = std::regex("pop r(\\d+)");
+
     const std::regex set_cr_re = std::regex("cr(\\d+) = r(\\d+)");
     const std::regex read_cr_re = std::regex("r(\\d+) = cr(\\d+)");
 
@@ -382,6 +385,10 @@ protected:
             interrupt(match.str(1));
         else if(line == "ret")
             jmp_reg("15");
+        else if(std::regex_match(line, match, push_re) && match.size() > 1)
+            push(match.str(1));
+        else if(std::regex_match(line, match, pop_re) && match.size() > 1)
+            pop(match.str(1));
         else if(line == "syscall")
             system(SYSTEM_CALL, "0", "0");
         else if(line == "sysret")
@@ -560,6 +567,22 @@ protected:
     {
         std::cout << "int " << int_n << std::endl;
         encodeC(INT, std::stoi(int_n), 0);
+    }
+
+    void push(const std::string &reg)
+    {
+        std::cout << "*r14 = r" << reg << std::endl;
+        encodeA(STORER, 14, std::stoi(reg), 0);
+        std::cout << "r14 -= 4" << std::endl;
+        encodeA(SUBI, 14, 14, 4);
+    }
+
+    void pop(const std::string &reg)
+    {
+        std::cout << "r14 += 4" << std::endl;
+        encodeA(ADDI, 14, 14, 4);
+        std::cout << "r" << reg << " = *r14" << std::endl;
+        encodeA(LOADR, std::stoi(reg), 14, 0);
     }
 
     void system(unsigned fun, const std::string &src, const std::string &dst)

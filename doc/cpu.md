@@ -7,9 +7,9 @@ RISC 32 bits load/store architecture
 There are 32 32bit registers, the last 16 can only be accessed on privileged mode.
 
 r0 - always 0
-r1-r12 - user mode registers
-r13 - stack register
-r14 - link register
+r1-r13 - user mode registers
+r14 - stack register
+r15 - link register
 
 r16-r31 - kernel mode registers
 
