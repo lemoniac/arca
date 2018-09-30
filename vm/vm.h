@@ -47,6 +47,7 @@ protected:
     void decodeA(unsigned &dst, unsigned &src0, unsigned &src1, unsigned &imm);
     void decodeB(unsigned &dst, unsigned &src, unsigned &imm);
     void decodeC(unsigned &dst, unsigned &imm);
+    void decodeD(unsigned &dst, unsigned &src, unsigned &fun, unsigned &imm);
 
     int extendSign(unsigned imm, unsigned bit);
 

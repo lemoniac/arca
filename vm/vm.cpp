@@ -60,7 +60,7 @@ bool VM::step()
 
     currentInst = *(unsigned *)(baseaddr + PC);
     uint8_t opcode = currentInst & 0x7f;
-    unsigned dst, src0, src1, imm;
+    unsigned dst, src0, src1, imm, width;
     switch(opcode)
     {
         case MOVI: {
@@ -81,19 +81,29 @@ bool VM::step()
         }
 
         case LOADR: {
-            decodeB(dst, src0, imm);
+            decodeD(dst, src0, width, imm);
             int off = extendSign(imm, 14);
-            unsigned addr = regs[src0];
-            regs[dst] = *(unsigned *)(baseaddr + addr + off);
+            unsigned addr = regs[src0] + off;
+            switch(width)
+            {
+                case MEM_LOADW: regs[dst] = *(unsigned *)(baseaddr + addr); break;
+                case MEM_LOADHU: regs[dst] = *(uint16_t *)(baseaddr + addr); break;
+                case MEM_LOADBU: regs[dst] = *(uint8_t *)(baseaddr + addr); break;
+            }
             break;
         }
 
         case STORER: {
-            decodeB(dst, src0, imm);
+            decodeD(dst, src0, width, imm);
             int off = extendSign(imm, 14);
-            unsigned addr = regs[dst];
+            unsigned addr = regs[dst] + off;
             uint8_t value = regs[src0];
-            baseaddr[addr + off] = value;
+            switch(width)
+            {
+                case MEM_STOREW: *(unsigned *)(baseaddr + addr) = regs[dst]; break;
+                case MEM_STOREH: *(uint16_t *)(baseaddr + addr) = regs[dst]; break;
+                case MEM_STOREB: *(uint8_t *)(baseaddr + addr) = regs[dst]; break;
+            }
             break;
         }
 
@@ -362,6 +372,14 @@ void VM::decodeC(unsigned &dst, unsigned &imm)
 {
     dst = (currentInst >> 7) & 0x1f;
     imm = (currentInst >> 12);
+}
+
+void VM::decodeD(unsigned &dst, unsigned &src, unsigned &fun, unsigned &imm)
+{
+    dst = (currentInst >> 7) & 0x1f;
+    src = (currentInst >> 12) & 0x1f;
+    fun = (currentInst >> 17) & 0x7;
+    imm = (currentInst >> 20);
 }
 
 int VM::extendSign(unsigned imm, unsigned bit)

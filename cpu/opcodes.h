@@ -38,6 +38,16 @@
 #define ALU_OR   7
 #define ALU_XOR  8
 
+#define MEM_LOADW  0
+#define MEM_LOADHU 1
+#define MEM_LOADHS 2
+#define MEM_LOADBU 3
+#define MEM_LOADBS 4
+
+#define MEM_STOREW 0
+#define MEM_STOREH 1
+#define MEM_STOREB 2
+
 #define COND_ALLWAYS 0
 #define COND_ZERO    1
 #define COND_NOTZERO 2

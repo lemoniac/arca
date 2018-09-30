@@ -91,10 +91,10 @@ class Parser {
     const std::regex assign_imm_re = std::regex("r(\\d+) = (" NUMBER ")");
     const std::regex assign_reg_re = std::regex("r(\\d+) = r(\\d+)");
     const std::regex assign_ref_re = std::regex("r(\\d+) = &(\\w+)");
-    const std::regex assign_deref_re = std::regex("r(\\d+) = \\*r(\\d+)([\\+|-]\\d+)?");
-    const std::regex loadr_struct_re = std::regex("r(\\d+) = \\*r(\\d+)\\.([\\w|\\.]+)");
-    const std::regex store_reg_re = std::regex("\\*r(\\d+)([\\+|-]\\d+)? = r(\\d+)");
-    const std::regex storer_struct_re = std::regex("\\*r(\\d+)\\.([\\w|\\.]+) = r(\\d+)");
+    const std::regex loadr_re = std::regex("r(\\d+) ([w,h,b])?= \\*r(\\d+)([\\+|-]\\d+)?");
+    const std::regex loadr_struct_re = std::regex("r(\\d+) ([w,h,b])?= \\*r(\\d+)\\.([\\w|\\.]+)");
+    const std::regex store_reg_re = std::regex("\\*r(\\d+)([\\+|-]\\d+)? ([w,h,b])?= r(\\d+)");
+    const std::regex storer_struct_re = std::regex("\\*r(\\d+)\\.([\\w|\\.]+) ([w,h,b])?= r(\\d+)");
     const std::regex jmp_reg_re = std::regex("jmp r(\\d+)");
     const std::regex jmp_re = std::regex("jmp(\\..+)? (\\S+)");
     const std::regex jal_reg_re = std::regex("jal r(\\d+) r(\\d+)(\\+d+)?");
@@ -359,18 +359,18 @@ protected:
             assign_imm(match.str(1), match.str(2));
         else if(std::regex_match(line, match, assign_ref_re) && match.size() > 1)
             assign_ref(match.str(1), match.str(2));
-        else if(std::regex_match(line, match, assign_deref_re) && match.size() > 1)
-            assign_deref(match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, loadr_re) && match.size() > 1)
+            loadr(match.str(1), match.str(2), match.str(3), match.str(4));
         else if(std::regex_match(line, match, set_cr_re) && match.size() > 1)
             system(SYSTEM_CR_SET, match.str(2), match.str(1));
         else if(std::regex_match(line, match, read_cr_re) && match.size() > 1)
             system(SYSTEM_CR_READ, match.str(2), match.str(1));
         else if(std::regex_match(line, match, loadr_struct_re) && match.size() > 1)
-            loadr_struct(match.str(1), match.str(2), match.str(3));
+            loadr_struct(match.str(1), match.str(2), match.str(3), match.str(4));
         else if(std::regex_match(line, match, store_reg_re) && match.size() > 1)
-            storer(match.str(1), match.str(2), match.str(3));
+            storer(match.str(1), match.str(2), match.str(3), match.str(4));
         else if(std::regex_match(line, match, storer_struct_re) && match.size() > 1)
-            storer_struct(match.str(1), match.str(2), match.str(3));
+            storer_struct(match.str(1), match.str(2), match.str(3), match.str(4));
         else if(std::regex_match(line, match, jmp_reg_re) && match.size() > 1)
             jmp_reg(match.str(1));
         else if(std::regex_match(line, match, jmp_re) && match.size() > 1)
@@ -439,16 +439,28 @@ protected:
         encodeC(MOVI, std::stoi(dst), address);
     }
 
-    void assign_deref(const std::string &dst, const std::string &src, const std::string &off)
+    unsigned getLoadWidth(const std::string &width)
+    {
+        if(width == "" || width == "w")
+            return MEM_LOADW;
+        else if(width == "h")
+            return MEM_LOADHU;
+        else if(width == "b")
+            return MEM_LOADBU;
+        return 0;
+    }
+
+    void loadr(const std::string &dst, const std::string &width, const std::string &src, const std::string &off)
     {
         int offset = 0;
         std::cout << "r" << dst << " = *r" << src << off << std::endl;
         if(off != "")
             offset = std::stoi(off);
-        encodeB(LOADR, std::stoi(dst), std::stoi(src), offset);
+
+        encodeD(LOADR, std::stoi(dst), std::stoi(src), getLoadWidth(width), offset);
     }
 
-    void loadr_struct(const std::string &dst, const std::string &src, const std::string &struct_field)
+    void loadr_struct(const std::string &dst, const std::string &width, const std::string &src, const std::string &struct_field)
     {
         int offset = getFieldOffset(struct_field);
         if(offset < 0)
@@ -456,19 +468,30 @@ protected:
 
         std::cout << "r" << dst << " = *r" << src << "+" << offset << std::endl;
 
-        encodeB(LOADR, std::stoi(dst), std::stoi(src), offset);
+        encodeD(LOADR, std::stoi(dst), std::stoi(src), getLoadWidth(width), offset);
     }
 
-    void storer(const std::string &dst, const std::string &off, const std::string &src)
+    unsigned getStoreWidth(const std::string &width)
+    {
+        if(width == "" || width == "w")
+            return MEM_STOREW;
+        else if(width == "h")
+            return MEM_STOREH;
+        else if(width == "b")
+            return MEM_STOREB;
+        return 0;
+    }
+
+    void storer(const std::string &dst, const std::string &off, const std::string &width, const std::string &src)
     {
         int offset = 0;
         std::cout << "*r" << dst << off << " = r" << src << std::endl;
         if(off != "")
             offset = std::stoi(off);
-        encodeB(STORER, std::stoi(dst), std::stoi(src), offset);
+        encodeD(STORER, std::stoi(dst), std::stoi(src), getStoreWidth(width), offset);
     }
 
-    void storer_struct(const std::string &dst, const std::string &struct_field, const std::string &src)
+    void storer_struct(const std::string &dst, const std::string &struct_field, const std::string &width, const std::string &src)
     {
         int offset = getFieldOffset(struct_field);
         if(offset < 0)
@@ -476,7 +499,7 @@ protected:
 
         std::cout << "*r" << dst << "+" << offset << " = r" << src << std::endl;
 
-        encodeB(STORER, std::stoi(dst), std::stoi(src), offset);
+        encodeD(STORER, std::stoi(dst), std::stoi(src), getStoreWidth(width), offset);
     }
 
     void arith(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src0, const std::string &src1)
@@ -617,6 +640,16 @@ protected:
     {
         PC += PC & 3; // align
         unsigned inst = opcode | (dst << 7) | ((imm & 0xFFFFF) << 12);
+        *(unsigned *)(code + PC) = inst;
+        PC += 4;
+    }
+
+    // | opcode | dst | src | fun | immediate |
+    //      7      5     5     3       12
+    void encodeD(uint8_t opcode, uint8_t dst, uint8_t src, uint8_t fun, unsigned imm)
+    {
+        PC += PC & 3; // align
+        unsigned inst = opcode | (dst << 7) | (src << 12) | (fun << 17) | ((imm & 0xFFF) << 20);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
     }
