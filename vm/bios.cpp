@@ -75,11 +75,29 @@ void VM::interrupt(uint8_t n)
             {
                 case 0:
                     if(keys.empty())
-                        regs[1] = 0;
+                        regs[1] = -1;
                     else
                     {
                         regs[1] = keys[0];
                         keys.pop_front();
+                    }
+                    break;
+
+                case 10:
+                    regs[1] = mousePos.x;
+                    regs[2] = mousePos.y;
+                    break;
+
+                case 11:
+                    if(mouse.empty())
+                        regs[3] = -1;
+                    else
+                    {
+                        regs[1] = mouse[0].pos.x;
+                        regs[2] = mouse[0].pos.y;
+                        regs[3] = mouse[0].button;
+                        regs[4] = mouse[0].state;
+                        mouse.pop_front();
                     }
                     break;
             }

@@ -20,3 +20,11 @@
 * 0 - returns in *r1* if the disk is connected
 * 1 - reads the sector *r2* in the location pointed by *r3*
 * 2 - writes to the sector *r2* the contents pointed by *r3*
+
+## int 0x16 - input
+
+Keyboard and mouse buffers have 16 entries, events over that will be ignored.
+
+* 0 - reads a key from the keyboard buffer in *r1*
+* 10 - reads the mouse position to *(r1, r2)*
+* 11 - reads a mouse event from the buffer

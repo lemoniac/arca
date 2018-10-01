@@ -53,7 +53,20 @@ protected:
 
     file_system fs;
 
+    struct MousePos {
+        int x;
+        int y;
+    };
+
+    struct MouseEvent {
+        uint8_t button;
+        uint8_t state;
+        MousePos pos;
+    };
+
     std::deque<char> keys;
+    std::deque<MouseEvent> mouse;
+    MousePos mousePos;
 
     bool interruptsEnabled = false;
 };

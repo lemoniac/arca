@@ -26,11 +26,28 @@ void VM::run()
     {
         if(SDL_PollEvent(&event))
         {
-            if(event.type == SDL_KEYDOWN)
+            switch(event.type)
             {
-                if(keys.size() < 16)
-                    keys.push_back(event.key.keysym.sym);
+                case SDL_KEYDOWN:
+                    if(keys.size() < 16)
+                        keys.push_back(event.key.keysym.sym);
+                    break;
+
+                case SDL_MOUSEMOTION:
+                    mousePos.x = event.motion.x;
+                    mousePos.y = event.motion.y;
+                    break;
+
+                case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONUP:
+                    if(mouse.size() < 16)
+                    {
+                        MouseEvent me = {event.button.button, event.button.state, {event.button.x, event.button.y}};
+                        mouse.push_back(me);
+                    }
+                    break;
             }
+
         }
 
         unsigned t = SDL_GetTicks();
