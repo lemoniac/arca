@@ -113,7 +113,7 @@ class Parser {
 
     const std::regex struct_re = std::regex("\\.struct (\\w+)");
     const std::regex def_int_re = std::regex("int (\\w+)");
-    const std::regex def_char_re = std::regex("char (\\w+)(\\[\\d+\\])?");
+    const std::regex def_char_re = std::regex("char (\\w+)(\\[(\\d+)\\])?");
     const std::regex def_uint16_re = std::regex("uint16 (\\w+)");
 
     const std::regex data_int_re = std::regex("int (\\w+) = (\\d+)");
@@ -664,11 +664,18 @@ protected:
         base_address = std::stoi(base);
     }
 
+    int parseArraySize(const std::string &n)
+    {
+        if(n == "")
+            return 1;
+        return std::stoi(n);
+    }
+
     void parseStructLine(const std::string &l, Struct &str)
     {
         std::smatch match;
         if(std::regex_match(l, match, def_char_re) && match.size() > 1)
-            str.member.emplace_back(match.str(1), Type::Char, 1);
+            str.member.emplace_back(match.str(1), Type::Char, parseArraySize(match.str(3)));
         else if(std::regex_match(l, match, def_int_re) && match.size() > 1)
             str.member.emplace_back(match.str(1), Type::Int, 1);
         else if(std::regex_match(l, match, def_uint16_re) && match.size() > 1)
