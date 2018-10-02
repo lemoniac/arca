@@ -1,7 +1,8 @@
-CPPFLAGS=--std=c++11 -I../../cpu/
+CPPFLAGS=--std=c++11 -I../../cpu/ -g
+OBJS=asm.o struct.o
 
-asm: asm.cpp ../../cpu/opcodes.h
-	g++ -g -o asm asm.cpp $(CPPFLAGS)
+asm: $(OBJS) ../../cpu/opcodes.h
+	g++ -o asm $(OBJS) $(CPPFLAGS)
 
 clean:
-	rm -f asm
+	rm -f asm $(OBJS)
