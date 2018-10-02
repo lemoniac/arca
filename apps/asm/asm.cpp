@@ -70,6 +70,8 @@ struct Struct {
     }
 };
 
+#define ALIGN(n) (n + 3) & ~3
+
 class Parser {
 
     #define NUMBER "-?\\d+|\\'.\\'"
@@ -321,6 +323,7 @@ protected:
         std::smatch match;
         if(std::regex_match(line, match, label_re) && match.size() > 1)
         {
+            PC = ALIGN(PC);
             addLabel(Type::Address, match.str(1));
             return true;
         }
@@ -618,7 +621,7 @@ protected:
     //      7      5      5      5      10
     void encodeA(uint8_t opcode, uint8_t dst, uint8_t src0, uint8_t src1, unsigned other = 0)
     {
-        PC += PC & 3; // align
+        PC = ALIGN(PC);
         unsigned inst = opcode | (dst << 7) | (src0 << 12) | (src1 << 17) | (other << 22);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
@@ -628,7 +631,7 @@ protected:
     //      7      5     5       15
     void encodeB(uint8_t opcode, uint8_t dst, uint8_t src, unsigned imm)
     {
-        PC += PC & 3; // align
+        PC = ALIGN(PC);
         unsigned inst = opcode | (dst << 7) | (src << 12) | ((imm & 0x7FFF) << 17);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
@@ -638,7 +641,7 @@ protected:
     //      7      5       20
     void encodeC(uint8_t opcode, uint8_t dst, unsigned imm)
     {
-        PC += PC & 3; // align
+        PC = ALIGN(PC);
         unsigned inst = opcode | (dst << 7) | ((imm & 0xFFFFF) << 12);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
@@ -648,7 +651,7 @@ protected:
     //      7      5     5     3       12
     void encodeD(uint8_t opcode, uint8_t dst, uint8_t src, uint8_t fun, unsigned imm)
     {
-        PC += PC & 3; // align
+        PC = ALIGN(PC);
         unsigned inst = opcode | (dst << 7) | (src << 12) | (fun << 17) | ((imm & 0xFFF) << 20);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
