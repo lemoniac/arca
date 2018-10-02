@@ -4,71 +4,10 @@
 #include <deque>
 #include <map>
 #include "opcodes.h"
+#include "struct.h"
 
 enum Segment {Data, Text};
 
-enum class Type { Address, Char, UInt16, Int, Struct };
-
-
-// add r1, r1, sizeof(S)
-struct Struct {
-    struct Member {
-        Member(std::string &&name, Type type, unsigned elem):
-            name(std::move(name)), type(type), elem(elem)
-        {}
-
-        std::string name;
-        Type type;
-        unsigned elem;
-        unsigned offset = 0;
-
-        unsigned size() const
-        {
-            switch(type)
-            {
-                case Type::Char: return elem;
-                case Type::Int: return 4 * elem;
-                case Type::UInt16: return 2 * elem;
-            }
-
-            return 0;
-        }
-    };
-
-    std::vector<Member> member;
-    int size = -1;
-
-    int getSize()
-    {
-        if(size == -1)
-        {
-            size = 0;
-            for(const auto &m : member)
-                size += m.size();
-        }
-
-        return size;
-    }
-
-    int getOffset(const std::string &name)
-    {
-        int off = 0;
-        unsigned c = 0;
-
-        for(const auto &m : member)
-        {
-            if(m.name == name)
-                break;
-            off += m.size();
-            c++;
-        }
-
-        if(c == member.size())
-            return -1;
-
-        return off;
-    }
-};
 
 #define ALIGN(n) (n + 3) & ~3
 
@@ -314,8 +253,8 @@ protected:
             PC++;
         }
 
-        //code[PC] = 0;
-        //PC++;
+        code[PC] = 0;
+        PC++;
     }
 
     bool parseTextSegment(const std::string &line)
