@@ -19,6 +19,11 @@ void GPU::init()
     fclose(file);
 }
 
+void GPU::setForegroundColor(unsigned foregroundColor)
+{
+    foreground_color = foregroundColor;
+}
+
 void GPU::drawPixel(unsigned x, unsigned y, uint8_t r, uint8_t g, uint8_t b)
 {
     if (x >= 640 || y >= 480) return;
@@ -28,6 +33,86 @@ void GPU::drawPixel(unsigned x, unsigned y, uint8_t r, uint8_t g, uint8_t b)
     s[offset] = r;
     s[offset+1] = g;
     s[offset+2] = b;
+}
+
+void GPU::drawLineLo(int x0, int y0, int x1, int y1)
+{
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+    int yi = 1;
+    if (dy < 0) { yi = -1; dy = -dy; }
+    int D = 2 * dy - dx;
+    int y = y0;
+
+    uint8_t *s = (uint8_t *)surface->pixels;
+
+    for (int x = x0; x <= x1; x++)
+    {
+        unsigned offset = y * surface->pitch + x * 4;
+        *(unsigned *)(s + offset) = foreground_color;
+        if (D > 0)
+        {
+            y = y + yi;
+            D = D - 2 * dx;
+        }
+        D = D + 2 * dy;
+    }
+}
+
+void GPU::drawLineHi(int x0, int y0, int x1, int y1)
+{
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+    int xi = 1;
+    if (dx < 0) { xi = -1; dx = -dx; }
+    int D = 2 * dy - dx;
+    int x = x0;
+
+    uint8_t *s = (uint8_t *)surface->pixels;
+
+    for (int y = y0; y <= y1; y++)
+    {
+        unsigned offset = y * surface->pitch + x * 4;
+        *(unsigned *)(s + offset) = foreground_color;
+        if (D > 0)
+        {
+            x = x + xi;
+            D = D - 2 * dy;
+        }
+        D = D + 2 * dx;
+    }
+}
+
+void GPU::drawLine(int x0, int y0, int x1, int y1)
+{
+    if (abs(y1 - y0) < abs(x1 - x0))
+    {
+        if (x0 > x1)
+            drawLineLo(x1, y1, x0, y0);
+        else
+            drawLineLo(x0, y0, x1, y1);
+    }
+    else
+    {
+        if (y0 > y1)
+            drawLineHi(x1, y1, x0, y0);
+        else
+            drawLineHi(x0, y0, x1, y1);
+    }
+}
+
+void GPU::drawRectangle(int x0, int y0, int x1, int y1)
+{
+    if(x0 > x1) std::swap(x0, x1);
+    if(y0 > y1) std::swap(y0, y1);
+    
+    for(unsigned y = y0; y <= y1; y++)
+    for(unsigned x = x0; x <= x1; x++)
+    {
+        uint8_t *s = (uint8_t *)surface->pixels;
+        unsigned offset = y * surface->pitch + x * 4;
+        *(unsigned *)(s + offset) = foreground_color;
+    }
 }
 
 void GPU::setCursor(unsigned x, unsigned y)
@@ -72,6 +157,31 @@ void GPU::clearScreen(unsigned color)
         ((unsigned *)surface->pixels)[i] = color;
 
     SDL_UpdateWindowSurface(window);
+}
+
+void GPU::draw(unsigned type, unsigned numVertex, int *vertices)
+{
+    uint8_t r = foreground_color;
+    uint8_t g = foreground_color >> 8;
+    uint8_t b = foreground_color >> 16;
+
+    switch(Primitive(type))
+    {
+        case Primitive::Point:
+            for(unsigned i = 0; i < numVertex; i++)
+                drawPixel(vertices[2 * i], vertices[2 * i + 1], r, g, b);
+            break;
+
+        case Primitive::Line:
+            for(unsigned i = 0; i < numVertex - 1; i++)
+                drawLine(vertices[2 * i], vertices[2 * i + 1], vertices[2 * i + 2], vertices[2 * i + 3]);
+            break;
+
+        case Primitive::Rect:
+            for(unsigned i = 0; i < numVertex - 1; i++)
+                drawRectangle(vertices[2 * i], vertices[2 * i + 1], vertices[2 * i + 2], vertices[2 * i + 3]);
+            break;
+    }
 }
 
 void GPU::flush()

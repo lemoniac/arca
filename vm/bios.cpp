@@ -30,6 +30,9 @@ void VM::interrupt(uint8_t n)
                     gpu.drawPixel(regs[2], regs[3], regs[4] & 0xff, (regs[4] >> 8) & 0xff, (regs[4] >> 16) & 0xff);
                     break;
 
+                case 1: gpu.setForegroundColor(regs[2]); break;
+                case 2: gpu.draw(regs[2], regs[3], (int *)(RAM + regs[4])); break;
+
                 case 5: gpu.clearScreen(regs[2]); break;
                 case 6: gpu.flush(); break;
 
