@@ -11,6 +11,7 @@
 #include "Statement.h"
 #include "Variable.h"
 #include "Visitor.h"
+#include "CodeGenerator.h"
 
 class Program {
 public:
@@ -28,7 +29,10 @@ class PrintVisitor : public Visitor {
     }
 
     int visit(StatementBlock &block) { return 0; }
-    int visit(ReturnStatement &ret) { return 0; }
+    int visit(ReturnStatement &ret)
+    {
+        return 0;
+    }
 };
 
 void yyerror(const char *error)
@@ -193,10 +197,10 @@ int parse_statement_block(Function &function)
             case RETURN:
             {
                 read_token();
-                ReturnStatement ret;
+                auto ret = std::make_unique<ReturnStatement>();
                 if(token != ';')
-                    ret.returnValue = parse_expression();
-                function.statements.statements.push_back(ret);
+                    ret->returnValue = parse_expression();
+                function.statements.statements.push_back(std::move(ret));
                 break;
             }
 
@@ -241,14 +245,14 @@ int parse_function(Program &program)
     read_token();
     if(token == ';')
     {
-        program.functions.push_back(function);
+        program.functions.push_back(std::move(function));
         return 0;
     }
     if(token == '{')
     {
         if(parse_statement_block(function) < 0)
             return -1;
-        program.functions.push_back(function);
+        program.functions.push_back(std::move(function));
         return 0;
     }
     return -1;
@@ -266,6 +270,10 @@ int main(int argc, char **argv)
     PrintVisitor v;
     for(auto &f: program.functions)
         f.visit(&v);
+
+    CodeGenerator cg;
+    for(auto &f: program.functions)
+        f.visit(&cg);
 
     return 0;
 }

@@ -1,13 +1,12 @@
-CPPFLAGS=-std=c++14
+CPPFLAGS=-std=c++14 -g
 OTHER=lex.yy.c
 DEPS=Expression.h Statement.h
-OBJS=Function.o
+OBJS=Function.o CodeGenerator.o Statement.o
 
 cc: cc.cpp lex.yy.c $(OBJS) $(DEPS)
 	g++ -g -o cc cc.cpp $(OBJS) $(CPPFLAGS)
 
 lex.yy.c: c.flex
-	#bison c.y -d
 	flex c.flex
 
 clean:
