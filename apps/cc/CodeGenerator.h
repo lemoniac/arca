@@ -9,6 +9,7 @@ public:
     int visit(Function &f);
     int visit(StatementBlock &block);
     int visit(ReturnStatement &ret);
+    int visit(FunctionCall &f);
 
 protected:
     class Scope {

@@ -25,13 +25,30 @@ class PrintVisitor : public Visitor {
         std::cout << "Function: " << f.name << std::endl;
         for(auto &p : f.parameters)
             std::cout << "    Parameter: " << p.name << std::endl;
+
+        visit(f.statements);
+
         return 0;
     }
 
-    int visit(StatementBlock &block) { return 0; }
+    int visit(StatementBlock &block)
+    {
+        for(const auto &l : block.locals)
+            std::cout << "    local " << int(l.type) << " " << l.name << std::endl;
+
+        for(const auto &s : block.statements)
+            s->visit(this);
+
+        return 0;
+    }
     int visit(ReturnStatement &ret)
     {
         return 0;
+    }
+
+    int visit(FunctionCall &call)
+    {
+        std::cout << "    " << call.function << "()" << std::endl;
     }
 };
 
@@ -175,6 +192,18 @@ ExpressionPtr parse_expression()
     return 0;
 }
 
+int parse_arguments(std::vector<ExpressionPtr> &arguments)
+{
+    read_token();
+    while(token != ')')
+    {
+        arguments.push_back(parse_expression());
+        read_token();
+        if(token == ',')
+            read_token();
+    }
+}
+
 int parse_statement_block(Function &function)
 {
     read_token();
@@ -194,6 +223,7 @@ int parse_statement_block(Function &function)
                 EXPECT("(", -1);
                 break;
             }
+
             case RETURN:
             {
                 read_token();
@@ -204,15 +234,25 @@ int parse_statement_block(Function &function)
                 break;
             }
 
-            case IDENTIFIER:
-                if(function.isVariable(token_text))
-                {
-                    EXPECT("=", -1);
+            case IDENTIFIER: {
+                std::string identifier = token_text;
+                read_token();
+                if(token == '=')
                     parse_expression();
+                else if(token == '(')
+                {
+                    auto call = std::make_unique<FunctionCall>();
+                    call->function = identifier;
+                    parse_arguments(call->arguments);
+                    function.statements.statements.push_back(std::move(call));
+                    EXPECT(";", -1);
                 }
+                else if(token == ';')
+                {}
                 else
                     std::cerr << yylineno << ": unexpected token " << token_text << std::endl;
                 break;
+            }
 
             default:
                 std::cerr << yylineno << ": unexpected token " << token_text << std::endl;
@@ -257,6 +297,7 @@ int parse_function(Program &program)
     }
     return -1;
 }
+
 
 int main(int argc, char **argv)
 {

@@ -59,6 +59,16 @@ int CodeGenerator::visit(ReturnStatement &ret)
     return 0;
 }
 
+int CodeGenerator::visit(FunctionCall &f)
+{
+    int r = 1;
+    for(const auto &arg : f.arguments)
+    {
+        std::cout << "    r" << r << " = 0" << std::endl;
+    }
+    std::cout << "   call " << f.function << std::endl;
+}
+
 int CodeGenerator::getFreeRegister()
 {
     for(unsigned i = 1; i < usedRegisters.size(); i++)

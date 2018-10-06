@@ -37,6 +37,8 @@ class FunctionCall : public Statement {
 public:
     std::string function;
     std::vector<ExpressionPtr> arguments;
+
+    int visit(Visitor *visitor);
 };
 
 class While {
