@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include "SymbolTable.h"
 #include "Variable.h"
 
 class Visitor;
@@ -10,21 +11,29 @@ class Visitor;
 class Expression;
 typedef std::unique_ptr<Expression> ExpressionPtr;
 
+class StatementBlock;
+
 class Statement {
 public:
     ~Statement() { }
 
     virtual int visit(Visitor *visitor) = 0;
+
+    StatementBlock *parent = nullptr;
 };
 
 typedef std::unique_ptr<Statement> StatementPtr;
 
 class StatementBlock : public Statement {
 public:
+    StatementBlock(): symbolTable(new SymbolTable()) { }
+
     std::vector<Variable> locals;
     std::vector<StatementPtr> statements;
 
-    int visit(Visitor *visitor) { return 0; }
+    SymbolTable *symbolTable;
+
+    int visit(Visitor *visitor);
 };
 
 class Assignment : public Statement {

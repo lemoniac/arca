@@ -2,6 +2,7 @@
 #define CC__FUNCTION__H
 
 #include <vector>
+#include <memory>
 #include "Statement.h"
 #include "Variable.h"
 
@@ -17,5 +18,7 @@ public:
     bool isVariable(const std::string &name) const;
     int visit(Visitor *v);
 };
+
+typedef std::unique_ptr<Function> FunctionPtr;
 
 #endif//CC__FUNCTION__H

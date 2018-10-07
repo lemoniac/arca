@@ -2,8 +2,7 @@
 #define CC__VARIABLE__H
 
 #include <string>
-
-enum class Type { Error = -1, Void, Int };
+#include "Types.h"
 
 struct Variable {
     Type type;

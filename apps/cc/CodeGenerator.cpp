@@ -1,6 +1,7 @@
 #include <iostream>
 #include "CodeGenerator.h"
 #include "Function.h"
+#include "TranslationUnit.h"
 
 int CodeGenerator::visit(Function &f)
 {
@@ -66,7 +67,16 @@ int CodeGenerator::visit(FunctionCall &f)
     {
         std::cout << "    r" << r << " = 0" << std::endl;
     }
-    std::cout << "   call " << f.function << std::endl;
+    std::cout << "    call " << f.function << std::endl;
+}
+
+int CodeGenerator::visit(TranslationUnit &unit)
+{
+    //std::cout << "jmp main" << std::endl;
+    for(auto &g : unit.globals)
+        std::cout << "int " << g.name << std::endl;
+    for(auto &f : unit.functions)
+        f->visit(this);
 }
 
 int CodeGenerator::getFreeRegister()

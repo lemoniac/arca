@@ -12,45 +12,11 @@
 #include "Variable.h"
 #include "Visitor.h"
 #include "CodeGenerator.h"
+#include "SymbolTable.h"
+#include "SymbolTablePass.h"
+#include "TranslationUnit.h"
+#include "PrintVisitor.h"
 
-class Program {
-public:
-    std::vector<Variable> globals;
-    std::vector<Function> functions;
-};
-
-class PrintVisitor : public Visitor {
-    int visit(Function &f)
-    {
-        std::cout << "Function: " << f.name << std::endl;
-        for(auto &p : f.parameters)
-            std::cout << "    Parameter: " << p.name << std::endl;
-
-        visit(f.statements);
-
-        return 0;
-    }
-
-    int visit(StatementBlock &block)
-    {
-        for(const auto &l : block.locals)
-            std::cout << "    local " << int(l.type) << " " << l.name << std::endl;
-
-        for(const auto &s : block.statements)
-            s->visit(this);
-
-        return 0;
-    }
-    int visit(ReturnStatement &ret)
-    {
-        return 0;
-    }
-
-    int visit(FunctionCall &call)
-    {
-        std::cout << "    " << call.function << "()" << std::endl;
-    }
-};
 
 void yyerror(const char *error)
 {
@@ -116,7 +82,7 @@ int expect(const std::string &str)
     }
 
 
-int parse_parameters(Function &function)
+int parse_parameters(FunctionPtr &function)
 {
     Variable var = {};
     var.type = token2type(token);
@@ -130,7 +96,7 @@ int parse_parameters(Function &function)
     var.name = token_text;
     read_token();
 
-    function.parameters.push_back(var);
+    function->parameters.push_back(var);
 
     if(token == ')')
         return 0;
@@ -204,13 +170,13 @@ int parse_arguments(std::vector<ExpressionPtr> &arguments)
     }
 }
 
-int parse_statement_block(Function &function)
+int parse_statement_block(FunctionPtr &function)
 {
     read_token();
     // local variables
     while(token2type(token) != Type::Error)
     {
-        function.statements.locals.push_back(parse_variable_definition());
+        function->statements.locals.push_back(parse_variable_definition());
         read_token();
     }
 
@@ -230,7 +196,7 @@ int parse_statement_block(Function &function)
                 auto ret = std::make_unique<ReturnStatement>();
                 if(token != ';')
                     ret->returnValue = parse_expression();
-                function.statements.statements.push_back(std::move(ret));
+                function->statements.statements.push_back(std::move(ret));
                 break;
             }
 
@@ -243,8 +209,9 @@ int parse_statement_block(Function &function)
                 {
                     auto call = std::make_unique<FunctionCall>();
                     call->function = identifier;
+                    call->parent = &function->statements;
                     parse_arguments(call->arguments);
-                    function.statements.statements.push_back(std::move(call));
+                    function->statements.statements.push_back(std::move(call));
                     EXPECT(";", -1);
                 }
                 else if(token == ';')
@@ -263,14 +230,15 @@ int parse_statement_block(Function &function)
     return 0;
 }
 
-int parse_function(Program &program)
+int parse_function(TranslationUnit &unit)
 {
-    Function function;
-    function.returnType = parse_type();
-    if(function.returnType == Type::Error)
+    auto function = std::make_unique<Function>();
+    function->returnType = parse_type();
+    function->statements.symbolTable->parent = &unit.symbolTable;
+    if(function->returnType == Type::Error)
         return -1;
     read_token();
-    function.name = token_text;
+    function->name = token_text;
 
     EXPECT("(", -1);
 
@@ -285,14 +253,14 @@ int parse_function(Program &program)
     read_token();
     if(token == ';')
     {
-        program.functions.push_back(std::move(function));
+        unit.functions.push_back(std::move(function));
         return 0;
     }
     if(token == '{')
     {
         if(parse_statement_block(function) < 0)
             return -1;
-        program.functions.push_back(std::move(function));
+        unit.functions.push_back(std::move(function));
         return 0;
     }
     return -1;
@@ -304,17 +272,18 @@ int main(int argc, char **argv)
     file = fopen(argv[1], "rt");
     yyin = file;
 
-    Program program;
+    TranslationUnit unit;
 
-    while(parse_function(program) >= 0);
+    while(parse_function(unit) >= 0);
+
+    SymbolTablePass stp(unit);
+    stp.visit(unit);
 
     PrintVisitor v;
-    for(auto &f: program.functions)
-        f.visit(&v);
+    v.visit(unit);
 
     CodeGenerator cg;
-    for(auto &f: program.functions)
-        f.visit(&cg);
+    cg.visit(unit);
 
     return 0;
 }
