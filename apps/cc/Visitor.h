@@ -6,6 +6,7 @@ class StatementBlock;
 class ReturnStatement;
 class FunctionCall;
 class TranslationUnit;
+class Assignment;
 
 class Visitor {
 public:
@@ -14,6 +15,7 @@ public:
     virtual int visit(StatementBlock &block) = 0;
     virtual int visit(ReturnStatement &ret) = 0;
     virtual int visit(FunctionCall &function) = 0;
+    virtual int visit(Assignment &assignment) = 0;
 };
 
 

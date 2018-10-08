@@ -11,6 +11,7 @@ public:
     int visit(ReturnStatement &ret);
     int visit(FunctionCall &f);
     int visit(TranslationUnit &unit);
+    int visit(Assignment &assignment);
 
 protected:
     class Scope {

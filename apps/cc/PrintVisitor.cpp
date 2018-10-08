@@ -43,3 +43,8 @@ int PrintVisitor::visit(TranslationUnit &unit)
 
     return 0;
 }
+
+int PrintVisitor::visit(Assignment &assignment)
+{
+    return 0;
+}

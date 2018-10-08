@@ -10,6 +10,7 @@ public:
     int visit(ReturnStatement &ret);
     int visit(FunctionCall &call);
     int visit(TranslationUnit &unit);
+    int visit(Assignment &assignment);
 };
 
 #endif//CC__PRINT_VISITOR__H

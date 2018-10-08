@@ -52,6 +52,9 @@ int CodeGenerator::visit(ReturnStatement &ret)
 {
     returnSeen = true;
 
+    if(ret.returnValue)
+        std::cout << "    r1 = ???" << std::endl;
+
     if(isLeaf)
         std::cout << "    ret" << std::endl;
     else
@@ -86,4 +89,9 @@ int CodeGenerator::getFreeRegister()
             return i;
 
     return -1;
+}
+
+int CodeGenerator::visit(Assignment &assignment)
+{
+    return 0;
 }

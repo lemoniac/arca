@@ -40,6 +40,8 @@ class Assignment : public Statement {
 public:
     std::string dest;
     ExpressionPtr expression;
+
+    int visit(Visitor *visitor);
 };
 
 class FunctionCall : public Statement {

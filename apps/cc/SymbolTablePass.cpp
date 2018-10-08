@@ -33,6 +33,7 @@ int SymbolTablePass::visit(StatementBlock &block)
 }
 
 int SymbolTablePass::visit(ReturnStatement &ret) { return 0; }
+
 int SymbolTablePass::visit(FunctionCall &f)
 {
     auto symbol = f.parent->symbolTable->find(f.function);
@@ -53,4 +54,15 @@ int SymbolTablePass::visit(TranslationUnit &unit)
     }
     for(auto &f : unit.functions)
         f->visit(this);
+}
+
+int SymbolTablePass::visit(Assignment &assignment)
+{
+    auto *dst = assignment.parent->symbolTable->find(assignment.dest);
+    if(dst == nullptr)
+    {
+        std::cerr << "error: undefined identifier '" << assignment.dest << "'" << std::endl;
+        return -1;
+    }
+    return 0;
 }

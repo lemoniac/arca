@@ -24,34 +24,60 @@ void yyerror(const char *error)
 }
 
 FILE *file;
-int token;
-std::string token_text;
+
+struct Token {
+    int token;
+    std::string text;
+
+    Type type() const
+    {
+        switch(token)
+        {
+            case INT: return Type::Int;
+            case VOID: return Type::Void;
+        }
+
+        return Type::Error;
+    }
+};
+
+std::vector<Token> nextTokens;
+
+Token token;
 
 int read_token()
 {
-    token = yylex();
-    if(token == 0)
+    if(!nextTokens.empty())
+    {
+        token = nextTokens.back();
+        nextTokens.pop_back();
+        return 1;
+    }
+
+    token.token = yylex();
+    if(token.token == 0)
         return 0;
 
-    token_text = std::string(yytext);
+    token.text = std::string(yytext);
     return 1;
 }
 
-Type token2type(int type)
+int peek_token()
 {
-    switch(type)
+    int next = yylex();
+    if(next > 0)
     {
-        case INT: return Type::Int;
-        case VOID: return Type::Void;
+        Token token = {next, yytext};
+        nextTokens.push_back(token);
     }
 
-    return Type::Error;
+    return next;
 }
 
 Type parse_type()
 {
     read_token();
-    return token2type(token);
+    token.type();
 }
 
 int valid_identifier(const char *id)
@@ -62,7 +88,7 @@ int valid_identifier(const char *id)
 int expect(const std::string &str)
 {
     read_token();
-    if(str != token_text)
+    if(str != token.text)
         return -1;
     return 0;
 }
@@ -70,7 +96,7 @@ int expect(const std::string &str)
 #define EXPECT(str, ret) \
     if(expect(str) < 0) \
     { \
-        printf("error: line %u found %s expected %s\n", yylineno, token_text.c_str(), str); \
+        printf("error: line %u found %s expected %s\n", yylineno, token.text.c_str(), str); \
         return ret; \
     }
 
@@ -85,23 +111,23 @@ int expect(const std::string &str)
 int parse_parameters(FunctionPtr &function)
 {
     Variable var = {};
-    var.type = token2type(token);
+    var.type = token.type();
     ERROR(var.type == Type::Error, "Expected type")
     read_token();
-    if(token == '*')
+    if(token.token == '*')
     {
         var.is_pointer = true;
         read_token();
     }
-    var.name = token_text;
+    var.name = token.text;
     read_token();
 
     function->parameters.push_back(var);
 
-    if(token == ')')
+    if(token.token == ')')
         return 0;
 
-    if(token == ',')
+    if(token.token == ',')
     {
         read_token();
         return parse_parameters(function);
@@ -114,19 +140,19 @@ int parse_parameters(FunctionPtr &function)
 Variable parse_variable_definition()
 {
     Variable var;
-    var.type = token2type(token);
+    var.type = token.type();
     read_token();
-    var.name = token_text;
+    var.name = token.text;
     read_token();
-    if(token == ';')
+    if(token.token == ';')
     {
         printf("var %i %s\n", (int)var.type, var.name.c_str());
         return var;
     }
-    if(token == '=')
+    if(token.token == '=')
     {
         read_token();
-        std::string varvalue = token_text;
+        std::string varvalue = token.text;
         EXPECT(";", var);
         printf("var %i %s %s\n", (int)var.type, var.name.c_str(), varvalue.c_str());
         var.value = std::stoi(varvalue);
@@ -139,20 +165,42 @@ Variable parse_variable_definition()
 
 ExpressionPtr parse_expression()
 {
+    ExpressionPtr res;
     read_token();
-    switch(token)
+    switch(token.token)
     {
         case IDENTIFIER: {
             auto expr = std::make_unique<IdentifierExpr>();
-            expr->name = token_text;
-            return std::move(expr);
+            expr->name = token.text;
+            res = std::move(expr);
+            break;
         }
 
         case I_CONSTANT: {
             auto expr = std::make_unique<IntConstant>();
-            expr->value = std::stoi(token_text);
-            return std::move(expr);
+            expr->value = std::stoi(token.text);
+            res = std::move(expr);
+            break;
         }
+
+        default:
+            std::cerr << "error: invalid expression '" << token.text << "'" << std::endl;
+            return 0;
+    }
+
+    int next = peek_token();
+    if (next == ';' || next == ')' || next == 0)
+        return res;
+
+    if (next == '+')
+    {
+        read_token();
+        auto op = std::make_unique<BinaryOpExpr>();
+        op->left = std::move(res);
+        op->op = BinaryOpExpr::Op::Add;
+        op->right = parse_expression();
+
+        return std::move(op);
     }
 
     return 0;
@@ -161,11 +209,11 @@ ExpressionPtr parse_expression()
 int parse_arguments(std::vector<ExpressionPtr> &arguments)
 {
     read_token();
-    while(token != ')')
+    while(token.token != ')')
     {
         arguments.push_back(parse_expression());
         read_token();
-        if(token == ',')
+        if(token.token == ',')
             read_token();
     }
 }
@@ -174,7 +222,7 @@ int parse_statement_block(FunctionPtr &function)
 {
     read_token();
     // local variables
-    while(token2type(token) != Type::Error)
+    while(token.type() != Type::Error)
     {
         function->statements.locals.push_back(parse_variable_definition());
         read_token();
@@ -182,7 +230,7 @@ int parse_statement_block(FunctionPtr &function)
 
     // statements
     do {
-        switch(token)
+        switch(token.token)
         {
             case WHILE:
             {
@@ -192,20 +240,29 @@ int parse_statement_block(FunctionPtr &function)
 
             case RETURN:
             {
-                read_token();
                 auto ret = std::make_unique<ReturnStatement>();
-                if(token != ';')
+                if(peek_token() != ';')
+                {
                     ret->returnValue = parse_expression();
+                }
+                EXPECT(";", -1);
                 function->statements.statements.push_back(std::move(ret));
                 break;
             }
 
             case IDENTIFIER: {
-                std::string identifier = token_text;
+                std::string identifier = token.text;
                 read_token();
-                if(token == '=')
-                    parse_expression();
-                else if(token == '(')
+                if(token.token == '=')
+                {
+                    auto assignment = std::make_unique<Assignment>();
+                    assignment->parent = &function->statements;
+                    assignment->dest = identifier;
+                    assignment->expression = parse_expression();
+                    EXPECT(";", -1);
+                    function->statements.statements.push_back(std::move(assignment));
+                }
+                else if(token.token == '(')
                 {
                     auto call = std::make_unique<FunctionCall>();
                     call->function = identifier;
@@ -214,18 +271,18 @@ int parse_statement_block(FunctionPtr &function)
                     function->statements.statements.push_back(std::move(call));
                     EXPECT(";", -1);
                 }
-                else if(token == ';')
+                else if(token.token == ';')
                 {}
                 else
-                    std::cerr << yylineno << ": unexpected token " << token_text << std::endl;
+                    std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
                 break;
             }
 
             default:
-                std::cerr << yylineno << ": unexpected token " << token_text << std::endl;
+                std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
         }
         read_token();
-    } while(token != 0 && token != '}');
+    } while(token.token != 0 && token.token != '}');
 
     return 0;
 }
@@ -238,25 +295,25 @@ int parse_function(TranslationUnit &unit)
     if(function->returnType == Type::Error)
         return -1;
     read_token();
-    function->name = token_text;
+    function->name = token.text;
 
     EXPECT("(", -1);
 
     read_token();
 
-    if(token != ')')
+    if(token.token != ')')
     {
         if(parse_parameters(function) < 0)
             return -1;
     }
 
     read_token();
-    if(token == ';')
+    if(token.token == ';')
     {
         unit.functions.push_back(std::move(function));
         return 0;
     }
-    if(token == '{')
+    if(token.token == '{')
     {
         if(parse_statement_block(function) < 0)
             return -1;
