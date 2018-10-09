@@ -48,3 +48,8 @@ int PrintVisitor::visit(Assignment &assignment)
 {
     return 0;
 }
+
+
+int PrintVisitor::visit(IntConstant &constant) { return 0; }
+int PrintVisitor::visit(IdentifierExpr &identifier) { return 0; }
+int PrintVisitor::visit(BinaryOpExpr &op) { return 0; }

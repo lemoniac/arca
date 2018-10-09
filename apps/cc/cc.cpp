@@ -39,6 +39,25 @@ struct Token {
 
         return Type::Error;
     }
+
+    bool isAssignment() const
+    {
+        switch(token)
+        {
+            case '=': return true;
+            case ADD_ASSIGN: return true;
+            case SUB_ASSIGN: return true;
+            case MUL_ASSIGN: return true;
+            case DIV_ASSIGN: return true;
+            case MOD_ASSIGN: return true;
+            case AND_ASSIGN: return true;
+            case OR_ASSIGN: return true;
+            case XOR_ASSIGN: return true;
+            case LEFT_ASSIGN: return true;
+            case RIGHT_ASSIGN: return true;
+        }
+        return false;
+    }
 };
 
 std::vector<Token> nextTokens;
@@ -156,6 +175,7 @@ Variable parse_variable_definition()
         EXPECT(";", var);
         printf("var %i %s %s\n", (int)var.type, var.name.c_str(), varvalue.c_str());
         var.value = std::stoi(varvalue);
+        var.valueSet = true;
         return var;
     }
 
@@ -253,7 +273,7 @@ int parse_statement_block(FunctionPtr &function)
             case IDENTIFIER: {
                 std::string identifier = token.text;
                 read_token();
-                if(token.token == '=')
+                if(token.isAssignment())
                 {
                     auto assignment = std::make_unique<Assignment>();
                     assignment->parent = &function->statements;

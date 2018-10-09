@@ -8,6 +8,10 @@ class FunctionCall;
 class TranslationUnit;
 class Assignment;
 
+class IntConstant;
+class IdentifierExpr;
+class BinaryOpExpr;
+
 class Visitor {
 public:
     virtual int visit(TranslationUnit &unit) = 0;
@@ -16,6 +20,10 @@ public:
     virtual int visit(ReturnStatement &ret) = 0;
     virtual int visit(FunctionCall &function) = 0;
     virtual int visit(Assignment &assignment) = 0;
+
+    virtual int visit(IntConstant &constant) = 0;
+    virtual int visit(IdentifierExpr &identifier) = 0;
+    virtual int visit(BinaryOpExpr &op) = 0;
 };
 
 

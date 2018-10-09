@@ -5,11 +5,14 @@
 #include <vector>
 #include "Types.h"
 
+class Variable;
+
 class SymbolTable {
 public:
     struct Symbol {
         std::string name;
         Type type;
+        Variable *variable = nullptr;
     };
 
     std::vector<Symbol> symbols;

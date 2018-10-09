@@ -10,6 +10,7 @@ struct Variable {
     std::string name;
     unsigned elems;
     int value;
+    bool valueSet = false;
     unsigned reg;
 };
 

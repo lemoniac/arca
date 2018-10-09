@@ -11,6 +11,10 @@ public:
     int visit(FunctionCall &call);
     int visit(TranslationUnit &unit);
     int visit(Assignment &assignment);
+
+    int visit(IntConstant &constant);
+    int visit(IdentifierExpr &identifier);
+    int visit(BinaryOpExpr &op);
 };
 
 #endif//CC__PRINT_VISITOR__H

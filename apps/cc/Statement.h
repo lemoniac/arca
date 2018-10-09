@@ -38,7 +38,10 @@ public:
 
 class Assignment : public Statement {
 public:
+    enum class Kind { Assign, Add, Sub, Mul, Div, Mod, And, Or, Xor, Left, Right };
+
     std::string dest;
+    Kind kind;
     ExpressionPtr expression;
 
     int visit(Visitor *visitor);

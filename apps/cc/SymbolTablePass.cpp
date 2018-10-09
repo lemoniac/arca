@@ -1,4 +1,5 @@
 #include <iostream>
+#include "Expression.h"
 #include "SymbolTablePass.h"
 #include "SymbolTable.h"
 
@@ -7,9 +8,9 @@ int SymbolTablePass::visit(Function &f)
     SymbolTable::Symbol s = {f.name, Type::Function};
     unit.symbolTable.symbols.push_back(s);
 
-    for(const auto &p : f.parameters)
+    for(auto &p : f.parameters)
     {
-        SymbolTable::Symbol s = {p.name, p.type};
+        SymbolTable::Symbol s = {p.name, p.type, &p};
         f.statements.symbolTable->symbols.push_back(s);
     }
 
@@ -20,14 +21,18 @@ int SymbolTablePass::visit(Function &f)
 
 int SymbolTablePass::visit(StatementBlock &block)
 {
-    for(const auto &l : block.locals)
+    symbols.push_back(block.symbolTable);
+
+    for(auto &l : block.locals)
     {
-        SymbolTable::Symbol s = {l.name, l.type};
+        SymbolTable::Symbol s = {l.name, l.type, &l};
         block.symbolTable->symbols.push_back(s);
     }
 
     for(auto &s : block.statements)
         s->visit(this);
+
+    symbols.pop_back();
 
     return 0;
 }
@@ -47,9 +52,10 @@ int SymbolTablePass::visit(FunctionCall &f)
 
 int SymbolTablePass::visit(TranslationUnit &unit)
 {
+    symbols.push_back(&unit.symbolTable);
     for(auto &g : unit.globals)
     {
-        SymbolTable::Symbol s = {g.name, g.type};
+        SymbolTable::Symbol s = {g.name, g.type, &g};
         unit.symbolTable.symbols.push_back(s);
     }
     for(auto &f : unit.functions)
@@ -64,5 +70,31 @@ int SymbolTablePass::visit(Assignment &assignment)
         std::cerr << "error: undefined identifier '" << assignment.dest << "'" << std::endl;
         return -1;
     }
+
+    if(assignment.expression->visit(this) < 0)
+        return -1;
+
+    return 0;
+}
+
+int SymbolTablePass::visit(IntConstant &constant) { return 0; }
+
+int SymbolTablePass::visit(IdentifierExpr &identifier)
+{
+    auto *dst = symbols.back()->find(identifier.name);
+    if(dst == nullptr)
+    {
+        std::cerr << "error: undefined identifier '" << identifier.name << "'" << std::endl;
+        return -1;
+    }
+
+    return 0;
+}
+
+int SymbolTablePass::visit(BinaryOpExpr &op)
+{
+    op.left->visit(this);
+    op.right->visit(this);
+
     return 0;
 }
