@@ -25,9 +25,21 @@
 #define JAL  32
 #define JALR 33
 
-#define INT 100
-#define SYSTEM 101
+#define INT 50
+#define SYSTEM 51
 
+// Short instruction opcodes
+#define SHORT_INSTRUCTION 0x40
+#define SHORT_MOVI SHORT_INSTRUCTION
+#define SHORT_MOVR SHORT_INSTRUCTION+1
+
+#define SHORT_ALUR SHORT_INSTRUCTION+2
+
+#define SHORT_CMPI SHORT_INSTRUCTION+20
+#define SHORT_CMPR SHORT_INSTRUCTION+21
+#define SHORT_INT  SHORT_INSTRUCTION+30
+
+// ALU operations
 #define ALU_ADD  0
 #define ALU_SUB  1
 #define ALU_MUL  2

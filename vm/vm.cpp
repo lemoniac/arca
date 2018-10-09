@@ -74,23 +74,35 @@ bool VM::step()
     if(privilegeLevel == 0)
         baseaddr+= CR[CR_BASEADDR];
 
+    bool shortInstruction = baseaddr[PC] & SHORT_INSTRUCTION;
 
-    currentInst = *(unsigned *)(baseaddr + PC);
+    if(shortInstruction)
+        currentInst = *(uint16_t *)(baseaddr + PC);
+    else
+        currentInst = *(unsigned *)(baseaddr + PC);
     uint8_t opcode = currentInst & 0x7f;
     unsigned dst, src0, src1, imm, width;
     switch(opcode)
     {
-        case MOVI: {
+        case MOVI:
             decodeC(dst, imm);
             regs[dst] = imm;
-        }
-        break;
+            break;
 
-        case MOVR: {
+        case SHORT_MOVI:
+            decodeShortB(dst, imm);
+            regs[dst] = imm;
+            break;
+
+        case MOVR:
             decodeA(dst, src0, src1, imm);
             regs[dst] = regs[src0];
-        }
-        break;
+            break;
+
+        case SHORT_MOVR:
+            decodeShortA(dst, src0);
+            regs[dst] = regs[src0];
+            break;
 
         case LUI: {
             decodeC(dst, imm);
@@ -263,6 +275,17 @@ bool VM::step()
 
             break;
         }
+
+        case SHORT_CMPR: {
+            decodeShortA(src0, src1);
+            uint32_t res = regs[src0] - src1;
+
+            is_zero = res == 0;
+            sign = (res >> 31) == 1;
+
+            break;
+        }
+
         case INT:
         {
             unsigned n, _;
@@ -355,7 +378,7 @@ bool VM::step()
             return false;
     }
 
-    PC += 4;
+    PC += shortInstruction? 2 : 4;
 
     CR[CR_COUNTER]++;
 
@@ -397,6 +420,18 @@ void VM::decodeD(unsigned &dst, unsigned &src, unsigned &fun, unsigned &imm)
     src = (currentInst >> 12) & 0x1f;
     fun = (currentInst >> 17) & 0x7;
     imm = (currentInst >> 20);
+}
+
+void VM::decodeShortA(unsigned &dst, unsigned &src)
+{
+    dst = (currentInst >> 7) & 0xf;
+    src = (currentInst >> 11);
+}
+
+void VM::decodeShortB(unsigned &dst, unsigned &imm)
+{
+    dst = (currentInst >> 7) & 0xf;
+    imm = (currentInst >> 11);
 }
 
 int VM::extendSign(unsigned imm, unsigned bit)

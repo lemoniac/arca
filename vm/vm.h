@@ -49,6 +49,9 @@ protected:
     void decodeC(unsigned &dst, unsigned &imm);
     void decodeD(unsigned &dst, unsigned &src, unsigned &fun, unsigned &imm);
 
+    void decodeShortA(unsigned &dst, unsigned &src);
+    void decodeShortB(unsigned &dst, unsigned &imm);
+
     int extendSign(unsigned imm, unsigned bit);
 
     file_system fs;

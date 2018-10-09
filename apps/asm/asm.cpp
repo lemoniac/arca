@@ -9,7 +9,7 @@
 enum Segment {Data, Text};
 
 
-#define ALIGN(n) (n + 3) & ~3
+#define ALIGN(n) (n + 1) & ~1
 
 class Parser {
 
@@ -99,6 +99,9 @@ class Parser {
 
     std::deque<FILE *> fileStack;
     FILE *file;
+
+    bool useShortInstructions = true;
+
 public:
     void parse(const std::string &filename)
     {
@@ -358,6 +361,7 @@ protected:
     void assign_imm(const std::string &dst, const std::string &imm)
     {
         std::cout << "r" << dst << " = " << imm << std::endl;
+        int rd = std::stoi(dst);
 
         unsigned value;
         if(imm.size() == 3 && imm[0] == '\'')
@@ -365,13 +369,22 @@ protected:
         else
             value = std::stoi(imm);
 
-        encodeC(MOVI, std::stoi(dst), value);
+        if(useShortInstructions && value < 16 && rd < 16)
+            encodeShortB(SHORT_MOVI, rd, value);
+        else
+            encodeC(MOVI, rd, value);
     }
 
     void assign_reg(const std::string &dst, const std::string &src)
     {
+        int rd = std::stoi(dst);
+        int rs = std::stoi(src);
+
         std::cout << "r" << dst << " = r" << src << std::endl;
-        encodeA(MOVR, std::stoi(dst), std::stoi(src), 0);
+        if(useShortInstructions && rd < 16 && rs < 16)
+            encodeShortA(SHORT_MOVR, rd, rs);
+        else
+            encodeA(MOVR, rd, rs, 0);
     }
 
     void assign_ref(const std::string &dst, const std::string &label)
@@ -446,8 +459,15 @@ protected:
 
     void arith(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src0, const std::string &src1)
     {
+        int rd = std::stoi(dst);
+        int rs = std::stoi(src0);
+        int rt = std::stoi(src1);
+
         std::cout << "r" << dst << " = r" << src0 << " " << op << " r" << src1 << std::endl;
-        encodeA(ALU, std::stoi(dst), std::stoi(src0), std::stoi(src1), opcode);
+        if(rd == 0 && rs < 16 && rd < 16)
+            encodeShortA(SHORT_CMPR, rs, rt);
+        else
+            encodeA(ALU, rd, rs, rt, opcode);
     }
 
     void arithi(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src, const std::string &imm)
@@ -594,6 +614,26 @@ protected:
         unsigned inst = opcode | (dst << 7) | (src << 12) | (fun << 17) | ((imm & 0xFFF) << 20);
         *(unsigned *)(code + PC) = inst;
         PC += 4;
+    }
+
+    // | opcode | dst | src | unused |
+    //      7      4     4       1
+    void encodeShortA(uint8_t opcode, uint8_t dst, uint8_t src)
+    {
+        PC = ALIGN(PC);
+        uint16_t inst = opcode | (dst << 7) | (src << 11);
+        *(uint16_t *)(code + PC) = inst;
+        PC += 2;
+    }
+
+    // | opcode | dst | immediate |
+    //      7      4        5
+    void encodeShortB(uint8_t opcode, uint8_t dst, unsigned imm)
+    {
+        PC = ALIGN(PC);
+        uint16_t inst = opcode | (dst << 7) | ((imm & 0x1F) << 11);
+        *(uint16_t *)(code + PC) = inst;
+        PC += 2;
     }
 
     void include(const std::string &filename)

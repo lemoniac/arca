@@ -31,6 +31,18 @@ void decodeD(unsigned inst, unsigned *dst, unsigned *src, unsigned *fun, unsigne
     *imm = (inst >> 20);
 }
 
+void decodeShortA(unsigned inst, unsigned *dst, unsigned *src)
+{
+    *dst = (inst >> 7) & 0xf;
+    *src = (inst >> 11);
+}
+
+void decodeShortB(unsigned inst, unsigned *dst, unsigned *imm)
+{
+    *dst = (inst >> 7) & 0xf;
+    *imm = (inst >> 11);
+}
+
 int extendSign(unsigned imm, unsigned bit)
 {
     if(imm & (1 << bit))
@@ -51,10 +63,12 @@ int main(int argc, char **argv)
     while(!feof(file))
     {
         unsigned bytes = fread(buffer, 1, 512, file);
-        for(unsigned i = 0; i < bytes; i+= 4, offset+= 4)
+        unsigned i = 0;
+        while(i < bytes)
         {
-            unsigned inst = *(unsigned *)(buffer + i);
-            printf("%04u  ", offset);
+            int short_encoding = buffer[i] & SHORT_INSTRUCTION;
+            unsigned inst = short_encoding?  *(uint16_t *)(buffer + i) : *(unsigned *)(buffer + i);
+            printf("%04u  ", i);
             switch(buffer[i] & 0x7f)
             {
                 case MOVI: {
@@ -63,8 +77,20 @@ int main(int argc, char **argv)
                     break;
                 }
 
+                case SHORT_MOVI: {
+                    decodeShortB(inst, &dst, &imm);
+                    printf("r%u = %u\n", dst, imm);
+                    break;
+                }
+
                 case MOVR: {
                     decodeA(inst, &dst, &src0, &src1, &imm);
+                    printf("r%u = r%u\n", dst, src0);
+                    break;
+                }
+
+                case SHORT_MOVR: {
+                    decodeShortA(inst, &dst, &src0);
                     printf("r%u = r%u\n", dst, src0);
                     break;
                 }
@@ -91,7 +117,7 @@ int main(int argc, char **argv)
                     {
                         case ALU_ADD: op = "+"; break;
                         case ALU_SUB: op = "-"; break;
-                        case ALU_MUL: op = "+"; break;
+                        case ALU_MUL: op = "*"; break;
                         case ALU_DIV: op = "/"; break;
                         case ALU_SHL: op = "<<"; break;
                         case ALU_SHR: op = ">>"; break;
@@ -116,11 +142,26 @@ int main(int argc, char **argv)
                     break;
                 }
 
+                case SHLI:
+                    decodeB(inst, &dst, &src0, &imm);
+                    printf("r%u = r%u << %u\n", dst, src0, imm);
+                    break;
+
+                case SHRI:
+                    decodeB(inst, &dst, &src0, &imm);
+                    printf("r%u = r%u >> %u\n", dst, src0, imm);
+                    break;
+
                 case INCI: {
                     decodeC(inst, &dst, &imm);
                     printf("r%u += %u\n", dst, imm);
                     break;
                 }
+
+                case SHORT_CMPR:
+                    decodeShortA(inst, &dst, &src0);
+                    printf("r0 = r%u - r%u\n", dst, src0);
+                    break;
 
                 case INT:
                     decodeC(inst, &dst, &imm);
@@ -167,8 +208,13 @@ int main(int argc, char **argv)
                 default:
                     printf("??? %2u %2u %2u %2u\n", buffer[i], buffer[i+1], buffer[i+2], buffer[i+3]);
             }
+
+            if(short_encoding == 0)
+                i += 4;
+            else
+                i += 2;
         }
     }
 
     return 0;
-}
+}//
