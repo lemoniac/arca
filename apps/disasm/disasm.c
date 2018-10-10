@@ -69,7 +69,8 @@ int main(int argc, char **argv)
             int short_encoding = buffer[i] & SHORT_INSTRUCTION;
             unsigned inst = short_encoding?  *(uint16_t *)(buffer + i) : *(unsigned *)(buffer + i);
             printf("%04u  ", i);
-            switch(buffer[i] & 0x7f)
+            uint8_t opcode = buffer[i] & 0x7f;
+            switch(opcode)
             {
                 case MOVI: {
                     decodeC(inst, &dst, &imm);
@@ -110,7 +111,7 @@ int main(int argc, char **argv)
                     break;
                 }
 
-                case ALU: {;
+                case ALU: {
                     char *op = "?";
                     decodeA(inst, &dst, &src0, &src1, &imm);
                     switch(imm)
@@ -127,6 +128,35 @@ int main(int argc, char **argv)
                         case ALU_XOR: op = "^"; break;
                     }
                     printf("r%u = r%u %s r%u\n", dst, src0, op, src1);
+                    break;
+                }
+
+                case SHORT_ALUR+ALU_ADD:
+                case SHORT_ALUR+ALU_SUB:
+                case SHORT_ALUR+ALU_MUL:
+                case SHORT_ALUR+ALU_DIV:
+                case SHORT_ALUR+ALU_SHR:
+                case SHORT_ALUR+ALU_SHL:
+                case SHORT_ALUR+ALU_AND:
+                case SHORT_ALUR+ALU_OR:
+                case SHORT_ALUR+ALU_XOR: {
+                    char *op = "?";
+                    decodeShortA(inst, &dst, &src0);
+                    uint8_t alu = opcode - SHORT_ALUR;
+                    switch(alu)
+                    {
+                        case ALU_ADD: op = "+"; break;
+                        case ALU_SUB: op = "-"; break;
+                        case ALU_MUL: op = "*"; break;
+                        case ALU_DIV: op = "/"; break;
+                        case ALU_SHL: op = "<<"; break;
+                        case ALU_SHR: op = ">>"; break;
+
+                        case ALU_AND: op = "&"; break;
+                        case ALU_OR:  op = "|"; break;
+                        case ALU_XOR: op = "^"; break;
+                    }
+                    printf("r%u = r%u %s r%u\n", dst, dst, op, src0);
                     break;
                 }
 

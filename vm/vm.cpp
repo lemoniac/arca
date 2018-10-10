@@ -162,6 +162,40 @@ bool VM::step()
             break;
         }
 
+        case SHORT_ALUR+ALU_ADD:
+        case SHORT_ALUR+ALU_SUB:
+        case SHORT_ALUR+ALU_MUL:
+        case SHORT_ALUR+ALU_DIV:
+        case SHORT_ALUR+ALU_SHR:
+        case SHORT_ALUR+ALU_SHL:
+        case SHORT_ALUR+ALU_AND:
+        case SHORT_ALUR+ALU_OR:
+        case SHORT_ALUR+ALU_XOR: {
+            uint32_t res = 0;
+            decodeShortA(dst, src0);
+            switch(opcode - SHORT_ALUR)
+            {
+                case ALU_ADD: res = regs[src0] + regs[src1]; break;
+                case ALU_SUB: res = regs[src0] - regs[src1]; break;
+                case ALU_MUL: res = regs[src0] * regs[src1]; break;
+                case ALU_DIV: res = regs[src0] / regs[src1]; break;
+                case ALU_SHL: res = regs[src0] << regs[src1]; break;
+                case ALU_SHR: res = regs[src0] >> regs[src1]; break;
+
+                case ALU_AND: res = regs[src0] & regs[src1]; break;
+                case ALU_OR:  res = regs[src0] | regs[src1]; break;
+                case ALU_XOR: res = regs[src0] ^ regs[src1]; break;
+            }
+
+            is_zero = res == 0;
+            sign = (res >> 31) == 1;
+
+            if (dst != 0)
+                regs[dst] = res;
+
+            break;
+        }
+
         case ADDI: {
             decodeB(dst, src0, imm);
             uint32_t res = regs[src0] + imm;

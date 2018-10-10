@@ -464,8 +464,10 @@ protected:
         int rt = std::stoi(src1);
 
         std::cout << "r" << dst << " = r" << src0 << " " << op << " r" << src1 << std::endl;
-        if(rd == 0 && rs < 16 && rd < 16)
+        if(opcode == ALU_SUB && rd == 0 && rs < 16 && rd < 16)
             encodeShortA(SHORT_CMPR, rs, rt);
+        else if(rd == rs && rd < 16 && rt < 16)
+            encodeShortA(SHORT_ALUR + opcode, rd, rt);
         else
             encodeA(ALU, rd, rs, rt, opcode);
     }
