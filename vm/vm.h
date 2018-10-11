@@ -51,6 +51,7 @@ protected:
 
     void decodeShortA(unsigned &dst, unsigned &src);
     void decodeShortB(unsigned &dst, unsigned &imm);
+    void decodeShortC(unsigned &imm);
 
     int extendSign(unsigned imm, unsigned bit);
 

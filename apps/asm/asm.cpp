@@ -464,9 +464,9 @@ protected:
         int rt = std::stoi(src1);
 
         std::cout << "r" << dst << " = r" << src0 << " " << op << " r" << src1 << std::endl;
-        if(opcode == ALU_SUB && rd == 0 && rs < 16 && rd < 16)
+        if(useShortInstructions && opcode == ALU_SUB && rd == 0 && rs < 16 && rd < 16)
             encodeShortA(SHORT_CMPR, rs, rt);
-        else if(rd == rs && rd < 16 && rt < 16)
+        else if(useShortInstructions && rd == rs && rd < 16 && rt < 16)
             encodeShortA(SHORT_ALUR + opcode, rd, rt);
         else
             encodeA(ALU, rd, rs, rt, opcode);
@@ -474,13 +474,18 @@ protected:
 
     void arithi(unsigned opcode, const std::string &op, const std::string &dst, const std::string &src, const std::string &imm)
     {
+        int rd = std::stoi(dst);
+        int rs = std::stoi(src);
         std::cout << "r" << dst << " = r" << src << " " << op << " " << imm << std::endl;
         int value;
         if(imm.size() == 3 && imm[0] == '\'')
             value = imm[1];
         else
             value = std::stoi(imm);
-        encodeB(opcode, std::stoi(dst), std::stoi(src), value);
+        if(useShortInstructions && opcode == SUBI && rd == 0 && rs < 16 && value < 16)
+            encodeShortB(SHORT_CMPI, rs, value);
+        else
+            encodeB(opcode, rd, rs, value);
     }
 
     void inc(const std::string &dst, const std::string &imm)
@@ -519,8 +524,12 @@ protected:
 
     void jmp_reg(const std::string &reg)
     {
+        int rd = std::stoi(reg);
         std::cout << "jmp r" << reg << std::endl;
-        encodeC(JMPR, std::stoi(reg), 0);
+        if(useShortInstructions && rd < 16)
+            encodeShortB(SHORT_JMPR, rd, 0);
+        else
+            encodeC(JMPR, rd, 0);
     }
 
     void jal(const std::string &dst, const std::string &label)
@@ -552,8 +561,12 @@ protected:
 
     void interrupt(const std::string &int_n)
     {
+        int n = std::stoi(int_n);
         std::cout << "int " << int_n << std::endl;
-        encodeC(INT, std::stoi(int_n), 0);
+        if(useShortInstructions)
+            encodeShortC(SHORT_INT, n);
+        else
+            encodeC(INT, n, 0);
     }
 
     void push(const std::string &reg)
@@ -634,6 +647,16 @@ protected:
     {
         PC = ALIGN(PC);
         uint16_t inst = opcode | (dst << 7) | ((imm & 0x1F) << 11);
+        *(uint16_t *)(code + PC) = inst;
+        PC += 2;
+    }
+
+    // | opcode | immediate |
+    //      7         9
+    void encodeShortC(uint8_t opcode, unsigned imm)
+    {
+        PC = ALIGN(PC);
+        uint16_t inst = opcode | (imm << 7);
         *(uint16_t *)(code + PC) = inst;
         PC += 2;
     }

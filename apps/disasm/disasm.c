@@ -43,6 +43,11 @@ void decodeShortB(unsigned inst, unsigned *dst, unsigned *imm)
     *imm = (inst >> 11);
 }
 
+void decodeShortC(unsigned inst, unsigned *imm)
+{
+    *imm = (inst >> 7);
+}
+
 int extendSign(unsigned imm, unsigned bit)
 {
     if(imm & (1 << bit))
@@ -193,9 +198,19 @@ int main(int argc, char **argv)
                     printf("r0 = r%u - r%u\n", dst, src0);
                     break;
 
+                case SHORT_CMPI:
+                    decodeShortB(inst, &src0, &imm);
+                    printf("r0 = r%u - %i\n", src0, imm);
+                    break;
+
                 case INT:
                     decodeC(inst, &dst, &imm);
                     printf("int 0x%x\n", dst);
+                    break;
+
+                case SHORT_INT:
+                    decodeShortC(inst, &imm);
+                    printf("int 0x%x\n", imm);
                     break;
 
                 case JMP: {
@@ -217,6 +232,11 @@ int main(int argc, char **argv)
 
                 case JMPR:
                     decodeC(inst, &dst, &imm);
+                    printf("jmp r%u\n", dst);
+                    break;
+
+                case SHORT_JMPR:
+                    decodeShortB(inst, &dst, &imm);
                     printf("jmp r%u\n", dst);
                     break;
 

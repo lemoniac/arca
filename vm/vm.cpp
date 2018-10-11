@@ -175,16 +175,16 @@ bool VM::step()
             decodeShortA(dst, src0);
             switch(opcode - SHORT_ALUR)
             {
-                case ALU_ADD: res = regs[src0] + regs[src1]; break;
-                case ALU_SUB: res = regs[src0] - regs[src1]; break;
-                case ALU_MUL: res = regs[src0] * regs[src1]; break;
-                case ALU_DIV: res = regs[src0] / regs[src1]; break;
-                case ALU_SHL: res = regs[src0] << regs[src1]; break;
-                case ALU_SHR: res = regs[src0] >> regs[src1]; break;
+                case ALU_ADD: res = regs[dst] + regs[src0]; break;
+                case ALU_SUB: res = regs[dst] - regs[src0]; break;
+                case ALU_MUL: res = regs[dst] * regs[src0]; break;
+                case ALU_DIV: res = regs[dst] / regs[src0]; break;
+                case ALU_SHL: res = regs[dst] << regs[src0]; break;
+                case ALU_SHR: res = regs[dst] >> regs[src0]; break;
 
-                case ALU_AND: res = regs[src0] & regs[src1]; break;
-                case ALU_OR:  res = regs[src0] | regs[src1]; break;
-                case ALU_XOR: res = regs[src0] ^ regs[src1]; break;
+                case ALU_AND: res = regs[dst] & regs[src0]; break;
+                case ALU_OR:  res = regs[dst] | regs[src0]; break;
+                case ALU_XOR: res = regs[dst] ^ regs[src0]; break;
             }
 
             is_zero = res == 0;
@@ -320,10 +320,28 @@ bool VM::step()
             break;
         }
 
+        case SHORT_CMPI: {
+            decodeShortB(src0, imm);
+            uint32_t res = regs[src0] - imm;
+
+            is_zero = res == 0;
+            sign = (res >> 31) == 1;
+
+            break;
+        }
+
         case INT:
         {
             unsigned n, _;
             decodeC(n, _);
+            interrupt(n);
+            break;
+        }
+
+        case SHORT_INT:
+        {
+            unsigned n;
+            decodeShortC(n);
             interrupt(n);
             break;
         }
@@ -351,6 +369,11 @@ bool VM::step()
         case JMPR:
             decodeC(src0, imm);
             PC = regs[src0] - 4;
+            break;
+
+        case SHORT_JMPR:
+            decodeShortB(dst, imm);
+            PC = regs[dst] - 2;
             break;
 
         case JAL:
@@ -466,6 +489,11 @@ void VM::decodeShortB(unsigned &dst, unsigned &imm)
 {
     dst = (currentInst >> 7) & 0xf;
     imm = (currentInst >> 11);
+}
+
+void VM::decodeShortC(unsigned &imm)
+{
+    imm = (currentInst >> 7);
 }
 
 int VM::extendSign(unsigned imm, unsigned bit)
