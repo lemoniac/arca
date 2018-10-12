@@ -16,8 +16,7 @@ int CodeGenerator::visit(Function &f)
         usedRegisters[i + 1] = 1;
     }
 
-    Scope s = {f.name, f.statements->symbolTable};
-    scope.push_back(s);
+    functionName = f.name;
 
     std::cout << f.name << ":" << std::endl;
 
@@ -29,13 +28,14 @@ int CodeGenerator::visit(Function &f)
         std::cout << "    ret" << std::endl << std::endl;
     }
 
-    scope.pop_back();
-
     return 0;
 }
 
 int CodeGenerator::visit(StatementBlock &block)
 {
+    Scope s = {block.symbolTable};
+    scope.push_back(s);
+
     // assign registers to locals
     for(auto &l : block.locals)
     {
@@ -56,6 +56,8 @@ int CodeGenerator::visit(StatementBlock &block)
     for(auto &l : block.locals)
         usedRegisters[l->reg] = 0;
 
+    scope.pop_back();
+
     return 0;
 }
 
@@ -72,7 +74,7 @@ int CodeGenerator::visit(ReturnStatement &ret)
     if(isLeaf)
         std::cout << "    ret" << std::endl;
     else
-        std::cout << "    jmp " << scope.back().functionName << "_epilogue" << std::endl;
+        std::cout << "    jmp " << functionName << "_epilogue" << std::endl;
 
     return 0;
 }
@@ -159,4 +161,18 @@ int CodeGenerator::visit(If &ifStatement)
     ifStatement.block->visit(this);
 
     std::cout << "if" << label << ":" << std::endl;
+
+    return 0;
+}
+
+int CodeGenerator::visit(GotoStatement &gotoStatement)
+{
+    std::cout << "    jmp " << gotoStatement.label << std::endl;
+    return 0;
+}
+
+int CodeGenerator::visit(LabelStatement &label)
+{
+    std::cout << label.label << ":" << std::endl;
+    return 0;
 }

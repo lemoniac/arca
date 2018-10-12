@@ -20,6 +20,8 @@ public:
     int visit(FunctionCall &f);
     int visit(TranslationUnit &unit);
     int visit(Assignment &assignment);
+    int visit(GotoStatement &gotoStatement);
+    int visit(LabelStatement &label);
 
     int visit(IntConstant &constant);
     int visit(IdentifierExpr &identifier);

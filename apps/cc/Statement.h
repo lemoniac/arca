@@ -18,6 +18,7 @@ public:
     ~Statement() { }
 
     virtual int visit(Visitor *visitor) = 0;
+    virtual void setParent(StatementBlock *parent);
 
     StatementBlock *parent = nullptr;
 };
@@ -30,6 +31,8 @@ public:
 
     std::vector<VariablePtr> locals;
     std::vector<StatementPtr> statements;
+
+    void add(StatementPtr statement);
 
     SymbolTable *symbolTable;
 
@@ -70,11 +73,26 @@ public:
     StatementBlockPtr elseBlock;
 
     int visit(Visitor *visitor);
+    void setParent(StatementBlock *parent);
 };
 
 class ReturnStatement: public Statement {
 public:
     ExpressionPtr returnValue;
+
+    int visit(Visitor *visitor);
+};
+
+class GotoStatement: public Statement {
+public:
+    std::string label;
+
+    int visit(Visitor *visitor);
+};
+
+class LabelStatement: public Statement {
+public:
+    std::string label;
 
     int visit(Visitor *visitor);
 };

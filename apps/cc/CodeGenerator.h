@@ -16,6 +16,8 @@ public:
     int visit(FunctionCall &f);
     int visit(TranslationUnit &unit);
     int visit(Assignment &assignment);
+    int visit(GotoStatement &gotoStatement);
+    int visit(LabelStatement &label);
 
     int visit(IntConstant &constant);
     int visit(IdentifierExpr &identifier);
@@ -24,7 +26,6 @@ public:
 protected:
     class Scope {
     public:
-        std::string functionName;
         SymbolTable *symbols = nullptr;
     };
 
@@ -36,6 +37,7 @@ protected:
     std::bitset<32> usedRegisters;
     bool isLeaf;
     bool returnSeen;
+    std::string functionName;
     int rdest = -1;
     std::string res;
 

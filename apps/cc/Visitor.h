@@ -8,6 +8,8 @@ class ReturnStatement;
 class FunctionCall;
 class TranslationUnit;
 class Assignment;
+class GotoStatement;
+class LabelStatement;
 
 class IntConstant;
 class IdentifierExpr;
@@ -22,6 +24,8 @@ public:
     virtual int visit(ReturnStatement &ret) = 0;
     virtual int visit(FunctionCall &function) = 0;
     virtual int visit(Assignment &assignment) = 0;
+    virtual int visit(GotoStatement &gotoStatement) = 0;
+    virtual int visit(LabelStatement &label) = 0;
 
     virtual int visit(IntConstant &constant) = 0;
     virtual int visit(IdentifierExpr &identifier) = 0;

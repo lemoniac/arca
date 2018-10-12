@@ -41,6 +41,20 @@ bool Token::isAssignment() const
     return false;
 }
 
+bool Token::isRelational() const
+{
+    switch(token)
+    {
+        case EQ_OP: return true;
+        case NE_OP: return true;
+        case '<': return true;
+        case '>': return true;
+        case LE_OP: return true;
+        case GE_OP: return true;
+    }
+    return false;
+}
+
 int Token::to_int() const
 {
     return std::stoi(text);
@@ -247,7 +261,7 @@ StatementBlockPtr Parser::parseStatementBlock()
                 break;
             }
 
-            case IF: block->statements.push_back(parseIf()); break;
+            case IF: block->add(parseIf()); break;
 
             case RETURN:
             {
@@ -257,7 +271,7 @@ StatementBlockPtr Parser::parseStatementBlock()
                     ret->returnValue = parseExpression();
                 }
                 EXPECT(";", 0);
-                block->statements.push_back(std::move(ret));
+                block->add(std::move(ret));
                 break;
             }
 
@@ -267,25 +281,38 @@ StatementBlockPtr Parser::parseStatementBlock()
                 if(token.isAssignment())
                 {
                     auto assignment = std::make_unique<Assignment>();
-                    assignment->parent = block.get();
                     assignment->dest = identifier;
                     assignment->expression = parseExpression();
                     EXPECT(";", 0);
-                    block->statements.push_back(std::move(assignment));
+                    block->add(std::move(assignment));
                 }
                 else if(token.token == '(')
                 {
                     auto call = std::make_unique<FunctionCall>();
                     call->function = identifier;
-                    call->parent = block.get();
                     parseArguments(call->arguments);
-                    block->statements.push_back(std::move(call));
+                    block->add(std::move(call));
                     EXPECT(";", 0);
+                }
+                else if(token.token == ':')
+                {
+                    auto l = std::make_unique<LabelStatement>();
+                    l->label = identifier;
+                    block->add(std::move(l));
                 }
                 else if(token.token == ';')
                 {}
                 else
                     std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
+                break;
+            }
+
+            case GOTO: {
+                readToken();
+                auto g = std::make_unique<GotoStatement>();
+                g->label = token.text;
+                block->add(std::move(g));
+                EXPECT(";", 0);
                 break;
             }
 

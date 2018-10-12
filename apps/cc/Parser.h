@@ -16,6 +16,7 @@ struct Token {
 
     Type type() const;
     bool isAssignment() const;
+    bool isRelational() const;
     int to_int() const;
     static bool isBinaryOp(int token);
 };

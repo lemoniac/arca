@@ -55,6 +55,8 @@ int PrintVisitor::visit(Assignment &assignment)
     return 0;
 }
 
+int PrintVisitor::visit(GotoStatement &gotoStatement) { return 0; }
+int PrintVisitor::visit(LabelStatement &label) { return 0; }
 
 int PrintVisitor::visit(IntConstant &constant) { return 0; }
 int PrintVisitor::visit(IdentifierExpr &identifier) { return 0; }

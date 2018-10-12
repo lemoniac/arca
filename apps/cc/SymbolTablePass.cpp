@@ -43,7 +43,12 @@ int SymbolTablePass::visit(If &ifStatement)
     ifStatement.block->visit(this);
 }
 
-int SymbolTablePass::visit(ReturnStatement &ret) { return 0; }
+int SymbolTablePass::visit(ReturnStatement &ret)
+{
+    if(ret.returnValue)
+        return ret.returnValue->visit(this);
+    return 0;
+}
 
 int SymbolTablePass::visit(FunctionCall &f)
 {
@@ -82,6 +87,17 @@ int SymbolTablePass::visit(Assignment &assignment)
 
     return 0;
 }
+
+int SymbolTablePass::visit(GotoStatement &gotoStatement)
+{
+    return 0;
+}
+
+int SymbolTablePass::visit(LabelStatement &label)
+{
+    return 0;
+}
+
 
 int SymbolTablePass::visit(IntConstant &constant) { return 0; }
 
