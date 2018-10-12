@@ -12,7 +12,7 @@ int CodeGenerator::visit(Function &f)
     usedRegisters[14] = usedRegisters[15] = 1; // SP, LR
     for(unsigned i = 0; i < f.parameters.size(); i++)
     {
-        f.parameters[i].reg = i + 1;
+        f.parameters[i]->reg = i + 1;
         usedRegisters[i + 1] = 1;
     }
 
@@ -41,11 +41,11 @@ int CodeGenerator::visit(StatementBlock &block)
     {
         int r = getFreeRegister();
         if(r < 0) return -1;
-        l.reg = r;
+        l->reg = r;
         usedRegisters[r] = 1;
-        if(l.valueSet)
+        if(l->valueSet)
         {
-            std::cout << "    r" << r << " = " << l.value << std::endl;
+            std::cout << "    r" << r << " = " << l->value << std::endl;
         }
     }
 
@@ -54,7 +54,7 @@ int CodeGenerator::visit(StatementBlock &block)
 
     // unassign registers
     for(auto &l : block.locals)
-        usedRegisters[l.reg] = 0;
+        usedRegisters[l->reg] = 0;
 
     return 0;
 }

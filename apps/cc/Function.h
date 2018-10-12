@@ -12,7 +12,7 @@ class Function {
 public:
     std::string name;
     Type returnType;
-    std::vector<Variable> parameters;
+    std::vector<VariablePtr> parameters;
     StatementBlock statements;
 
     bool isVariable(const std::string &name) const;

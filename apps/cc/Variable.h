@@ -1,6 +1,7 @@
 #ifndef CC__VARIABLE__H
 #define CC__VARIABLE__H
 
+#include <memory>
 #include <string>
 #include "Types.h"
 
@@ -13,5 +14,7 @@ struct Variable {
     bool valueSet = false;
     unsigned reg;
 };
+
+typedef std::unique_ptr<Variable> VariablePtr;
 
 #endif//CC__VARIABLE__H

@@ -28,7 +28,7 @@ class StatementBlock : public Statement {
 public:
     StatementBlock(): symbolTable(new SymbolTable()) { }
 
-    std::vector<Variable> locals;
+    std::vector<VariablePtr> locals;
     std::vector<StatementPtr> statements;
 
     SymbolTable *symbolTable;

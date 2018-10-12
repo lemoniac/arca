@@ -10,7 +10,7 @@ int SymbolTablePass::visit(Function &f)
 
     for(auto &p : f.parameters)
     {
-        SymbolTable::Symbol s = {p.name, p.type, &p};
+        SymbolTable::Symbol s = {p->name, p->type, p.get()};
         f.statements.symbolTable->symbols.push_back(s);
     }
 
@@ -25,7 +25,7 @@ int SymbolTablePass::visit(StatementBlock &block)
 
     for(auto &l : block.locals)
     {
-        SymbolTable::Symbol s = {l.name, l.type, &l};
+        SymbolTable::Symbol s = {l->name, l->type, l.get()};
         block.symbolTable->symbols.push_back(s);
     }
 

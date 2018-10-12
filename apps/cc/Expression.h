@@ -29,7 +29,7 @@ public:
 
 class BinaryOpExpr : public Expression {
 public:
-    enum class Op {Add, Sub, Mul, Div, And, Or, Xor};
+    enum class Op {Add, Sub, Mul, Div, Mod, And, Or, Xor, LShift, RShift};
     Op op;
     ExpressionPtr left;
     ExpressionPtr right;
@@ -44,6 +44,7 @@ public:
             case '-': op = Op::Sub; break;
             case '*': op = Op::Mul; break;
             case '/': op = Op::Div; break;
+            case '%': op = Op::Mod; break;
             case '&': op = Op::And; break;
             case '|': op = Op::Or;  break;
             case '^': op = Op::Xor; break;
@@ -56,6 +57,14 @@ public:
         {
             case Op::Add: return "+";
             case Op::Sub: return "-";
+            case Op::Mul: return "*";
+            case Op::Div: return "/";
+            case Op::Mod: return "%";
+            case Op::And: return "&";
+            case Op::Or:  return "|";
+            case Op::Xor: return "^";
+            case Op::LShift: return "<<";
+            case Op::RShift: return ">>";
         }
 
         return "?";

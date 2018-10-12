@@ -7,7 +7,7 @@ int PrintVisitor::visit(Function &f)
 {
     std::cout << "Function: " << f.name << std::endl;
     for(auto &p : f.parameters)
-        std::cout << "    Parameter: " << p.name << std::endl;
+        std::cout << "    Parameter: " << p->name << std::endl;
 
     visit(f.statements);
 
@@ -17,7 +17,7 @@ int PrintVisitor::visit(Function &f)
 int PrintVisitor::visit(StatementBlock &block)
 {
     for(const auto &l : block.locals)
-        std::cout << "    local " << int(l.type) << " " << l.name << std::endl;
+        std::cout << "    local " << int(l->type) << " " << l->name << std::endl;
 
     for(const auto &s : block.statements)
         s->visit(this);
