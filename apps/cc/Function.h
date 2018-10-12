@@ -13,7 +13,7 @@ public:
     std::string name;
     Type returnType;
     std::vector<VariablePtr> parameters;
-    StatementBlock statements;
+    StatementBlockPtr statements;
 
     bool isVariable(const std::string &name) const;
     int visit(Visitor *v);

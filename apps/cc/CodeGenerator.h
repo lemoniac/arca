@@ -12,6 +12,7 @@ public:
     int visit(Function &f);
     int visit(StatementBlock &block);
     int visit(ReturnStatement &ret);
+    int visit(If &ifStatement);
     int visit(FunctionCall &f);
     int visit(TranslationUnit &unit);
     int visit(Assignment &assignment);
@@ -29,12 +30,16 @@ protected:
 
     int getFreeRegister();
 
+    int generateLabel();
+
     std::vector<Scope> scope;
     std::bitset<32> usedRegisters;
     bool isLeaf;
     bool returnSeen;
     int rdest = -1;
     std::string res;
+
+    int labelCounter = 0;
 };
 
 #endif//CC__CODE_GENERATOR__H

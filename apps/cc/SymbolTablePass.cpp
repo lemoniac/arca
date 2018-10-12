@@ -11,10 +11,10 @@ int SymbolTablePass::visit(Function &f)
     for(auto &p : f.parameters)
     {
         SymbolTable::Symbol s = {p->name, p->type, p.get()};
-        f.statements.symbolTable->symbols.push_back(s);
+        f.statements->symbolTable->symbols.push_back(s);
     }
 
-    f.statements.visit(this);
+    f.statements->visit(this);
 
     return 0;
 }
@@ -35,6 +35,12 @@ int SymbolTablePass::visit(StatementBlock &block)
     symbols.pop_back();
 
     return 0;
+}
+
+int SymbolTablePass::visit(If &ifStatement)
+{
+    ifStatement.expression->visit(this);
+    ifStatement.block->visit(this);
 }
 
 int SymbolTablePass::visit(ReturnStatement &ret) { return 0; }

@@ -16,12 +16,12 @@ int CodeGenerator::visit(Function &f)
         usedRegisters[i + 1] = 1;
     }
 
-    Scope s = {f.name, f.statements.symbolTable};
+    Scope s = {f.name, f.statements->symbolTable};
     scope.push_back(s);
 
     std::cout << f.name << ":" << std::endl;
 
-    visit(f.statements);
+    visit(*f.statements.get());
 
     if(!isLeaf || !returnSeen)
     {
@@ -105,6 +105,12 @@ int CodeGenerator::getFreeRegister()
     return -1;
 }
 
+int CodeGenerator::generateLabel()
+{
+    labelCounter++;
+    return labelCounter;
+}
+
 int CodeGenerator::visit(Assignment &assignment)
 {
     assignment.expression->visit(this);
@@ -139,4 +145,18 @@ int CodeGenerator::visit(BinaryOpExpr &op)
 
     std::cout << "    r" << rdest << " = " << left << " " << op.to_str() << " " << right << std::endl;
     return 0;
+}
+
+int CodeGenerator::visit(If &ifStatement)
+{
+    ifStatement.expression->visit(this);
+    
+    int label = generateLabel();
+
+    std::cout << "    r0 = " << res << " - 0" << std::endl;
+    std::cout << "    jmp.nz if" << label << std::endl;
+
+    ifStatement.block->visit(this);
+
+    std::cout << "if" << label << ":" << std::endl;
 }

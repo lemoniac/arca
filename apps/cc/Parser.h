@@ -39,8 +39,9 @@ protected:
     VariablePtr parseVariableDefinition();
     ExpressionPtr parseExpression();
     int parseArguments(std::vector<ExpressionPtr> &arguments);
-    int parseStatementBlock(FunctionPtr &function);
+    StatementBlockPtr parseStatementBlock();
     int parseFunction();
+    StatementPtr parseIf();
 
     std::vector<Token> nextTokens;
     FILE *file = nullptr;

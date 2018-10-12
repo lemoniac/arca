@@ -36,6 +36,8 @@ public:
     int visit(Visitor *visitor);
 };
 
+typedef std::unique_ptr<StatementBlock> StatementBlockPtr;
+
 class Assignment : public Statement {
 public:
     enum class Kind { Assign, Add, Sub, Mul, Div, Mod, And, Or, Xor, Left, Right };
@@ -55,10 +57,19 @@ public:
     int visit(Visitor *visitor);
 };
 
-class While {
+class While : public Statement {
 public:
     ExpressionPtr expression;
     StatementBlock block;
+};
+
+class If : public Statement {
+public:
+    ExpressionPtr expression;
+    StatementBlockPtr block;
+    StatementBlockPtr elseBlock;
+
+    int visit(Visitor *visitor);
 };
 
 class ReturnStatement: public Statement {

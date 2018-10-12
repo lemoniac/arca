@@ -9,7 +9,7 @@ int PrintVisitor::visit(Function &f)
     for(auto &p : f.parameters)
         std::cout << "    Parameter: " << p->name << std::endl;
 
-    visit(f.statements);
+    visit(*f.statements.get());
 
     return 0;
 }
@@ -24,6 +24,12 @@ int PrintVisitor::visit(StatementBlock &block)
 
     return 0;
 }
+
+int PrintVisitor::visit(If &ifStatement)
+{
+    return 0;
+}
+
 int PrintVisitor::visit(ReturnStatement &ret)
 {
     return 0;

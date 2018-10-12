@@ -226,13 +226,14 @@ int Parser::parseArguments(std::vector<ExpressionPtr> &arguments)
     }
 }
 
-int Parser::parseStatementBlock(FunctionPtr &function)
+StatementBlockPtr Parser::parseStatementBlock()
 {
+    auto block = std::make_unique<StatementBlock>();
     readToken();
     // local variables
     while(token.type() != Type::Error)
     {
-        function->statements.locals.push_back(parseVariableDefinition());
+        block->locals.push_back(parseVariableDefinition());
         readToken();
     }
 
@@ -242,9 +243,11 @@ int Parser::parseStatementBlock(FunctionPtr &function)
         {
             case WHILE:
             {
-                EXPECT("(", -1);
+                EXPECT("(", 0);
                 break;
             }
+
+            case IF: block->statements.push_back(parseIf()); break;
 
             case RETURN:
             {
@@ -253,8 +256,8 @@ int Parser::parseStatementBlock(FunctionPtr &function)
                 {
                     ret->returnValue = parseExpression();
                 }
-                EXPECT(";", -1);
-                function->statements.statements.push_back(std::move(ret));
+                EXPECT(";", 0);
+                block->statements.push_back(std::move(ret));
                 break;
             }
 
@@ -264,20 +267,20 @@ int Parser::parseStatementBlock(FunctionPtr &function)
                 if(token.isAssignment())
                 {
                     auto assignment = std::make_unique<Assignment>();
-                    assignment->parent = &function->statements;
+                    assignment->parent = block.get();
                     assignment->dest = identifier;
                     assignment->expression = parseExpression();
-                    EXPECT(";", -1);
-                    function->statements.statements.push_back(std::move(assignment));
+                    EXPECT(";", 0);
+                    block->statements.push_back(std::move(assignment));
                 }
                 else if(token.token == '(')
                 {
                     auto call = std::make_unique<FunctionCall>();
                     call->function = identifier;
-                    call->parent = &function->statements;
+                    call->parent = block.get();
                     parseArguments(call->arguments);
-                    function->statements.statements.push_back(std::move(call));
-                    EXPECT(";", -1);
+                    block->statements.push_back(std::move(call));
+                    EXPECT(";", 0);
                 }
                 else if(token.token == ';')
                 {}
@@ -292,14 +295,14 @@ int Parser::parseStatementBlock(FunctionPtr &function)
         readToken();
     } while(token.token != 0 && token.token != '}');
 
-    return 0;
+    return block;
 }
 
 int Parser::parseFunction()
 {
     auto function = std::make_unique<Function>();
     function->returnType = parseType();
-    function->statements.symbolTable->parent = &unit.symbolTable;
+
     if(function->returnType == Type::Error)
         return -1;
     readToken();
@@ -323,13 +326,31 @@ int Parser::parseFunction()
     }
     if(token.token == '{')
     {
-        if(parseStatementBlock(function) < 0)
+        auto block = parseStatementBlock();
+        if(!block)
             return -1;
+        function->statements = std::move(block);
+        function->statements->symbolTable->parent = &unit.symbolTable;
+
         unit.functions.push_back(std::move(function));
         return 0;
     }
     return -1;
 }
+
+StatementPtr Parser::parseIf()
+{
+    auto s = std::make_unique<If>();
+    EXPECT("(", 0);
+    s->expression = parseExpression();
+    EXPECT(")", 0);
+    EXPECT("{", 0);
+    s->block = parseStatementBlock();
+    //EXPECT("}", 0);
+
+    return s;
+}
+
 
 int Parser::parse(const char *filename)
 {
