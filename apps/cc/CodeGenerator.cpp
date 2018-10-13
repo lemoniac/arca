@@ -115,9 +115,9 @@ int CodeGenerator::generateLabel()
 
 int CodeGenerator::visit(Assignment &assignment)
 {
-    assignment.expression->visit(this);
     rdest = scope.back().symbols->find(assignment.dest)->variable->reg;
-    std::cout << "    r" << rdest << " = " << res << std::endl;
+    assignment.expression->visit(this);
+
     return 0;
 }
 
