@@ -151,6 +151,8 @@ bool VM::step()
                 case ALU_AND: res = regs[src0] & regs[src1]; break;
                 case ALU_OR:  res = regs[src0] | regs[src1]; break;
                 case ALU_XOR: res = regs[src0] ^ regs[src1]; break;
+
+                case ALU_SLT: res = (regs[src0] < regs[src1]) ? 1 : 0; break;
             }
 
             is_zero = res == 0;
@@ -295,6 +297,12 @@ bool VM::step()
             if (dst != 0)
                 regs[dst] = res;
 
+            break;
+        }
+
+        case SLTI: {
+            decodeB(dst, src0, imm);
+            regs[dst] = (regs[src0] < imm)? 1 : 0;
             break;
         }
 

@@ -19,6 +19,7 @@
 #define ANDI 18
 #define XORI 19
 #define ORI  20
+#define SLTI  21
 
 #define JMP  30
 #define JMPR 31
@@ -50,6 +51,7 @@
 #define ALU_AND  6
 #define ALU_OR   7
 #define ALU_XOR  8
+#define ALU_SLT  9
 
 #define MEM_LOADW  0
 #define MEM_LOADHU 1

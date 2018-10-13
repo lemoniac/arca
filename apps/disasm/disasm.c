@@ -131,6 +131,8 @@ int main(int argc, char **argv)
                         case ALU_AND: op = "&"; break;
                         case ALU_OR:  op = "|"; break;
                         case ALU_XOR: op = "^"; break;
+
+                        case ALU_SLT: op = "<"; break;
                     }
                     printf("r%u = r%u %s r%u\n", dst, src0, op, src1);
                     break;
@@ -192,6 +194,12 @@ int main(int argc, char **argv)
                     printf("r%u += %u\n", dst, imm);
                     break;
                 }
+
+                case SLTI:
+                    decodeB(inst, &dst, &src0, &imm);
+                    printf("r%u = r%u < %u\n", dst, src0, imm);
+                    break;
+
 
                 case SHORT_CMPR:
                     decodeShortA(inst, &dst, &src0);
