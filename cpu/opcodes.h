@@ -25,6 +25,7 @@
 #define JMPR 31
 #define JAL  32
 #define JALR 33
+#define BRANCH 34
 
 #define INT 50
 #define SYSTEM 51
@@ -63,7 +64,7 @@
 #define MEM_STOREH 1
 #define MEM_STOREB 2
 
-#define COND_ALLWAYS 0
+#define COND_ALWAYS  0
 #define COND_ZERO    1
 #define COND_NOTZERO 2
 #define COND_SIGN    3
@@ -72,6 +73,8 @@
 #define COND_LTU     6
 #define COND_GE      7
 #define COND_GEU     8
+#define COND_EQ      9
+#define COND_NE     10
 
 #define SYSTEM_CR_SET  0
 #define SYSTEM_CR_READ 1

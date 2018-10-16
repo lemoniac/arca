@@ -42,6 +42,7 @@ class Parser {
     const std::regex jmp_re = std::regex("jmp(\\..+)? (\\S+)");
     const std::regex jal_reg_re = std::regex("jal r(\\d+) r(\\d+)(\\+d+)?");
     const std::regex jal_re = std::regex("jal r(\\d+) (\\S+)");
+    const std::regex branch_re = std::regex("if r(\\d+) (.+) r(\\d+) goto (\\S+)");
     const std::regex int_re = std::regex("int (\\d+)");
     const std::regex call_re = std::regex("call (\\w+)");
 
@@ -95,6 +96,7 @@ class Parser {
         std::string name;
         unsigned address;
         unsigned align;
+        unsigned shift;
     };
 
     std::vector<Label> unk_labels;
@@ -175,7 +177,7 @@ public:
                 continue;
             }
 
-            *(unsigned *)(code + label.address) |= labels[label.name].address << (12 - label.align);
+            *(unsigned *)(code + label.address) |= labels[label.name].address << (label.shift - label.align);
         }
     }
 
@@ -332,6 +334,8 @@ protected:
             jalr(match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, call_re) && match.size() > 1)
             jal("15", match.str(1));
+        else if(std::regex_match(line, match, branch_re) && match.size() > 1)
+            branch(match.str(1), match.str(2), match.str(3), match.str(4));
         else if(std::regex_match(line, match, int_re) && match.size() > 1)
             interrupt(match.str(1));
         else if(line == "ret")
@@ -544,7 +548,7 @@ protected:
         if(labels.find(label) == labels.end())
         {
             address = 0;
-            unk_labels.emplace_back(Label{label, PC + 2, 1});
+            unk_labels.emplace_back(Label{label, PC + 2, 1, 12});
         }
         else
             address = labels[label].address;
@@ -563,6 +567,36 @@ protected:
         encodeB(JALR, std::stoi(dst), std::stoi(src), offset);
 
         std::cout << "jalr r" << dst << " r" << src << off << std::endl;
+    }
+
+    void branch(const std::string &left, const std::string &op, const std::string &right, const std::string &label)
+    {
+        unsigned l = std::stoi(left);
+        unsigned r = std::stoi(right);
+        unsigned address = resolveLabel(label, 1, 22);
+        unsigned cond = 0;
+        if (op == "<")
+            cond = COND_LT;
+        else if (op == ">")
+        {
+            cond = COND_LT;
+            std::swap(l, r);
+        }
+        else if (op == ">=")
+            cond = COND_GE;
+        else if (op == "<=")
+        {
+            cond = COND_GE;
+            std::swap(l, r);
+        }
+        else if (op == "==")
+            cond = COND_EQ;
+        else if (op == "!=")
+            cond = COND_NE;
+
+        encodeA(BRANCH, cond, l, r, address >> 1);
+
+        std::cout << "b." << op << " " << left << " " << right << " " << address << std::endl;
     }
 
     void interrupt(const std::string &int_n)
@@ -747,13 +781,13 @@ protected:
     }
 
 
-    unsigned resolveLabel(const std::string &label, unsigned align = 0)
+    unsigned resolveLabel(const std::string &label, unsigned align = 0, unsigned shift = 12)
     {
         unsigned address;
         if(labels.find(label) == labels.end())
         {
             address = 0;
-            unk_labels.emplace_back(Label{label, PC, align});
+            unk_labels.emplace_back(Label{label, PC, align, shift});
         }
         else
             address = labels[label].address;

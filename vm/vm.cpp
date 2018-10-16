@@ -362,7 +362,7 @@ bool VM::step()
             bool jmp = false;
             switch(cond)
             {
-                case COND_ALLWAYS: jmp = true; break;
+                case COND_ALWAYS: jmp = true; break;
                 case COND_ZERO: jmp = is_zero; break;
                 case COND_NOTZERO: jmp = !is_zero; break;
                 case COND_SIGN: jmp = sign; break;
@@ -395,6 +395,22 @@ bool VM::step()
             regs[dst] = PC + 4;
             PC = regs[src0] - 4 + imm;
             break;
+
+        case BRANCH: {
+            bool jmp = false;
+            decodeA(dst, src0, src1, imm);
+            switch(dst)
+            {
+                case COND_ALWAYS: jmp = true; break;
+                case COND_LT: jmp = regs[src0] < regs[src1]; break;
+                case COND_GE: jmp = regs[src0] >= regs[src1]; break;
+                case COND_EQ: jmp = regs[src0] == regs[src1]; break;
+                case COND_NE: jmp = regs[src0] == regs[src1]; break;
+            }
+            if(jmp)
+                PC = (imm << 1) - 4;
+            break;
+        }
 
         case SYSTEM: {
             unsigned fun;

@@ -55,6 +55,23 @@ int extendSign(unsigned imm, unsigned bit)
     return imm;
 }
 
+const char *cond2str(unsigned cond)
+{
+    switch(cond)
+    {
+        case COND_ALWAYS: return "";
+        case COND_ZERO: return ".z";
+        case COND_NOTZERO: return ".nz";
+        case COND_SIGN: return ".s";
+        case COND_NOSIGN: return ".ns";
+        case COND_LT: return ".lt";
+        case COND_LTU: return ".ltu";
+        case COND_GE: return ".ge";
+        case COND_GEU: return ".geu";
+        default: return ".??";
+    }
+}
+
 int main(int argc, char **argv)
 {
     FILE *file = fopen(argv[1], "rb");
@@ -226,7 +243,7 @@ int main(int argc, char **argv)
                     printf("jmp");
                     switch(dst)
                     {
-                        case COND_ALLWAYS: break;
+                        case COND_ALWAYS: break;
                         case COND_ZERO: printf(".z"); break;
                         case COND_NOTZERO: printf(".nz"); break;
                         case COND_SIGN: printf(".s"); break;
@@ -251,6 +268,12 @@ int main(int argc, char **argv)
                 case JAL: {
                     decodeC(inst, &dst, &imm);
                     printf("jal r%u %u\n", dst, (imm << 1));
+                    break;
+                }
+
+                case BRANCH: {
+                    decodeA(inst, &dst, &src0, &src1, &imm);
+                    printf("b%s r%u r%u %u\n", cond2str(dst), src0, src1, imm);
                     break;
                 }
 
