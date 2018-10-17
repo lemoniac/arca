@@ -43,6 +43,14 @@ int SymbolTablePass::visit(If &ifStatement)
     ifStatement.block->visit(this);
 }
 
+int SymbolTablePass::visit(While &statement)
+{
+    statement.expression->visit(this);
+    statement.block->visit(this);
+
+    return 0;
+}
+
 int SymbolTablePass::visit(ReturnStatement &ret)
 {
     if(ret.returnValue)
@@ -66,7 +74,7 @@ int SymbolTablePass::visit(TranslationUnit &unit)
     symbols.push_back(&unit.symbolTable);
     for(auto &g : unit.globals)
     {
-        SymbolTable::Symbol s = {g.name, g.type, &g};
+        SymbolTable::Symbol s = {g->name, g->type, g.get()};
         unit.symbolTable.symbols.push_back(s);
     }
     for(auto &f : unit.functions)

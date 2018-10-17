@@ -74,6 +74,12 @@ bool Token::isBinaryOp(int token)
         case '^':
         case LEFT_OP:
         case RIGHT_OP:
+        case EQ_OP:
+        case NE_OP:
+        case '<':
+        case '>':
+        case LE_OP:
+        case GE_OP:
             return true;
     }
 
@@ -94,6 +100,12 @@ BinaryOpExpr::Op token_to_op(int token)
         case '^': return BinaryOpExpr::Op::Xor;
         case LEFT_OP: return BinaryOpExpr::Op::LShift;
         case RIGHT_OP: return BinaryOpExpr::Op::RShift;
+        case EQ_OP: return BinaryOpExpr::Op::Eq;
+        case NE_OP: return BinaryOpExpr::Op::NEq;
+        case '<': return BinaryOpExpr::Op::LT;
+        case '>': return BinaryOpExpr::Op::GT;
+        case LE_OP: return BinaryOpExpr::Op::LE;
+        case GE_OP: return BinaryOpExpr::Op::GE;
     }
 
     throw std::runtime_error("unknown binary operator");
@@ -103,7 +115,7 @@ BinaryOpExpr::Op token_to_op(int token)
 Type Parser::parseType()
 {
     readToken();
-    token.type();
+    return token.type();
 }
 
 int Parser::expect(const std::string &str)
@@ -158,12 +170,11 @@ int Parser::parseParameters(FunctionPtr &function)
     return -1;
 }
 
-VariablePtr Parser::parseVariableDefinition()
+VariablePtr Parser::parseVariableDefinition(Type type, const std::string &name)
 {
     auto var = std::make_unique<Variable>();
-    var->type = token.type();
-    readToken();
-    var->name = token.text;
+    var->type = type;
+    var->name = name;
     readToken();
     if(token.token == ';')
     {
@@ -202,6 +213,12 @@ ExpressionPtr Parser::parseExpression()
             auto expr = std::make_unique<IntConstant>();
             expr->value = token.to_int();
             res = std::move(expr);
+            break;
+        }
+
+        case '(': {
+            res = parseExpression();
+            EXPECT(")", 0);
             break;
         }
 
@@ -247,7 +264,9 @@ StatementBlockPtr Parser::parseStatementBlock()
     // local variables
     while(token.type() != Type::Error)
     {
-        block->locals.push_back(parseVariableDefinition());
+        Type type = token.type();
+        readToken();
+        block->locals.push_back(parseVariableDefinition(type, token.text));
         readToken();
     }
 
@@ -255,12 +274,7 @@ StatementBlockPtr Parser::parseStatementBlock()
     do {
         switch(token.token)
         {
-            case WHILE:
-            {
-                EXPECT("(", 0);
-                break;
-            }
-
+            case WHILE: block->add(parseWhile()); break;
             case IF: block->add(parseIf()); break;
 
             case RETURN:
@@ -325,15 +339,11 @@ StatementBlockPtr Parser::parseStatementBlock()
     return block;
 }
 
-int Parser::parseFunction()
+int Parser::parseFunction(Type type, const std::string &name)
 {
     auto function = std::make_unique<Function>();
-    function->returnType = parseType();
-
-    if(function->returnType == Type::Error)
-        return -1;
-    readToken();
-    function->name = token.text;
+    function->returnType = type;
+    function->name = name;
 
     EXPECT("(", -1);
 
@@ -378,13 +388,46 @@ StatementPtr Parser::parseIf()
     return s;
 }
 
+StatementPtr Parser::parseWhile()
+{
+    auto s = std::make_unique<While>();
+    EXPECT("(", 0);
+    s->expression = parseExpression();
+    EXPECT(")", 0);
+    EXPECT("{", 0);
+    s->block = parseStatementBlock();
+    //EXPECT("}", 0);
+
+    return s;
+}
+
 
 int Parser::parse(const char *filename)
 {
     file = fopen(filename, "rt");
     yyin = file;
 
-    while(parseFunction() >= 0);
+    readToken();
+    while(token.token > 0)
+    {
+        Type type = token.type();
+        if(type == Type::Error)
+            return -1;
+        readToken();
+        std::string name = token.text;
+        int next = peekToken();
+        if(next == '(')
+            parseFunction(type, name);
+        else if(next == '=' || next == ';')
+        {
+            auto var = parseVariableDefinition(type, name);
+            var->isGlobal = true;
+            unit.globals.push_back(std::move(var));
+        }
+        readToken();
+    }
+
+    return 0;
 }
 
 int Parser::readToken()

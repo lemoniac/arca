@@ -93,7 +93,12 @@ int CodeGenerator::visit(TranslationUnit &unit)
 {
     //std::cout << "jmp main" << std::endl;
     for(auto &g : unit.globals)
-        std::cout << "int " << g.name << std::endl;
+    {
+        std::cout << "int " << g->name;
+        if(g->valueSet)
+            std::cout << " = " << g->value;
+        std::cout << std::endl;
+    }
     for(auto &f : unit.functions)
         f->visit(this);
 }
@@ -115,9 +120,11 @@ int CodeGenerator::generateLabel()
 
 int CodeGenerator::visit(Assignment &assignment)
 {
+    std::bitset<32> oldRegisters = usedRegisters;
     rdest = scope.back().symbols->find(assignment.dest)->variable->reg;
     assignment.expression->visit(this);
 
+    usedRegisters = oldRegisters;
     return 0;
 }
 
@@ -133,19 +140,34 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
     if(!s)
         throw std::runtime_error("undefined identifier");
 
-    if(s->type == Type::Int)
+    if(s->variable->isGlobal)
+    {
+        int r = getFreeRegister();
+        usedRegisters[r] = true;
+        s->variable->reg = r;
+        res = "r" + std::to_string(r);
+        std::cout << "    " << res << " = *" << s->name << std::endl;
+    }
+    else if(s->type == Type::Int)
         res = "r" + std::to_string(s->variable->reg);
     return 0;
 }
 
 int CodeGenerator::visit(BinaryOpExpr &op)
 {
+    int r = rdest;
+    if(r == -1)
+    {
+        r = getFreeRegister();
+        usedRegisters[r] = 1;
+    }
+    rdest = -1;
     op.left->visit(this);
     auto left = res;
     op.right->visit(this);
     auto right = res;
 
-    std::cout << "    r" << rdest << " = " << left << " " << op.to_str() << " " << right << std::endl;
+    std::cout << "    r" << r << " = " << left << " " << op.to_str() << " " << right << std::endl;
     return 0;
 }
 
@@ -161,6 +183,21 @@ int CodeGenerator::visit(If &ifStatement)
     ifStatement.block->visit(this);
 
     std::cout << "if" << label << ":" << std::endl;
+
+    return 0;
+}
+
+int CodeGenerator::visit(While &statement)
+{
+    int label = generateLabel();
+
+    std::cout << "while_" << label << ":" << std::endl;
+    statement.expression->visit(this);
+    std::cout << "    jmp ??? while_end_" << label << std::endl;
+
+    statement.block->visit(this);
+
+    std::cout << "while_end_" << label << ":" << std::endl;
 
     return 0;
 }

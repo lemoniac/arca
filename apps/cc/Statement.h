@@ -63,7 +63,10 @@ public:
 class While : public Statement {
 public:
     ExpressionPtr expression;
-    StatementBlock block;
+    StatementBlockPtr block;
+
+    int visit(Visitor *visitor);
+    void setParent(StatementBlock *parent);
 };
 
 class If : public Statement {

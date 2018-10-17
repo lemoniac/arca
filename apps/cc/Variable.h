@@ -13,6 +13,7 @@ struct Variable {
     int value;
     bool valueSet = false;
     unsigned reg;
+    bool isGlobal = false;
 };
 
 typedef std::unique_ptr<Variable> VariablePtr;

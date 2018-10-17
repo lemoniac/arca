@@ -8,6 +8,7 @@ public:
     int visit(Function &f);
     int visit(StatementBlock &block);
     int visit(If &ifStatement);
+    int visit(While &statement);
     int visit(ReturnStatement &ret);
     int visit(FunctionCall &call);
     int visit(TranslationUnit &unit);

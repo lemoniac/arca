@@ -8,7 +8,7 @@
 
 class TranslationUnit {
 public:
-    std::vector<Variable> globals;
+    std::vector<VariablePtr> globals;
     std::vector<FunctionPtr> functions;
 
     SymbolTable symbolTable;

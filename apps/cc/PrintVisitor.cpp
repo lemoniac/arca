@@ -30,6 +30,11 @@ int PrintVisitor::visit(If &ifStatement)
     return 0;
 }
 
+int PrintVisitor::visit(While &statement)
+{
+    return 0;
+}
+
 int PrintVisitor::visit(ReturnStatement &ret)
 {
     return 0;
@@ -43,7 +48,7 @@ int PrintVisitor::visit(FunctionCall &call)
 int PrintVisitor::visit(TranslationUnit &unit)
 {
     for(auto &g : unit.globals)
-        std::cout << "    global " << int(g.type) << " " << g.name << std::endl;
+        std::cout << "    global " << int(g->type) << " " << g->name << std::endl;
     for(auto &f : unit.functions)
         f->visit(this);
 

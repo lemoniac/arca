@@ -37,12 +37,13 @@ protected:
 
     Type parseType();
     int parseParameters(FunctionPtr &function);
-    VariablePtr parseVariableDefinition();
+    VariablePtr parseVariableDefinition(Type type, const std::string &name);
     ExpressionPtr parseExpression();
     int parseArguments(std::vector<ExpressionPtr> &arguments);
     StatementBlockPtr parseStatementBlock();
-    int parseFunction();
+    int parseFunction(Type type, const std::string &name);
     StatementPtr parseIf();
+    StatementPtr parseWhile();
 
     std::vector<Token> nextTokens;
     FILE *file = nullptr;
