@@ -6,12 +6,14 @@
 
 class Visitor;
 
+class Expression;
+typedef std::unique_ptr<Expression> ExpressionPtr;
+
 class Expression {
 public:
     virtual int visit(Visitor *visitor) = 0;
+    virtual ExpressionPtr symplify() { return nullptr; };
 };
-
-typedef std::unique_ptr<Expression> ExpressionPtr;
 
 class IntConstant : public Expression {
 public:
@@ -23,6 +25,13 @@ public:
 class IdentifierExpr : public Expression {
 public:
     std::string name;
+
+    int visit(Visitor *visitor);
+};
+
+class ParentExpr: public Expression {
+public:
+    ExpressionPtr expr;
 
     int visit(Visitor *visitor);
 };
@@ -75,6 +84,8 @@ public:
 
         return "?";
     }
+
+    ExpressionPtr symplify();
 };
 
 #endif//CC__EXPRESSION__H

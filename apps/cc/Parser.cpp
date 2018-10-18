@@ -182,7 +182,6 @@ bool Parser::parseVariableDefinition(VariablePtr &var)
 {
     readToken();
     var->value = parseExpression();
-    EXPECT(";", false);
     printf("var %i %s expr\n", (int)var->type, var->name.c_str());
     var->valueSet = true;
     return true;
@@ -259,8 +258,10 @@ StatementBlockPtr Parser::parseStatementBlock()
         Type type = token.type();
         readToken();
         auto var = createVariable(type, token.text);
-        if(!parseVariableDefinition(var))
+        int next = peekToken();
+        if(next == '=' && !parseVariableDefinition(var))
             return 0;
+        EXPECT(";", 0);
         block->locals.push_back(std::move(var));
         readToken();
     }
@@ -429,7 +430,7 @@ int Parser::parse(const char *filename)
             auto var = createVariable(type, name);
             if(next == '=' && !parseVariableDefinition(var))
                 return -1;
-            if(next == ';') readToken();
+            EXPECT(";", 0);
             var->isGlobal = true;
             unit.globals.push_back(std::move(var));
         }
