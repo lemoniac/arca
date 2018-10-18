@@ -170,30 +170,22 @@ int Parser::parseParameters(FunctionPtr &function)
     return -1;
 }
 
-VariablePtr Parser::parseVariableDefinition(Type type, const std::string &name)
+VariablePtr Parser::createVariable(Type type, const std::string &name)
 {
     auto var = std::make_unique<Variable>();
     var->type = type;
     var->name = name;
-    readToken();
-    if(token.token == ';')
-    {
-        printf("var %i %s\n", (int)var->type, var->name.c_str());
-        return var;
-    }
-    if(token.token == '=')
-    {
-        readToken();
-        std::string varvalue = token.text;
-        EXPECT(";", var);
-        printf("var %i %s %s\n", (int)var->type, var->name.c_str(), varvalue.c_str());
-        var->value = std::stoi(varvalue);
-        var->valueSet = true;
-        return var;
-    }
-
-    printf("error: expected ';' or '='");
     return var;
+}
+
+bool Parser::parseVariableDefinition(VariablePtr &var)
+{
+    readToken();
+    var->value = parseExpression();
+    EXPECT(";", false);
+    printf("var %i %s expr\n", (int)var->type, var->name.c_str());
+    var->valueSet = true;
+    return true;
 }
 
 ExpressionPtr Parser::parseExpression()
@@ -266,7 +258,10 @@ StatementBlockPtr Parser::parseStatementBlock()
     {
         Type type = token.type();
         readToken();
-        block->locals.push_back(parseVariableDefinition(type, token.text));
+        auto var = createVariable(type, token.text);
+        if(!parseVariableDefinition(var))
+            return 0;
+        block->locals.push_back(std::move(var));
         readToken();
     }
 
@@ -327,6 +322,14 @@ StatementBlockPtr Parser::parseStatementBlock()
                 g->label = token.text;
                 block->add(std::move(g));
                 EXPECT(";", 0);
+                break;
+            }
+
+            case '{':
+            {
+                auto inblock = parseStatementBlock();
+                inblock->setParent(block.get());
+                block->add(std::move(inblock));
                 break;
             }
 
@@ -417,10 +420,16 @@ int Parser::parse(const char *filename)
         std::string name = token.text;
         int next = peekToken();
         if(next == '(')
-            parseFunction(type, name);
+        {
+            if(parseFunction(type, name) < 0)
+                return -1;
+        }
         else if(next == '=' || next == ';')
         {
-            auto var = parseVariableDefinition(type, name);
+            auto var = createVariable(type, name);
+            if(next == '=' && !parseVariableDefinition(var))
+                return -1;
+            if(next == ';') readToken();
             var->isGlobal = true;
             unit.globals.push_back(std::move(var));
         }

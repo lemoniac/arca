@@ -1,5 +1,6 @@
 #include <iostream>
 #include "PrintVisitor.h"
+#include "Expression.h"
 #include "Function.h"
 #include "TranslationUnit.h"
 

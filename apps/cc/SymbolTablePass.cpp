@@ -21,7 +21,7 @@ int SymbolTablePass::visit(Function &f)
 
 int SymbolTablePass::visit(StatementBlock &block)
 {
-    symbols.push_back(block.symbolTable);
+    symbols.push_back(block.symbolTable.get());
 
     for(auto &l : block.locals)
     {

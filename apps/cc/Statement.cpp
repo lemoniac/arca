@@ -1,3 +1,4 @@
+#include "Expression.h"
 #include "Statement.h"
 #include "Visitor.h"
 
@@ -24,11 +25,11 @@ void Statement::setParent(StatementBlock *parent)
 void If::setParent(StatementBlock *parent)
 {
     Statement::setParent(parent);
-    block->symbolTable->parent = parent->symbolTable;
+    block->symbolTable->parent = parent->symbolTable.get();
 }
 
 void While::setParent(StatementBlock *parent)
 {
     Statement::setParent(parent);
-    block->symbolTable->parent = parent->symbolTable;
+    block->symbolTable->parent = parent->symbolTable.get();
 }

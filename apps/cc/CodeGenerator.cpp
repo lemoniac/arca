@@ -33,7 +33,7 @@ int CodeGenerator::visit(Function &f)
 
 int CodeGenerator::visit(StatementBlock &block)
 {
-    Scope s = {block.symbolTable};
+    Scope s = {block.symbolTable.get()};
     scope.push_back(s);
 
     // assign registers to locals
@@ -45,7 +45,8 @@ int CodeGenerator::visit(StatementBlock &block)
         usedRegisters[r] = 1;
         if(l->valueSet)
         {
-            std::cout << "    r" << r << " = " << l->value << std::endl;
+            rdest = r;
+            l->value->visit(this);
         }
     }
 
@@ -91,14 +92,44 @@ int CodeGenerator::visit(FunctionCall &f)
 
 int CodeGenerator::visit(TranslationUnit &unit)
 {
-    //std::cout << "jmp main" << std::endl;
+    Scope s = {&unit.symbolTable};
+    scope.push_back(s);
+
+    bool initializeGlobals = false;
+    for(const auto &g : unit.globals)
+    {
+        if(g->valueSet)
+        {
+            initializeGlobals = true;
+            break;
+        }
+    }
+
+    if(initializeGlobals)
+        std::cout << "jmp start" << std::endl;
     for(auto &g : unit.globals)
     {
-        std::cout << "int " << g->name;
-        if(g->valueSet)
-            std::cout << " = " << g->value;
+        std::cout << "    int " << g->name;
+        if(g->valueSet && g->isConstant())
+            std::cout << " = " << g->getValue();
         std::cout << std::endl;
     }
+
+    if(initializeGlobals)
+    {
+        std::cout << "start:" << std::endl;
+        for(auto &g : unit.globals)
+        {
+            if(g->valueSet && !g->isConstant())
+            {
+                int r = getFreeRegister();
+                rdest = r;
+                g->value->visit(this);
+                std::cout << "    *" << g->name << " = r" << r << std::endl;
+            }
+        }
+    }
+
     for(auto &f : unit.functions)
         f->visit(this);
 }

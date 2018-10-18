@@ -1,3 +1,4 @@
+#include "Expression.h"
 #include "Function.h"
 #include "Visitor.h"
 

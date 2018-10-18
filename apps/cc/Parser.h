@@ -35,9 +35,11 @@ protected:
 
     int expect(const std::string &str);
 
+    VariablePtr createVariable(Type type, const std::string &name);
+
     Type parseType();
     int parseParameters(FunctionPtr &function);
-    VariablePtr parseVariableDefinition(Type type, const std::string &name);
+    bool parseVariableDefinition(VariablePtr &var);
     ExpressionPtr parseExpression();
     int parseArguments(std::vector<ExpressionPtr> &arguments);
     StatementBlockPtr parseStatementBlock();

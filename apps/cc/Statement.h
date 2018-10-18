@@ -34,7 +34,7 @@ public:
 
     void add(StatementPtr statement);
 
-    SymbolTable *symbolTable;
+    std::unique_ptr<SymbolTable> symbolTable;
 
     int visit(Visitor *visitor);
 };
