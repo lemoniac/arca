@@ -18,6 +18,7 @@ public:
 
     int visit(IntConstant &constant);
     int visit(IdentifierExpr &identifier);
+    int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
 };
 

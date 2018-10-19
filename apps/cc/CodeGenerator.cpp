@@ -184,6 +184,11 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
     return 0;
 }
 
+int CodeGenerator::visit(ParentExpr &expr)
+{
+    return expr.expr->visit(this);
+}
+
 int CodeGenerator::visit(BinaryOpExpr &op)
 {
     int r = rdest;

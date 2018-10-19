@@ -12,7 +12,7 @@ typedef std::unique_ptr<Expression> ExpressionPtr;
 class Expression {
 public:
     virtual int visit(Visitor *visitor) = 0;
-    virtual ExpressionPtr symplify() { return nullptr; };
+    virtual ExpressionPtr simplify() { return nullptr; };
 };
 
 class IntConstant : public Expression {
@@ -34,6 +34,7 @@ public:
     ExpressionPtr expr;
 
     int visit(Visitor *visitor);
+    ExpressionPtr simplify();
 };
 
 class BinaryOpExpr : public Expression {
@@ -85,7 +86,9 @@ public:
         return "?";
     }
 
-    ExpressionPtr symplify();
+    ExpressionPtr simplify();
 };
+
+void simplify(ExpressionPtr &expr);
 
 #endif//CC__EXPRESSION__H

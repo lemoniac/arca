@@ -208,7 +208,9 @@ ExpressionPtr Parser::parseExpression()
         }
 
         case '(': {
-            res = parseExpression();
+            auto par = std::make_unique<ParentExpr>();
+            par->expr = parseExpression();
+            res = std::move(par);
             EXPECT(")", 0);
             break;
         }
@@ -334,11 +336,14 @@ StatementBlockPtr Parser::parseStatementBlock()
                 break;
             }
 
+            case '}':
+                break;
+
             default:
                 std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
         }
         readToken();
-    } while(token.token != 0 && token.token != '}');
+    } while(token.token != 0);
 
     return block;
 }
@@ -416,7 +421,10 @@ int Parser::parse(const char *filename)
     {
         Type type = token.type();
         if(type == Type::Error)
+        {
+            std::cerr << "unexpected token: " << token.text << std::endl;
             return -1;
+        }
         readToken();
         std::string name = token.text;
         int next = peekToken();
