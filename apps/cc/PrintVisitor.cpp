@@ -18,7 +18,7 @@ int PrintVisitor::visit(Function &f)
 int PrintVisitor::visit(StatementBlock &block)
 {
     for(const auto &l : block.locals)
-        std::cout << "    local " << int(l->type) << " " << l->name << std::endl;
+        std::cout << "    local " << int(l->declSpec.type) << " " << l->name << std::endl;
 
     for(const auto &s : block.statements)
         s->visit(this);
@@ -49,7 +49,7 @@ int PrintVisitor::visit(FunctionCall &call)
 int PrintVisitor::visit(TranslationUnit &unit)
 {
     for(auto &g : unit.globals)
-        std::cout << "    global " << int(g->type) << " " << g->name << std::endl;
+        std::cout << "    global " << int(g->declSpec.type) << " " << g->name << std::endl;
     for(auto &f : unit.functions)
         f->visit(this);
 

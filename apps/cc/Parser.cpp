@@ -16,13 +16,20 @@ Type Token::type() const
     switch(token)
     {
         case INT: return Type::Int;
+        case LONG: return Type::Int;
         case VOID: return Type::Void;
+        case CHAR: return Type::Char;
     }
 
     return Type::Error;
 }
 
 bool Token::isAssignment() const
+{
+    return isAssignment(token);
+}
+
+bool Token::isAssignment(int token)
 {
     switch(token)
     {
@@ -144,12 +151,12 @@ int Parser::expect(const std::string &str)
 int Parser::parseParameters(FunctionPtr &function)
 {
     auto var = std::make_unique<Variable>();
-    var->type = token.type();
-    ERROR(var->type == Type::Error, "Expected type")
+    var->declSpec.type = token.type();
+    ERROR(var->declSpec.type == Type::Error, "Expected type")
     readToken();
     if(token.token == '*')
     {
-        var->is_pointer = true;
+        var->declSpec.isPointer = true;
         readToken();
     }
     var->name = token.text;
@@ -170,10 +177,10 @@ int Parser::parseParameters(FunctionPtr &function)
     return -1;
 }
 
-VariablePtr Parser::createVariable(Type type, const std::string &name)
+VariablePtr Parser::createVariable(const DeclarationSpecifier &declSpec, const std::string &name)
 {
     auto var = std::make_unique<Variable>();
-    var->type = type;
+    var->declSpec = declSpec;
     var->name = name;
     return var;
 }
@@ -182,7 +189,7 @@ bool Parser::parseVariableDefinition(VariablePtr &var)
 {
     readToken();
     var->value = parseExpression();
-    printf("var %i %s expr\n", (int)var->type, var->name.c_str());
+    printf("var %i %s expr\n", (int)var->declSpec.type, var->name.c_str());
     var->valueSet = true;
     return true;
 }
@@ -235,6 +242,12 @@ ExpressionPtr Parser::parseExpression()
         return std::move(op);
     }
 
+    if(Token::isAssignment(next)) // TODO: do something with the assignment expr
+    {
+        readToken();
+        parseExpression();
+    }
+
     return 0;
 }
 
@@ -257,10 +270,16 @@ StatementBlockPtr Parser::parseStatementBlock()
     // local variables
     while(token.type() != Type::Error)
     {
-        Type type = token.type();
-        readToken();
-        auto var = createVariable(type, token.text);
+        DeclarationSpecifier declSpec;
+        declSpec.type = token.type();
         int next = peekToken();
+        if(next == '*')
+            readToken();
+        readToken();
+        auto var = createVariable(declSpec, token.text);
+        next = peekToken();
+        next = checkDimensions(next);
+
         if(next == '=' && !parseVariableDefinition(var))
             return 0;
         EXPECT(";", 0);
@@ -274,6 +293,7 @@ StatementBlockPtr Parser::parseStatementBlock()
         {
             case WHILE: block->add(parseWhile()); break;
             case IF: block->add(parseIf()); break;
+            case FOR: parseFor(); break;
 
             case RETURN:
             {
@@ -319,6 +339,8 @@ StatementBlockPtr Parser::parseStatementBlock()
                 break;
             }
 
+            case STRUCT: if(parseStruct() < 0) return nullptr; break;
+
             case GOTO: {
                 readToken();
                 auto g = std::make_unique<GotoStatement>();
@@ -337,7 +359,7 @@ StatementBlockPtr Parser::parseStatementBlock()
             }
 
             case '}':
-                break;
+                return block;
 
             default:
                 std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
@@ -392,7 +414,6 @@ StatementPtr Parser::parseIf()
     EXPECT(")", 0);
     EXPECT("{", 0);
     s->block = parseStatementBlock();
-    //EXPECT("}", 0);
 
     return s;
 }
@@ -405,9 +426,38 @@ StatementPtr Parser::parseWhile()
     EXPECT(")", 0);
     EXPECT("{", 0);
     s->block = parseStatementBlock();
-    //EXPECT("}", 0);
 
     return s;
+}
+
+StatementPtr Parser::parseFor()
+{
+    EXPECT("(", 0);
+    parseExpression();
+    EXPECT(";", 0);
+    parseExpression();
+    EXPECT(";", 0);
+    parseExpression();
+    EXPECT(")", 0);
+    EXPECT("{", 0);
+    parseStatementBlock();
+
+    return 0;
+}
+
+
+int Parser::parseStruct()
+{
+    readToken();
+    EXPECT("{", -1);
+    readToken();
+    while(token.token != '}')
+    {
+        readToken();
+    }
+    EXPECT(";", -1);
+
+    return 0;
 }
 
 
@@ -419,34 +469,71 @@ int Parser::parse(const char *filename)
     readToken();
     while(token.token > 0)
     {
-        Type type = token.type();
-        if(type == Type::Error)
+        if(token.token == STRUCT || token.token == UNION)
         {
-            std::cerr << "unexpected token: " << token.text << std::endl;
-            return -1;
-        }
-        readToken();
-        std::string name = token.text;
-        int next = peekToken();
-        if(next == '(')
-        {
-            if(parseFunction(type, name) < 0)
+            if(parseStruct() < 0)
                 return -1;
         }
-        else if(next == '=' || next == ';')
+        else
         {
-            auto var = createVariable(type, name);
-            if(next == '=' && !parseVariableDefinition(var))
+            DeclarationSpecifier declSpec;
+
+            if(token.token == STATIC) { declSpec.isStatic = true; readToken(); }
+            if(token.token == CONST) { declSpec.isConst = true; readToken(); }
+
+            declSpec.type = token.type();
+            if(declSpec.type == Type::Error)
+            {
+                std::cerr << yylineno << ": unexpected token: " << token.text << std::endl;
                 return -1;
-            EXPECT(";", 0);
-            var->isGlobal = true;
-            unit.globals.push_back(std::move(var));
+            }
+            int next = peekToken();
+            if(next == '*')
+            {
+                declSpec.isPointer = true;
+                readToken();
+            }
+            readToken();
+            std::string name = token.text;
+            next = peekToken();
+            next = checkDimensions(next);
+
+            if(next == '(')
+            {
+                if(parseFunction(declSpec.type, name) < 0)
+                    return -1;
+            }
+            else if(next == '=' || next == ';')
+            {
+                auto var = createVariable(declSpec, name);
+                if(next == '=' && !parseVariableDefinition(var))
+                    return -1;
+                EXPECT(";", 0);
+                var->isGlobal = true;
+                unit.globals.push_back(std::move(var));
+            }
         }
         readToken();
     }
 
     return 0;
 }
+
+int Parser::checkDimensions(int next)
+{
+    if(next == -1)
+        next = peekToken();
+    while(next == '[')
+    {
+        readToken();
+        readToken();
+        EXPECT("]", 0);
+        next = peekToken();
+    }
+
+    return next;
+}
+
 
 int Parser::readToken()
 {

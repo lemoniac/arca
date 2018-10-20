@@ -16,6 +16,7 @@ struct Token {
 
     Type type() const;
     bool isAssignment() const;
+    static bool isAssignment(int token);
     bool isRelational() const;
     int to_int() const;
     static bool isBinaryOp(int token);
@@ -35,7 +36,7 @@ protected:
 
     int expect(const std::string &str);
 
-    VariablePtr createVariable(Type type, const std::string &name);
+    VariablePtr createVariable(const DeclarationSpecifier &declSpec, const std::string &name);
 
     Type parseType();
     int parseParameters(FunctionPtr &function);
@@ -46,6 +47,10 @@ protected:
     int parseFunction(Type type, const std::string &name);
     StatementPtr parseIf();
     StatementPtr parseWhile();
+    StatementPtr parseFor();
+    int parseStruct();
+
+    int checkDimensions(int next);
 
     std::vector<Token> nextTokens;
     FILE *file = nullptr;

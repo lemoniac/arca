@@ -10,7 +10,7 @@ int SymbolTablePass::visit(Function &f)
 
     for(auto &p : f.parameters)
     {
-        SymbolTable::Symbol s = {p->name, p->type, p.get()};
+        SymbolTable::Symbol s = {p->name, p->declSpec.type, p.get()};
         f.statements->symbolTable->symbols.push_back(s);
     }
 
@@ -25,7 +25,7 @@ int SymbolTablePass::visit(StatementBlock &block)
 
     for(auto &l : block.locals)
     {
-        SymbolTable::Symbol s = {l->name, l->type, l.get()};
+        SymbolTable::Symbol s = {l->name, l->declSpec.type, l.get()};
         block.symbolTable->symbols.push_back(s);
     }
 
@@ -74,7 +74,7 @@ int SymbolTablePass::visit(TranslationUnit &unit)
     symbols.push_back(&unit.symbolTable);
     for(auto &g : unit.globals)
     {
-        SymbolTable::Symbol s = {g->name, g->type, g.get()};
+        SymbolTable::Symbol s = {g->name, g->declSpec.type, g.get()};
         unit.symbolTable.symbols.push_back(s);
     }
     for(auto &f : unit.functions)

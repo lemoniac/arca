@@ -9,15 +9,14 @@ class Expression;
 typedef std::unique_ptr<Expression> ExpressionPtr;
 
 struct Variable {
-    Type type;
-    bool is_pointer;
+    DeclarationSpecifier declSpec;
     std::string name;
     unsigned elems;
     ExpressionPtr value;
     bool valueSet = false;
     unsigned reg;
     bool isGlobal = false;
-    bool isConst = false;
+    bool isSigned = true;
 
     bool isConstant() const;
     int getValue() const;
