@@ -5,6 +5,7 @@ class Function;
 class StatementBlock;
 class If;
 class While;
+class For;
 class ReturnStatement;
 class FunctionCall;
 class TranslationUnit;
@@ -24,6 +25,7 @@ public:
     virtual int visit(StatementBlock &block) { return 0; }
     virtual int visit(If &ifStatement) { return 0; }
     virtual int visit(While &ifStatement) { return 0; }
+    virtual int visit(For &forStatement) { return 0; }
     virtual int visit(ReturnStatement &ret) { return 0; }
     virtual int visit(FunctionCall &function) { return 0; }
     virtual int visit(Assignment &assignment) { return 0; }

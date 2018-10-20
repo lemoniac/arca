@@ -246,6 +246,7 @@ ExpressionPtr Parser::parseExpression()
     {
         readToken();
         parseExpression();
+        return res;
     }
 
     return 0;
@@ -293,7 +294,7 @@ StatementBlockPtr Parser::parseStatementBlock()
         {
             case WHILE: block->add(parseWhile()); break;
             case IF: block->add(parseIf()); break;
-            case FOR: parseFor(); break;
+            case FOR: block->add(parseFor()); break;
 
             case RETURN:
             {
@@ -432,17 +433,18 @@ StatementPtr Parser::parseWhile()
 
 StatementPtr Parser::parseFor()
 {
+    auto f = std::make_unique<For>();
     EXPECT("(", 0);
-    parseExpression();
+    f->clause1 = parseExpression();
     EXPECT(";", 0);
-    parseExpression();
+    f->expression2 = parseExpression();
     EXPECT(";", 0);
-    parseExpression();
+    f->expression3 = parseExpression();
     EXPECT(")", 0);
     EXPECT("{", 0);
-    parseStatementBlock();
+    f->block = parseStatementBlock();
 
-    return 0;
+    return f;
 }
 
 

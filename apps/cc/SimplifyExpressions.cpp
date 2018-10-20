@@ -40,6 +40,15 @@ int SimplifyExpressions::visit(While &statement)
     return 0;
 }
 
+int SimplifyExpressions::visit(For &statement)
+{
+    simplify(statement.clause1);
+    simplify(statement.expression2);
+    simplify(statement.expression3);
+    statement.block->visit(this);
+    return 0;
+}
+
 int SimplifyExpressions::visit(FunctionCall &f) { return 0; }
 
 int SimplifyExpressions::visit(TranslationUnit &unit)

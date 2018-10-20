@@ -14,6 +14,7 @@ public:
     int visit(ReturnStatement &ret);
     int visit(If &ifStatement);
     int visit(While &statement);
+    int visit(For &statement);
     int visit(FunctionCall &f);
     int visit(TranslationUnit &unit);
     int visit(Assignment &assignment);

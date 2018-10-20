@@ -69,6 +69,17 @@ public:
     void setParent(StatementBlock *parent);
 };
 
+class For : public Statement {
+public:
+    ExpressionPtr clause1;
+    ExpressionPtr expression2;
+    ExpressionPtr expression3;
+    StatementBlockPtr block;
+
+    int visit(Visitor *visitor);
+    void setParent(StatementBlock *parent);
+};
+
 class If : public Statement {
 public:
     ExpressionPtr expression;

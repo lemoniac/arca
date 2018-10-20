@@ -238,6 +238,24 @@ int CodeGenerator::visit(While &statement)
     return 0;
 }
 
+int CodeGenerator::visit(For &statement)
+{
+    int label = generateLabel();
+    statement.clause1->visit(this);
+
+    std::cout << "for_" << label << ":" << std::endl;
+    statement.expression2->visit(this);
+    std::cout << "    beq r" << rdest << " r0 for_end_" << label << ":" << std::endl;
+
+    statement.block->visit(this);
+
+    statement.expression3->visit(this);
+    std::cout << "    jmp for_" << label << std::endl;
+    std::cout << "for_end_" << label << ":" << std::endl;
+
+    return 0;
+}
+
 int CodeGenerator::visit(GotoStatement &gotoStatement)
 {
     std::cout << "    jmp " << gotoStatement.label << std::endl;
