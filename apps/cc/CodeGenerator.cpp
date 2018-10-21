@@ -47,6 +47,7 @@ int CodeGenerator::visit(StatementBlock &block)
         {
             rdest = r;
             l->value->visit(this);
+            std::cout << "    r" << r << " = " << res << std::endl;
         }
     }
 
@@ -112,6 +113,8 @@ int CodeGenerator::visit(TranslationUnit &unit)
         std::cout << "    int " << g->name;
         if(g->valueSet && g->isConstant())
             std::cout << " = " << g->getValue();
+        else
+            std::cout << " = 0";
         std::cout << std::endl;
     }
 
@@ -155,6 +158,9 @@ int CodeGenerator::visit(Assignment &assignment)
     rdest = scope.back().symbols->find(assignment.dest)->variable->reg;
     assignment.expression->visit(this);
 
+    std::cout << "    r" << rdest << " = " << res << std::endl;
+    res = "r" + std::to_string(rdest);
+
     usedRegisters = oldRegisters;
     return 0;
 }
@@ -191,19 +197,15 @@ int CodeGenerator::visit(ParentExpr &expr)
 
 int CodeGenerator::visit(BinaryOpExpr &op)
 {
-    int r = rdest;
-    if(r == -1)
-    {
-        r = getFreeRegister();
-        usedRegisters[r] = 1;
-    }
-    rdest = -1;
+    int r = getFreeRegister();
+    usedRegisters[r] = 1;
     op.left->visit(this);
     auto left = res;
     op.right->visit(this);
     auto right = res;
 
     std::cout << "    r" << r << " = " << left << " " << op.to_str() << " " << right << std::endl;
+    res = "r" + std::to_string(r);
     return 0;
 }
 
@@ -212,13 +214,11 @@ int CodeGenerator::visit(If &ifStatement)
     ifStatement.expression->visit(this);
     
     int label = generateLabel();
-
-    std::cout << "    r0 = " << res << " - 0" << std::endl;
-    std::cout << "    jmp.nz if" << label << std::endl;
+    std::cout << "    if " << res << " == r0 goto if_" << label << std::endl;
 
     ifStatement.block->visit(this);
 
-    std::cout << "if" << label << ":" << std::endl;
+    std::cout << "if_" << label << ":" << std::endl;
 
     return 0;
 }
@@ -229,7 +229,7 @@ int CodeGenerator::visit(While &statement)
 
     std::cout << "while_" << label << ":" << std::endl;
     statement.expression->visit(this);
-    std::cout << "    jmp ??? while_end_" << label << std::endl;
+    std::cout << "    if " << res << " == r0 goto while_end_" << label << std::endl;
 
     statement.block->visit(this);
 
@@ -245,7 +245,7 @@ int CodeGenerator::visit(For &statement)
 
     std::cout << "for_" << label << ":" << std::endl;
     statement.expression2->visit(this);
-    std::cout << "    beq r" << rdest << " r0 for_end_" << label << ":" << std::endl;
+    std::cout << "    if " << res << " == r0 goto for_end_" << label << std::endl;
 
     statement.block->visit(this);
 

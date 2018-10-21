@@ -64,7 +64,10 @@ bool Token::isRelational() const
 
 int Token::to_int() const
 {
-    return std::stoi(text);
+    if(text.size() > 2 && text[0] == '0' && text[1] == 'x')
+        return std::stoi(std::string(text.begin() + 2, text.end()), nullptr, 16);
+    else
+        return std::stoi(text);
 }
 
 bool Token::isBinaryOp(int token)
@@ -189,7 +192,6 @@ bool Parser::parseVariableDefinition(VariablePtr &var)
 {
     readToken();
     var->value = parseExpression();
-    printf("var %i %s expr\n", (int)var->declSpec.type, var->name.c_str());
     var->valueSet = true;
     return true;
 }
