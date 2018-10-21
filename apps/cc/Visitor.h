@@ -17,6 +17,7 @@ class IntConstant;
 class IdentifierExpr;
 class ParentExpr;
 class BinaryOpExpr;
+class AssignmentExpr;
 
 class Visitor {
 public:
@@ -36,7 +37,7 @@ public:
     virtual int visit(IdentifierExpr &identifier) { return 0; }
     virtual int visit(ParentExpr &par) { return 0; }
     virtual int visit(BinaryOpExpr &op) { return 0; }
+    virtual int visit(AssignmentExpr &expr) { return 0; }
 };
-
 
 #endif//CC__VISITOR__H

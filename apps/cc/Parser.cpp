@@ -121,6 +121,18 @@ BinaryOpExpr::Op token_to_op(int token)
     throw std::runtime_error("unknown binary operator");
 }
 
+Assignment::Kind token_to_assignment(int token)
+{
+    switch(token)
+    {
+        case '=': return Assignment::Kind::Assign;
+        case ADD_ASSIGN: return Assignment::Kind::Add;
+        case SUB_ASSIGN: return Assignment::Kind::Sub;
+        case MUL_ASSIGN: return Assignment::Kind::Mul;
+    }
+
+    throw std::runtime_error("unknown assignment operator");
+}
 
 Type Parser::parseType()
 {
@@ -244,11 +256,14 @@ ExpressionPtr Parser::parseExpression()
         return std::move(op);
     }
 
-    if(Token::isAssignment(next)) // TODO: do something with the assignment expr
+    if(Token::isAssignment(next))
     {
+        auto expr = std::make_unique<AssignmentExpr>();
+        expr->lhs = std::move(res);
         readToken();
-        parseExpression();
-        return res;
+        expr->kind = (int)token_to_assignment(token.token);
+        expr->rhs = parseExpression();
+        return expr;
     }
 
     return 0;
@@ -317,6 +332,7 @@ StatementBlockPtr Parser::parseStatementBlock()
                 {
                     auto assignment = std::make_unique<Assignment>();
                     assignment->dest = identifier;
+                    assignment->kind = token_to_assignment(token.token);
                     assignment->expression = parseExpression();
                     EXPECT(";", 0);
                     block->add(std::move(assignment));
@@ -453,11 +469,34 @@ StatementPtr Parser::parseFor()
 int Parser::parseStruct()
 {
     readToken();
-    EXPECT("{", -1);
-    readToken();
-    while(token.token != '}')
+    std::string name = token.text;
+    int next = peekToken();
+    if(next == '{')
+    {
+        EXPECT("{", -1);
+        readToken();
+        while(token.token != '}')
+        {
+            Type type = token.type();
+            readToken();
+            std::string identifier = token.text;
+            EXPECT(";", -1);
+            readToken();
+        }
+    }
+    else if(next == IDENTIFIER)
     {
         readToken();
+    }
+    else if(next == ';')
+    {
+        // forward
+    }
+    else
+    {
+        readToken();
+        std::cout << yylineno << ": unexpected token: " << token.text << std::endl;
+        return -1;
     }
     EXPECT(";", -1);
 

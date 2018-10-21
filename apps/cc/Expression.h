@@ -46,46 +46,19 @@ public:
 
     int visit(Visitor *visitor);
 
-    void setOp(int c)
-    {
-        switch(c)
-        {
-            case '+': op = Op::Add; break;
-            case '-': op = Op::Sub; break;
-            case '*': op = Op::Mul; break;
-            case '/': op = Op::Div; break;
-            case '%': op = Op::Mod; break;
-            case '&': op = Op::And; break;
-            case '|': op = Op::Or;  break;
-            case '^': op = Op::Xor; break;
-        }
-    }
+    void setOp(int c);
+    const char *to_str() const;
 
-    const char *to_str() const
-    {
-        switch(op)
-        {
-            case Op::Add: return "+";
-            case Op::Sub: return "-";
-            case Op::Mul: return "*";
-            case Op::Div: return "/";
-            case Op::Mod: return "%";
-            case Op::And: return "&";
-            case Op::Or:  return "|";
-            case Op::Xor: return "^";
-            case Op::LShift: return "<<";
-            case Op::RShift: return ">>";
-            case Op::Eq: return "^";
-            case Op::NEq: return "^";
-            case Op::LT: return "<";
-            case Op::GT: return "-";
-            case Op::LE: return "-";
-            case Op::GE: return "-";
-        }
+    ExpressionPtr simplify();
+};
 
-        return "?";
-    }
+class AssignmentExpr: public Expression {
+public:
+    ExpressionPtr lhs;
+    ExpressionPtr rhs;
+    int kind = 0;
 
+    int visit(Visitor *visitor);
     ExpressionPtr simplify();
 };
 

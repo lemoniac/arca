@@ -41,13 +41,16 @@ public:
 
 typedef std::unique_ptr<StatementBlock> StatementBlockPtr;
 
-class Assignment : public Statement {
+class Assignment : public Statement { // TODO: use AssignmentExpr
 public:
     enum class Kind { Assign, Add, Sub, Mul, Div, Mod, And, Or, Xor, Left, Right };
 
     std::string dest;
     Kind kind;
     ExpressionPtr expression;
+
+    static const char *to_str(Kind kind);
+    const char *to_str() const;
 
     int visit(Visitor *visitor);
 };

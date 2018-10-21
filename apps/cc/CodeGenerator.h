@@ -25,6 +25,7 @@ public:
     int visit(IdentifierExpr &identifier);
     int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
+    int visit(AssignmentExpr &expr);
 
 protected:
     class Scope {

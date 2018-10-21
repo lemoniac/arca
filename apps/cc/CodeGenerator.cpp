@@ -158,7 +158,7 @@ int CodeGenerator::visit(Assignment &assignment)
     rdest = scope.back().symbols->find(assignment.dest)->variable->reg;
     assignment.expression->visit(this);
 
-    std::cout << "    r" << rdest << " = " << res << std::endl;
+    std::cout << "    r" << rdest << " " << Assignment::to_str(assignment.kind) << " " << res << std::endl;
     res = "r" + std::to_string(rdest);
 
     usedRegisters = oldRegisters;
@@ -233,6 +233,7 @@ int CodeGenerator::visit(While &statement)
 
     statement.block->visit(this);
 
+    std::cout << "    jmp while_" << label << std::endl;
     std::cout << "while_end_" << label << ":" << std::endl;
 
     return 0;
@@ -265,5 +266,16 @@ int CodeGenerator::visit(GotoStatement &gotoStatement)
 int CodeGenerator::visit(LabelStatement &label)
 {
     std::cout << label.label << ":" << std::endl;
+    return 0;
+}
+
+int CodeGenerator::visit(AssignmentExpr &expr)
+{
+    expr.lhs->visit(this);
+    std::string left = res;
+    expr.rhs->visit(this);
+    std::string right = res;
+    std::cout << "    " << left << " " << Assignment::to_str(Assignment::Kind(expr.kind))
+        << " " << right << std::endl;
     return 0;
 }

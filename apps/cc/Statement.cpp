@@ -40,3 +40,22 @@ void For::setParent(StatementBlock *parent)
     Statement::setParent(parent);
     block->symbolTable->parent = parent->symbolTable.get();
 }
+
+
+const char *Assignment::to_str(Assignment::Kind kind)
+{
+    switch(kind)
+    {
+        case Assignment::Kind::Assign: return "=";
+        case Assignment::Kind::Add: return "+=";
+        case Assignment::Kind::Sub: return "-=";
+        case Assignment::Kind::Mul: return "*=";
+    }
+
+    return "?";
+}
+
+const char *Assignment::to_str() const
+{
+    return to_str(kind);
+}
