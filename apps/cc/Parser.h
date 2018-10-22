@@ -10,6 +10,9 @@
 class Expression;
 typedef std::unique_ptr<Expression> ExpressionPtr;
 
+class Struct;
+typedef std::shared_ptr<Struct> StructPtr;
+
 struct Token {
     int token;
     std::string text;
@@ -48,7 +51,7 @@ protected:
     StatementPtr parseIf();
     StatementPtr parseWhile();
     StatementPtr parseFor();
-    int parseStruct();
+    StructPtr parseStruct();
 
     int checkDimensions(int next);
 

@@ -3,6 +3,7 @@
 #include "Function.h"
 #include "TranslationUnit.h"
 #include "Expression.h"
+#include "Struct.h"
 
 int CodeGenerator::visit(Function &f)
 {
@@ -108,14 +109,34 @@ int CodeGenerator::visit(TranslationUnit &unit)
 
     if(initializeGlobals)
         std::cout << "jmp start" << std::endl;
+
+    for(auto &s : unit.symbolTable.symbols)
+    {
+        if(s.type == Type::Struct && s.variable == nullptr)
+        {
+            std::cout << ".struct " << s.name << std::endl;
+            for(const auto &m : s.structInfo->member)
+                std::cout << "    int " << m.name << std::endl;
+            std::cout << ".endstruct" << std::endl;
+            std::cout << std::endl;
+        }
+    }
+
     for(auto &g : unit.globals)
     {
-        std::cout << "    int " << g->name;
-        if(g->valueSet && g->isConstant())
-            std::cout << " = " << g->getValue();
+        if(g->declSpec.type == Type::Struct)
+        {
+            std::cout << "    struct " << g->declSpec.structName << " " << g->name << std::endl;
+        }
         else
-            std::cout << " = 0";
-        std::cout << std::endl;
+        {
+            std::cout << "    int " << g->name;
+            if(g->valueSet && g->isConstant())
+                std::cout << " = " << g->getValue();
+            else
+                std::cout << " = 0";
+            std::cout << std::endl;
+        }
     }
 
     if(initializeGlobals)

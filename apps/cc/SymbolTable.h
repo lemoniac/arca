@@ -1,11 +1,14 @@
 #ifndef ARCA__CC__SYMBOL_TABLE__H
 #define ARCA__CC__SYMBOL_TABLE__H
 
+#include <memory>
 #include <string>
 #include <vector>
 #include "Types.h"
 
 class Variable;
+class Struct;
+typedef std::shared_ptr<Struct> StructPtr;
 
 class SymbolTable {
 public:
@@ -13,6 +16,7 @@ public:
         std::string name;
         Type type;
         Variable *variable = nullptr;
+        StructPtr structInfo;
     };
 
     std::vector<Symbol> symbols;

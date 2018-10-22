@@ -1,11 +1,14 @@
 #ifndef CC__TYPES__H
 #define CC__TYPES__H
 
-enum class Type { Error = -1, Void, Int, Char, Function };
+#include <string>
+
+enum class Type { Error = -1, Void, Int, Char, Function, Struct, Union };
 
 struct DeclarationSpecifier {
 
     Type type;
+    std::string structName;
     bool isConst = false;
     bool isSigned = true;
     bool isPointer = false;

@@ -4,6 +4,7 @@
 #include "Function.h"
 #include "Expression.h"
 #include "Statement.h"
+#include "Struct.h"
 #include "Variable.h"
 
 void yyerror(const char *error)
@@ -19,6 +20,7 @@ Type Token::type() const
         case LONG: return Type::Int;
         case VOID: return Type::Void;
         case CHAR: return Type::Char;
+        case STRUCT: return Type::Struct;
     }
 
     return Type::Error;
@@ -293,6 +295,11 @@ StatementBlockPtr Parser::parseStatementBlock()
         int next = peekToken();
         if(next == '*')
             readToken();
+        if(declSpec.type == Type::Struct)
+        {
+            readToken();
+            declSpec.structName = token.text;
+        }
         readToken();
         auto var = createVariable(declSpec, token.text);
         next = peekToken();
@@ -357,8 +364,6 @@ StatementBlockPtr Parser::parseStatementBlock()
                     std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
                 break;
             }
-
-            case STRUCT: if(parseStruct() < 0) return nullptr; break;
 
             case GOTO: {
                 readToken();
@@ -466,27 +471,31 @@ StatementPtr Parser::parseFor()
 }
 
 
-int Parser::parseStruct()
+StructPtr Parser::parseStruct()
 {
+    auto s = std::make_unique<Struct>();
+
     readToken();
-    std::string name = token.text;
+    s->name = token.text;
     int next = peekToken();
     if(next == '{')
     {
-        EXPECT("{", -1);
+        EXPECT("{", 0);
         readToken();
         while(token.token != '}')
         {
             Type type = token.type();
             readToken();
             std::string identifier = token.text;
-            EXPECT(";", -1);
+            EXPECT(";", 0);
+            s->member.push_back(Struct::Member{type, identifier});
             readToken();
         }
     }
     else if(next == IDENTIFIER)
     {
         readToken();
+        s->varname = token.text;
     }
     else if(next == ';')
     {
@@ -496,11 +505,11 @@ int Parser::parseStruct()
     {
         readToken();
         std::cout << yylineno << ": unexpected token: " << token.text << std::endl;
-        return -1;
+        return 0;
     }
-    EXPECT(";", -1);
+    EXPECT(";", 0);
 
-    return 0;
+    return s;
 }
 
 
@@ -514,8 +523,25 @@ int Parser::parse(const char *filename)
     {
         if(token.token == STRUCT || token.token == UNION)
         {
-            if(parseStruct() < 0)
+            auto s = parseStruct();
+            if(!s)
                 return -1;
+
+            if(s->varname.empty())
+            {
+                SymbolTable::Symbol sym = {s->name, Type::Struct, nullptr, s};
+                unit.symbolTable.symbols.push_back(sym);
+            }
+            else
+            {
+                DeclarationSpecifier declSpec;
+                declSpec.type = Type::Struct;
+                declSpec.structName = s->name;
+
+                auto var = createVariable(declSpec, s->varname);
+                var->isGlobal = true;
+                unit.globals.push_back(std::move(var));
+            }
         }
         else
         {
