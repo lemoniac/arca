@@ -176,12 +176,7 @@ int CodeGenerator::generateLabel()
 int CodeGenerator::visit(Assignment &assignment)
 {
     std::bitset<32> oldRegisters = usedRegisters;
-    rdest = scope.back().symbols->find(assignment.dest)->variable->reg;
     assignment.expression->visit(this);
-
-    std::cout << "    r" << rdest << " " << Assignment::to_str(assignment.kind) << " " << res << std::endl;
-    res = "r" + std::to_string(rdest);
-
     usedRegisters = oldRegisters;
     return 0;
 }

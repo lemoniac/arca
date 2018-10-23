@@ -217,9 +217,7 @@ ExpressionPtr Parser::parseExpression()
     switch(token.token)
     {
         case IDENTIFIER: {
-            auto expr = std::make_unique<IdentifierExpr>();
-            expr->name = token.text;
-            res = std::move(expr);
+            res = std::make_unique<IdentifierExpr>(token.text);
             break;
         }
 
@@ -337,10 +335,12 @@ StatementBlockPtr Parser::parseStatementBlock()
                 readToken();
                 if(token.isAssignment())
                 {
+                    auto a = std::make_unique<AssignmentExpr>();
+                    a->kind = (int)token_to_assignment(token.token);
+                    a->lhs = std::make_unique<IdentifierExpr>(identifier);
+                    a->rhs = parseExpression();
                     auto assignment = std::make_unique<Assignment>();
-                    assignment->dest = identifier;
-                    assignment->kind = token_to_assignment(token.token);
-                    assignment->expression = parseExpression();
+                    assignment->expression = std::move(a);
                     EXPECT(";", 0);
                     block->add(std::move(assignment));
                 }
@@ -358,6 +358,10 @@ StatementBlockPtr Parser::parseStatementBlock()
                     l->label = identifier;
                     block->add(std::move(l));
                 }
+                else if(token.token == '.')
+                {
+                    readToken();
+                }
                 else if(token.token == ';')
                 {}
                 else
@@ -367,9 +371,7 @@ StatementBlockPtr Parser::parseStatementBlock()
 
             case GOTO: {
                 readToken();
-                auto g = std::make_unique<GotoStatement>();
-                g->label = token.text;
-                block->add(std::move(g));
+                block->add(std::make_unique<GotoStatement>(token.text));
                 EXPECT(";", 0);
                 break;
             }

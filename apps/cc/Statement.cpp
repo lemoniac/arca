@@ -54,8 +54,3 @@ const char *Assignment::to_str(Assignment::Kind kind)
 
     return "?";
 }
-
-const char *Assignment::to_str() const
-{
-    return to_str(kind);
-}

@@ -83,13 +83,6 @@ int SymbolTablePass::visit(TranslationUnit &unit)
 
 int SymbolTablePass::visit(Assignment &assignment)
 {
-    auto *dst = assignment.parent->symbolTable->find(assignment.dest);
-    if(dst == nullptr)
-    {
-        std::cerr << "error: undefined identifier '" << assignment.dest << "'" << std::endl;
-        return -1;
-    }
-
     if(assignment.expression->visit(this) < 0)
         return -1;
 

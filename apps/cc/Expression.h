@@ -24,6 +24,7 @@ public:
 
 class IdentifierExpr : public Expression {
 public:
+    IdentifierExpr(const std::string &name): name(name) { }
     std::string name;
 
     int visit(Visitor *visitor);
