@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Expression.h"
 #include "Statement.h"
 #include "Visitor.h"
@@ -14,6 +15,12 @@ int LabelStatement::visit(Visitor *visitor) { visitor->visit(*this); }
 
 void StatementBlock::add(StatementPtr statement)
 {
+    if(!statement)
+    {
+        std::cerr << "error: trying to add an empty statement" << std::endl;
+        return;
+    }
+
     statement->setParent(this);
     statements.push_back(std::move(statement));
 }

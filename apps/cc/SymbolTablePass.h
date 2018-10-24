@@ -26,7 +26,10 @@ public:
 
     int visit(IntConstant &constant);
     int visit(IdentifierExpr &identifier);
+    int visit(MemberExpr &member);
+    int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
+    int visit(AssignmentExpr &expr);
 
     TranslationUnit &unit;
 

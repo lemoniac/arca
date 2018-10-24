@@ -72,6 +72,10 @@ ExpressionPtr BinaryOpExpr::simplify()
         }
         return res;
     }
+    else if(left && (op == Op::Add || op == Op::Mul))
+    {
+        std::swap(this->left, this->right);
+    }
 
     return nullptr;
 }

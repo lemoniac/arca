@@ -40,15 +40,13 @@ int SymbolTablePass::visit(StatementBlock &block)
 int SymbolTablePass::visit(If &ifStatement)
 {
     ifStatement.expression->visit(this);
-    ifStatement.block->visit(this);
+    return ifStatement.block->visit(this);
 }
 
 int SymbolTablePass::visit(While &statement)
 {
     statement.expression->visit(this);
-    statement.block->visit(this);
-
-    return 0;
+    return statement.block->visit(this);
 }
 
 int SymbolTablePass::visit(ReturnStatement &ret)
@@ -85,10 +83,7 @@ int SymbolTablePass::visit(TranslationUnit &unit)
 
 int SymbolTablePass::visit(Assignment &assignment)
 {
-    if(assignment.expression->visit(this) < 0)
-        return -1;
-
-    return 0;
+    return assignment.expression->visit(this);
 }
 
 int SymbolTablePass::visit(GotoStatement &gotoStatement)
@@ -116,10 +111,26 @@ int SymbolTablePass::visit(IdentifierExpr &identifier)
     return 0;
 }
 
-int SymbolTablePass::visit(BinaryOpExpr &op)
+int SymbolTablePass::visit(MemberExpr &member)
 {
-    op.left->visit(this);
-    op.right->visit(this);
+    if(member.parent->visit(this) < 0) return -1;
 
     return 0;
+}
+
+int SymbolTablePass::visit(ParentExpr &expr)
+{
+    return expr.expr->visit(this);
+}
+
+int SymbolTablePass::visit(BinaryOpExpr &op)
+{
+    if(op.left->visit(this) < 0) return -1;
+    return op.right->visit(this);
+}
+
+int SymbolTablePass::visit(AssignmentExpr &expr)
+{
+    if(expr.lhs->visit(this) < 0) return -1;
+    return expr.lhs->visit(this);
 }
