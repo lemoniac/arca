@@ -44,6 +44,14 @@ int CodeGenerator::visit(StatementBlock &block)
         if(r < 0) return -1;
         l->reg = r;
         usedRegisters[r] = 1;
+
+        if(l->declSpec.type == Type::Struct)
+        {
+            auto s = scope.back().symbols->find(l->declSpec.structName);
+            std::cout << "    r14 = r14 - " << s->structInfo->size() << std::endl;
+            std::cout << "    r" << r << " = r14" << std::endl;
+        }
+
         if(l->valueSet)
         {
             rdest = r;
@@ -108,6 +116,7 @@ int CodeGenerator::visit(TranslationUnit &unit)
         }
     }
 
+    std::cout << "    r14 = 4092" << std::endl;
     if(initializeGlobals)
         std::cout << "jmp start" << std::endl;
 
