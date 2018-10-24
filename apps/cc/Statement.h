@@ -54,7 +54,7 @@ public:
 
 class FunctionCall : public Statement {
 public:
-    std::string function;
+    ExpressionPtr function;
     std::vector<ExpressionPtr> arguments;
 
     int visit(Visitor *visitor);
@@ -108,7 +108,7 @@ public:
 
 class LabelStatement: public Statement {
 public:
-    std::string label;
+    ExpressionPtr label;
 
     int visit(Visitor *visitor);
 };

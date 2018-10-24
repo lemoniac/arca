@@ -89,7 +89,8 @@ int CodeGenerator::visit(FunctionCall &f)
     {
         std::cout << "    r" << r << " = 0" << std::endl;
     }
-    std::cout << "    call " << f.function << std::endl;
+    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
+    std::cout << "    call " << function->name << std::endl;
 }
 
 int CodeGenerator::visit(TranslationUnit &unit)
@@ -199,10 +200,22 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
         usedRegisters[r] = true;
         s->variable->reg = r;
         res = "r" + std::to_string(r);
-        std::cout << "    " << res << " = *" << s->name << std::endl;
+        std::cout << "    " << res << " = " << (identifier.ref?"&":"*") << s->name << std::endl;
     }
     else if(s->type == Type::Int)
         res = "r" + std::to_string(s->variable->reg);
+    return 0;
+}
+
+int CodeGenerator::visit(MemberExpr &member)
+{
+    member.parent->visit(this);
+
+    IdentifierExpr *identifier = dynamic_cast<IdentifierExpr *>(member.parent.get());
+    const auto symbol = scope.back().symbols->find(identifier->name);
+
+    res = "*" + res + "." + symbol->variable->declSpec.structName + "." + member.name;
+
     return 0;
 }
 
@@ -281,7 +294,8 @@ int CodeGenerator::visit(GotoStatement &gotoStatement)
 
 int CodeGenerator::visit(LabelStatement &label)
 {
-    std::cout << label.label << ":" << std::endl;
+    IdentifierExpr *l = dynamic_cast<IdentifierExpr *>(label.label.get());
+    std::cout << l->name << ":" << std::endl;
     return 0;
 }
 

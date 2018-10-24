@@ -60,10 +60,12 @@ int SymbolTablePass::visit(ReturnStatement &ret)
 
 int SymbolTablePass::visit(FunctionCall &f)
 {
-    auto symbol = f.parent->symbolTable->find(f.function);
+    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
+
+    auto symbol = f.parent->symbolTable->find(function->name);
     if(symbol == nullptr)
     {
-        std::cerr << "error: undefined function '" << f.function << "'" << std::endl;
+        std::cerr << "error: undefined function '" << function->name << "'" << std::endl;
         return -1;
     }
     return 0;

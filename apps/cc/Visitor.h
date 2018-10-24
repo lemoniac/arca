@@ -15,6 +15,7 @@ class LabelStatement;
 
 class IntConstant;
 class IdentifierExpr;
+class MemberExpr;
 class ParentExpr;
 class BinaryOpExpr;
 class AssignmentExpr;
@@ -35,6 +36,7 @@ public:
 
     virtual int visit(IntConstant &constant) { return 0; }
     virtual int visit(IdentifierExpr &identifier) { return 0; }
+    virtual int visit(MemberExpr &identifier) { return 0; }
     virtual int visit(ParentExpr &par) { return 0; }
     virtual int visit(BinaryOpExpr &op) { return 0; }
     virtual int visit(AssignmentExpr &expr) { return 0; }

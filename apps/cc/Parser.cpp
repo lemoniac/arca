@@ -331,13 +331,24 @@ StatementBlockPtr Parser::parseStatementBlock()
             }
 
             case IDENTIFIER: {
-                std::string identifier = token.text;
+                ExpressionPtr identifier = std::make_unique<IdentifierExpr>(token.text);
+                int next = peekToken();
+                if(next == '.')
+                {
+                    readToken();
+                    readToken();
+                    auto member = std::make_unique<MemberExpr>();
+                    member->name = token.text;
+                    dynamic_cast<IdentifierExpr *>(identifier.get())->ref = true;
+                    member->parent = std::move(identifier);
+                    identifier = std::move(member);
+                }
                 readToken();
                 if(token.isAssignment())
                 {
                     auto a = std::make_unique<AssignmentExpr>();
                     a->kind = (int)token_to_assignment(token.token);
-                    a->lhs = std::make_unique<IdentifierExpr>(identifier);
+                    a->lhs = std::move(identifier);
                     a->rhs = parseExpression();
                     auto assignment = std::make_unique<Assignment>();
                     assignment->expression = std::move(a);
@@ -347,7 +358,7 @@ StatementBlockPtr Parser::parseStatementBlock()
                 else if(token.token == '(')
                 {
                     auto call = std::make_unique<FunctionCall>();
-                    call->function = identifier;
+                    call->function = std::move(identifier);
                     parseArguments(call->arguments);
                     block->add(std::move(call));
                     EXPECT(";", 0);
@@ -355,12 +366,8 @@ StatementBlockPtr Parser::parseStatementBlock()
                 else if(token.token == ':')
                 {
                     auto l = std::make_unique<LabelStatement>();
-                    l->label = identifier;
+                    l->label = std::move(identifier);
                     block->add(std::move(l));
-                }
-                else if(token.token == '.')
-                {
-                    readToken();
                 }
                 else if(token.token == ';')
                 {}

@@ -43,7 +43,8 @@ int PrintVisitor::visit(ReturnStatement &ret)
 
 int PrintVisitor::visit(FunctionCall &call)
 {
-    std::cout << "    " << call.function << "()" << std::endl;
+    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(call.function.get());
+    std::cout << "    " << function->name << "()" << std::endl;
 }
 
 int PrintVisitor::visit(TranslationUnit &unit)

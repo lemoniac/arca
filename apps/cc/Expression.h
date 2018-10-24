@@ -12,7 +12,7 @@ typedef std::unique_ptr<Expression> ExpressionPtr;
 class Expression {
 public:
     virtual int visit(Visitor *visitor) = 0;
-    virtual ExpressionPtr simplify() { return nullptr; };
+    virtual ExpressionPtr simplify() { return nullptr; }
 };
 
 class IntConstant : public Expression {
@@ -26,6 +26,15 @@ class IdentifierExpr : public Expression {
 public:
     IdentifierExpr(const std::string &name): name(name) { }
     std::string name;
+    bool ref = false;
+
+    int visit(Visitor *visitor);
+};
+
+class MemberExpr: public Expression {
+public:
+    std::string name;
+    ExpressionPtr parent;
 
     int visit(Visitor *visitor);
 };
