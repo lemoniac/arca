@@ -17,31 +17,16 @@ public:
         Type type;
         Variable *variable = nullptr;
         StructPtr structInfo;
+
+        int size() const;
     };
 
     std::vector<Symbol> symbols;
     SymbolTable *parent = nullptr;
 
-    Symbol *find(const std::string &name)
-    {
-        for(auto &s : symbols)
-            if(s.name == name)
-                return &s;
-
-        if(parent != nullptr)
-            return parent->find(name);
-
-        return nullptr;
-    }
-
-    bool isLocal(const std::string &name) const
-    {
-        for(auto &s : symbols)
-            if(s.name == name)
-                return true;
-
-        return false;
-    }
+    Symbol *find(const std::string &name);
+    bool isLocal(const std::string &name) const;
+    bool add(Symbol &&symbol);
 };
 
 #endif//ARCA__CC__SYMBOL_TABLE__H

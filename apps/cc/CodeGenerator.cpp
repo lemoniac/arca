@@ -45,10 +45,11 @@ int CodeGenerator::visit(StatementBlock &block)
         l->reg = r;
         usedRegisters[r] = 1;
 
-        if(l->declSpec.type == Type::Struct)
+        // reserve space on the stack
+        if(l->declSpec.type == Type::Struct || l->referenced)
         {
-            auto s = scope.back().symbols->find(l->declSpec.structName);
-            std::cout << "    r14 = r14 - " << s->structInfo->size() << std::endl;
+            auto s = scope.back().symbols->find(l->name);
+            std::cout << "    r14 = r14 - " << s->size() << std::endl;
             std::cout << "    r" << r << " = r14" << std::endl;
         }
 

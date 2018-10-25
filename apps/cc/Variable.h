@@ -17,6 +17,8 @@ struct Variable {
     unsigned reg;
     bool isGlobal = false;
     bool isSigned = true;
+    bool used = false;
+    bool referenced = false;
 
     bool isConstant() const;
     int getValue() const;

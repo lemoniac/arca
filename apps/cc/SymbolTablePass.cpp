@@ -26,7 +26,7 @@ int SymbolTablePass::visit(StatementBlock &block)
     for(auto &l : block.locals)
     {
         SymbolTable::Symbol s = {l->name, l->declSpec.type, l.get()};
-        block.symbolTable->symbols.push_back(s);
+        block.symbolTable->add(std::move(s));
     }
 
     for(auto &s : block.statements)
@@ -75,7 +75,7 @@ int SymbolTablePass::visit(TranslationUnit &unit)
     for(auto &g : unit.globals)
     {
         SymbolTable::Symbol s = {g->name, g->declSpec.type, g.get()};
-        unit.symbolTable.symbols.push_back(s);
+        unit.symbolTable.add(std::move(s));
     }
     for(auto &f : unit.functions)
         f->visit(this);
