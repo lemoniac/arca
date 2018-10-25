@@ -26,6 +26,7 @@ public:
     int visit(MemberExpr &identifier);
     int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
+    int visit(UnaryOpExpr &op);
     int visit(AssignmentExpr &expr);
 
 protected:

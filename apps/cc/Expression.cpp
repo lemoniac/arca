@@ -7,6 +7,7 @@ int IdentifierExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int MemberExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int ParentExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int BinaryOpExpr::visit(Visitor *visitor) { visitor->visit(*this); }
+int UnaryOpExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int AssignmentExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 
 
@@ -85,6 +86,24 @@ ExpressionPtr ParentExpr::simplify()
     ::simplify(expr);
     if(dynamic_cast<IntConstant *>(expr.get()) || dynamic_cast<IdentifierExpr *>(expr.get()))
         return std::move(expr);
+
+    return 0;
+}
+
+ExpressionPtr UnaryOpExpr::simplify()
+{
+    ::simplify(expr);
+
+    if(op == Op::SizeOf)
+    {
+        auto s = dynamic_cast<IdentifierExpr *>(expr.get());
+        if(s)
+        {
+            auto i = std::make_unique<IntConstant>();
+            i->value = s->symbol->size();
+            return i;
+        }
+    }
 
     return 0;
 }

@@ -17,6 +17,7 @@ public:
     int visit(StatementBlock &block);
     int visit(If &ifStatement);
     int visit(While &statement);
+    int visit(For &statement);
     int visit(ReturnStatement &ret);
     int visit(FunctionCall &f);
     int visit(TranslationUnit &unit);
@@ -29,6 +30,7 @@ public:
     int visit(MemberExpr &member);
     int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
+    int visit(UnaryOpExpr &op);
     int visit(AssignmentExpr &expr);
 
     TranslationUnit &unit;

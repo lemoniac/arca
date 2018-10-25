@@ -236,6 +236,17 @@ ExpressionPtr Parser::parseExpression()
             break;
         }
 
+        case SIZEOF:
+        {
+            EXPECT("(", 0);
+            auto s = std::make_unique<UnaryOpExpr>();
+            s->op = UnaryOpExpr::Op::SizeOf;
+            s->expr = parseExpression();
+            res = std::move(s);
+            EXPECT(")", 0);
+            break;
+        }
+
         default:
             std::cerr << "error: invalid expression '" << token.text << "'" << std::endl;
             return 0;
@@ -538,7 +549,7 @@ int Parser::parse(const char *filename)
 
             if(s->varname.empty())
             {
-                SymbolTable::Symbol sym = {s->name, Type::Struct, nullptr, s};
+                Symbol sym = {s->name, Type::Struct, nullptr, s};
                 unit.symbolTable.symbols.push_back(sym);
             }
             else

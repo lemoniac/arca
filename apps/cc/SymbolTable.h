@@ -10,17 +10,17 @@ class Variable;
 class Struct;
 typedef std::shared_ptr<Struct> StructPtr;
 
+struct Symbol {
+    std::string name;
+    Type type;
+    Variable *variable = nullptr;
+    StructPtr structInfo;
+
+    int size() const;
+};
+
 class SymbolTable {
 public:
-    struct Symbol {
-        std::string name;
-        Type type;
-        Variable *variable = nullptr;
-        StructPtr structInfo;
-
-        int size() const;
-    };
-
     std::vector<Symbol> symbols;
     SymbolTable *parent = nullptr;
 

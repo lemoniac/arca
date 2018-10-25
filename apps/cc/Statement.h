@@ -37,6 +37,7 @@ public:
     std::unique_ptr<SymbolTable> symbolTable;
 
     int visit(Visitor *visitor);
+    void setParent(StatementBlock *parent);
 };
 
 typedef std::unique_ptr<StatementBlock> StatementBlockPtr;

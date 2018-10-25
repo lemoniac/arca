@@ -5,12 +5,12 @@
 
 int SymbolTablePass::visit(Function &f)
 {
-    SymbolTable::Symbol s = {f.name, Type::Function};
+    Symbol s = {f.name, Type::Function};
     unit.symbolTable.symbols.push_back(s);
 
     for(auto &p : f.parameters)
     {
-        SymbolTable::Symbol s = {p->name, p->declSpec.type, p.get()};
+        Symbol s = {p->name, p->declSpec.type, p.get()};
         f.statements->symbolTable->symbols.push_back(s);
     }
 
@@ -25,7 +25,9 @@ int SymbolTablePass::visit(StatementBlock &block)
 
     for(auto &l : block.locals)
     {
-        SymbolTable::Symbol s = {l->name, l->declSpec.type, l.get()};
+        if(l->valueSet)
+            l->value->visit(this);
+        Symbol s = {l->name, l->declSpec.type, l.get()};
         block.symbolTable->add(std::move(s));
     }
 
@@ -46,6 +48,14 @@ int SymbolTablePass::visit(If &ifStatement)
 int SymbolTablePass::visit(While &statement)
 {
     statement.expression->visit(this);
+    return statement.block->visit(this);
+}
+
+int SymbolTablePass::visit(For &statement)
+{
+    statement.clause1->visit(this);
+    statement.expression2->visit(this);
+    statement.expression3->visit(this);
     return statement.block->visit(this);
 }
 
@@ -74,7 +84,7 @@ int SymbolTablePass::visit(TranslationUnit &unit)
     symbols.push_back(&unit.symbolTable);
     for(auto &g : unit.globals)
     {
-        SymbolTable::Symbol s = {g->name, g->declSpec.type, g.get()};
+        Symbol s = {g->name, g->declSpec.type, g.get()};
         unit.symbolTable.add(std::move(s));
     }
     for(auto &f : unit.functions)
@@ -96,17 +106,18 @@ int SymbolTablePass::visit(LabelStatement &label)
     return 0;
 }
 
-
 int SymbolTablePass::visit(IntConstant &constant) { return 0; }
 
 int SymbolTablePass::visit(IdentifierExpr &identifier)
 {
-    auto *dst = symbols.back()->find(identifier.name);
-    if(dst == nullptr)
+    auto symbol = symbols.back()->find(identifier.name);
+    if(!symbol)
     {
         std::cerr << "error: undefined identifier '" << identifier.name << "'" << std::endl;
         return -1;
     }
+
+    identifier.symbol = symbol;
 
     return 0;
 }
@@ -129,8 +140,13 @@ int SymbolTablePass::visit(BinaryOpExpr &op)
     return op.right->visit(this);
 }
 
+int SymbolTablePass::visit(UnaryOpExpr &op)
+{
+    return op.expr->visit(this);
+}
+
 int SymbolTablePass::visit(AssignmentExpr &expr)
 {
     if(expr.lhs->visit(this) < 0) return -1;
-    return expr.lhs->visit(this);
+    return expr.rhs->visit(this);
 }

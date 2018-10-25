@@ -5,6 +5,7 @@
 #include <string>
 
 class Visitor;
+class Symbol;
 
 class Expression;
 typedef std::unique_ptr<Expression> ExpressionPtr;
@@ -25,8 +26,10 @@ public:
 class IdentifierExpr : public Expression {
 public:
     IdentifierExpr(const std::string &name): name(name) { }
+
     std::string name;
     bool ref = false;
+    Symbol *symbol = nullptr;
 
     int visit(Visitor *visitor);
 };
@@ -59,6 +62,16 @@ public:
     void setOp(int c);
     const char *to_str() const;
 
+    ExpressionPtr simplify();
+};
+
+class UnaryOpExpr: public Expression {
+public:
+    enum class Op {Neg, Addr, SizeOf, PreInc, PostInc, PreDec, PostDec};
+    Op op;
+    ExpressionPtr expr;
+
+    int visit(Visitor *visitor);
     ExpressionPtr simplify();
 };
 

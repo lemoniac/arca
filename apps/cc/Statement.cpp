@@ -30,6 +30,12 @@ void Statement::setParent(StatementBlock *parent)
     this->parent = parent;
 }
 
+void StatementBlock::setParent(StatementBlock *parent)
+{
+    Statement::setParent(parent);
+    symbolTable->parent = parent->symbolTable.get();
+}
+
 void If::setParent(StatementBlock *parent)
 {
     Statement::setParent(parent);

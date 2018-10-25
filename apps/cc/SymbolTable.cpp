@@ -3,7 +3,7 @@
 #include "SymbolTable.h"
 #include "Variable.h"
 
-int SymbolTable::Symbol::size() const
+int Symbol::size() const
 {
     switch(type)
     {
@@ -15,7 +15,7 @@ int SymbolTable::Symbol::size() const
     return 0;
 }
 
-SymbolTable::Symbol *SymbolTable::find(const std::string &name)
+Symbol *SymbolTable::find(const std::string &name)
 {
     for(auto &s : symbols)
         if(s.name == name)

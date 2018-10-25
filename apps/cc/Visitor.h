@@ -18,6 +18,7 @@ class IdentifierExpr;
 class MemberExpr;
 class ParentExpr;
 class BinaryOpExpr;
+class UnaryOpExpr;
 class AssignmentExpr;
 
 class Visitor {
@@ -39,6 +40,7 @@ public:
     virtual int visit(MemberExpr &identifier) { return 0; }
     virtual int visit(ParentExpr &par) { return 0; }
     virtual int visit(BinaryOpExpr &op) { return 0; }
+    virtual int visit(UnaryOpExpr &op) { return 0; }
     virtual int visit(AssignmentExpr &expr) { return 0; }
 };
 

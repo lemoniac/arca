@@ -200,9 +200,10 @@ int CodeGenerator::visit(IntConstant &constant)
 
 int CodeGenerator::visit(IdentifierExpr &identifier)
 {
-    auto *s = scope.back().symbols->find(identifier.name);
-    if(!s)
-        throw std::runtime_error("undefined identifier");
+    if(!identifier.symbol)
+        throw std::runtime_error("undefined identifier: " + identifier.name);
+
+    auto &s = identifier.symbol;
 
     if(s->variable->isGlobal)
     {
@@ -214,6 +215,7 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
     }
     else if(s->type == Type::Int)
         res = "r" + std::to_string(s->variable->reg);
+
     return 0;
 }
 
@@ -245,6 +247,13 @@ int CodeGenerator::visit(BinaryOpExpr &op)
 
     std::cout << "    r" << r << " = " << left << " " << op.to_str() << " " << right << std::endl;
     res = "r" + std::to_string(r);
+    return 0;
+}
+
+int CodeGenerator::visit(UnaryOpExpr &op)
+{
+    op.expr->visit(this);
+
     return 0;
 }
 
