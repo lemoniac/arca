@@ -73,6 +73,8 @@ public:
 
     int visit(Visitor *visitor);
     ExpressionPtr simplify();
+
+    static Op from_token(int token);
 };
 
 class AssignmentExpr: public Expression {

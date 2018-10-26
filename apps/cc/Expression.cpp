@@ -1,6 +1,7 @@
 #include "Statement.h"
 #include "Expression.h"
 #include "Visitor.h"
+#include "Tokens.h"
 
 int IntConstant::visit(Visitor *visitor) { visitor->visit(*this); }
 int IdentifierExpr::visit(Visitor *visitor) { visitor->visit(*this); }
@@ -107,6 +108,19 @@ ExpressionPtr UnaryOpExpr::simplify()
 
     return 0;
 }
+
+UnaryOpExpr::Op UnaryOpExpr::from_token(int token)
+{
+    switch(token)
+    {
+        case '-': return Op::Neg;
+        case INC_OP: return Op::PreInc;
+        case DEC_OP: return Op::PreDec;
+    }
+
+    return Op::SizeOf;
+}
+
 
 ExpressionPtr AssignmentExpr::simplify()
 {

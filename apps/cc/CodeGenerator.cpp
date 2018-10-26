@@ -254,6 +254,17 @@ int CodeGenerator::visit(UnaryOpExpr &op)
 {
     op.expr->visit(this);
 
+    switch(op.op)
+    {
+        case UnaryOpExpr::Op::PreInc:
+            std::cout << "    " << res << " = " << res << " + 1" << std::endl;
+            break;
+
+        case UnaryOpExpr::Op::PreDec:
+            std::cout << "    " << res << " = " << res << " - 1" << std::endl;
+            break;
+    }
+
     return 0;
 }
 

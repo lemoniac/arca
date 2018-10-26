@@ -35,7 +35,7 @@ protected:
     Token token;
 
     int readToken();
-    int peekToken();
+    int peekToken(int pos = 0);
 
     int expect(const std::string &str);
 

@@ -247,6 +247,17 @@ ExpressionPtr Parser::parseExpression()
             break;
         }
 
+        case INC_OP:
+        case DEC_OP:
+        case '-':
+        {
+            auto s = std::make_unique<UnaryOpExpr>();
+            s->op = UnaryOpExpr::from_token(token.token);
+            s->expr = parseExpression();
+            res = std::move(s);
+            break;
+        }
+
         default:
             std::cerr << "error: invalid expression '" << token.text << "'" << std::endl;
             return 0;
@@ -641,14 +652,19 @@ int Parser::readToken()
     return 1;
 }
 
-int Parser::peekToken()
+int Parser::peekToken(int pos)
 {
-    int next = yylex();
-    if(next > 0)
+    if(pos >= nextTokens.size())
     {
-        Token token = {next, yytext};
-        nextTokens.push_back(token);
+        int next = yylex();
+        if(next > 0)
+        {
+            Token token = {next, yytext};
+            nextTokens.push_back(token);
+        }
+
+        return next;
     }
 
-    return next;
+    return nextTokens.back().token;
 }
