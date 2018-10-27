@@ -91,11 +91,6 @@ int SymbolTablePass::visit(TranslationUnit &unit)
         f->visit(this);
 }
 
-int SymbolTablePass::visit(Assignment &assignment)
-{
-    return assignment.expression->visit(this);
-}
-
 int SymbolTablePass::visit(GotoStatement &gotoStatement)
 {
     return 0;

@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include "Statement.h"
 
 class Visitor;
 class Symbol;
@@ -10,7 +11,7 @@ class Symbol;
 class Expression;
 typedef std::unique_ptr<Expression> ExpressionPtr;
 
-class Expression {
+class Expression: public Statement {
 public:
     virtual int visit(Visitor *visitor) = 0;
     virtual ExpressionPtr simplify() { return nullptr; }
@@ -79,12 +80,16 @@ public:
 
 class AssignmentExpr: public Expression {
 public:
+    enum class Kind { Assign, Add, Sub, Mul, Div, Mod, And, Or, Xor, Left, Right };
+
     ExpressionPtr lhs;
     ExpressionPtr rhs;
     int kind = 0;
 
     int visit(Visitor *visitor);
     ExpressionPtr simplify();
+
+    static const char *to_str(Kind kind);
 };
 
 void simplify(ExpressionPtr &expr);

@@ -27,15 +27,16 @@ int main(int argc, char **argv)
     Parser parser;
     parser.parse(argv[1]);
 
-    SimplifyExpressions simplifier;
-    simplifier.visit(parser.unit);
-
-    PrintVisitor v;
-    v.visit(parser.unit);
-
     SymbolTablePass stp(parser.unit);
     if(stp.visit(parser.unit) < 0)
         return 1;
+
+    SimplifyExpressions simplifier;
+    simplifier.visit(parser.unit);
+/*
+    PrintVisitor v;
+    v.visit(parser.unit);
+*/
 
     CodeGenerator cg;
     cg.visit(parser.unit);

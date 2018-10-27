@@ -184,14 +184,6 @@ int CodeGenerator::generateLabel()
     return labelCounter;
 }
 
-int CodeGenerator::visit(Assignment &assignment)
-{
-    std::bitset<32> oldRegisters = usedRegisters;
-    assignment.expression->visit(this);
-    usedRegisters = oldRegisters;
-    return 0;
-}
-
 int CodeGenerator::visit(IntConstant &constant)
 {
     res = std::to_string(constant.value);
@@ -331,11 +323,16 @@ int CodeGenerator::visit(LabelStatement &label)
 
 int CodeGenerator::visit(AssignmentExpr &expr)
 {
+    std::bitset<32> oldRegisters = usedRegisters;
+
     expr.lhs->visit(this);
     std::string left = res;
     expr.rhs->visit(this);
     std::string right = res;
-    std::cout << "    " << left << " " << Assignment::to_str(Assignment::Kind(expr.kind))
+    std::cout << "    " << left << " " << AssignmentExpr::to_str(AssignmentExpr::Kind(expr.kind))
         << " " << right << std::endl;
+
+    usedRegisters = oldRegisters;
+
     return 0;
 }

@@ -42,17 +42,6 @@ public:
 
 typedef std::unique_ptr<StatementBlock> StatementBlockPtr;
 
-class Assignment : public Statement {
-public:
-    enum class Kind { Assign, Add, Sub, Mul, Div, Mod, And, Or, Xor, Left, Right };
-
-    ExpressionPtr expression;
-
-    static const char *to_str(Kind kind);
-
-    int visit(Visitor *visitor);
-};
-
 class FunctionCall : public Statement {
 public:
     ExpressionPtr function;

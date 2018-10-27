@@ -123,14 +123,14 @@ BinaryOpExpr::Op token_to_op(int token)
     throw std::runtime_error("unknown binary operator");
 }
 
-Assignment::Kind token_to_assignment(int token)
+AssignmentExpr::Kind token_to_assignment(int token)
 {
     switch(token)
     {
-        case '=': return Assignment::Kind::Assign;
-        case ADD_ASSIGN: return Assignment::Kind::Add;
-        case SUB_ASSIGN: return Assignment::Kind::Sub;
-        case MUL_ASSIGN: return Assignment::Kind::Mul;
+        case '=': return AssignmentExpr::Kind::Assign;
+        case ADD_ASSIGN: return AssignmentExpr::Kind::Add;
+        case SUB_ASSIGN: return AssignmentExpr::Kind::Sub;
+        case MUL_ASSIGN: return AssignmentExpr::Kind::Mul;
     }
 
     throw std::runtime_error("unknown assignment operator");
@@ -368,12 +368,10 @@ StatementBlockPtr Parser::parseStatementBlock()
                 readToken();
                 if(token.isAssignment())
                 {
-                    auto a = std::make_unique<AssignmentExpr>();
-                    a->kind = (int)token_to_assignment(token.token);
-                    a->lhs = std::move(identifier);
-                    a->rhs = parseExpression();
-                    auto assignment = std::make_unique<Assignment>();
-                    assignment->expression = std::move(a);
+                    auto assignment = std::make_unique<AssignmentExpr>();
+                    assignment->kind = (int)token_to_assignment(token.token);
+                    assignment->lhs = std::move(identifier);
+                    assignment->rhs = parseExpression();
                     EXPECT(";", 0);
                     block->add(std::move(assignment));
                 }

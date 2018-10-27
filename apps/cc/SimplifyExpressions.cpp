@@ -71,13 +71,18 @@ int SimplifyExpressions::visit(TranslationUnit &unit)
     return 0;
 }
 
-int SimplifyExpressions::visit(Assignment &assignment) { simplify(assignment.expression); }
-
 int SimplifyExpressions::visit(GotoStatement &gotoStatement) { return 0; }
 int SimplifyExpressions::visit(LabelStatement &label) { return 0; }
 
 int SimplifyExpressions::visit(IntConstant &constant) { return 0; }
 int SimplifyExpressions::visit(IdentifierExpr &identifier) { return 0; }
+
+int SimplifyExpressions::visit(AssignmentExpr &expr)
+{
+    simplify(expr.lhs);
+    simplify(expr.rhs);
+    return 0;
+}
 
 int SimplifyExpressions::visit(ParentExpr &expr)
 {
@@ -86,3 +91,5 @@ int SimplifyExpressions::visit(ParentExpr &expr)
 }
 
 int SimplifyExpressions::visit(BinaryOpExpr &op) { simplify(op.left); simplify(op.right); return 0; }
+
+int SimplifyExpressions::visit(UnaryOpExpr &op) { simplify(op.expr); return 0; }

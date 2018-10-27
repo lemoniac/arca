@@ -130,6 +130,19 @@ ExpressionPtr AssignmentExpr::simplify()
     return 0;
 }
 
+const char *AssignmentExpr::to_str(AssignmentExpr::Kind kind)
+{
+    switch(kind)
+    {
+        case Kind::Assign: return "=";
+        case Kind::Add: return "+=";
+        case Kind::Sub: return "-=";
+        case Kind::Mul: return "*=";
+    }
+
+    return "?";
+}
+
 void simplify(ExpressionPtr &expr)
 {
     auto e = expr->simplify();

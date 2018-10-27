@@ -13,14 +13,15 @@ public:
     int visit(For &statement);
     int visit(FunctionCall &f);
     int visit(TranslationUnit &unit);
-    int visit(Assignment &assignment);
     int visit(GotoStatement &gotoStatement);
     int visit(LabelStatement &label);
 
     int visit(IntConstant &constant);
     int visit(IdentifierExpr &identifier);
+    int visit(AssignmentExpr &expr);
     int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
+    int visit(UnaryOpExpr &op);
 };
 
 #endif//CC__SIMPLIFY_EXPRESSIONS__H

@@ -17,7 +17,6 @@ public:
     int visit(For &statement);
     int visit(FunctionCall &f);
     int visit(TranslationUnit &unit);
-    int visit(Assignment &assignment);
     int visit(GotoStatement &gotoStatement);
     int visit(LabelStatement &label);
 
