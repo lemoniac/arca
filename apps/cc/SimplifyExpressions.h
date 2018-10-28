@@ -22,6 +22,7 @@ public:
     int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
     int visit(UnaryOpExpr &op);
+    int visit(FunctionCallExpr &f);
 };
 
 #endif//CC__SIMPLIFY_EXPRESSIONS__H

@@ -10,6 +10,7 @@ int ParentExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int BinaryOpExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int UnaryOpExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int AssignmentExpr::visit(Visitor *visitor) { visitor->visit(*this); }
+int FunctionCallExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 
 
 void BinaryOpExpr::setOp(int c)
@@ -44,9 +45,9 @@ const char *BinaryOpExpr::to_str() const
         case Op::Eq: return "^";
         case Op::NEq: return "^";
         case Op::LT: return "<";
-        case Op::GT: return "-";
-        case Op::LE: return "-";
-        case Op::GE: return "-";
+        case Op::GT: return ">";
+        case Op::LE: return "<=";
+        case Op::GE: return ">=";
     }
 
     return "?";

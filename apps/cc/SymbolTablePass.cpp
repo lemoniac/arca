@@ -145,3 +145,29 @@ int SymbolTablePass::visit(AssignmentExpr &expr)
     if(expr.lhs->visit(this) < 0) return -1;
     return expr.rhs->visit(this);
 }
+
+int SymbolTablePass::visit(FunctionCallExpr &f)
+{
+    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
+
+    auto symbol = symbols.back()->find(function->name);
+    if(!symbol)
+    {
+        std::cerr << "error: undefined function '" << function->name << "'" << std::endl;
+        return -1;
+    }
+
+    if(symbol->type != Type::Function)
+    {
+        std::cerr << "error: identifier '" << function->name << "' is not a function" << std::endl;
+        return -1;
+    }
+
+    for(auto &arg: f.arguments)
+    {
+        if(arg->visit(this) < 0)
+            return -1;
+    }
+
+    return 0;
+}

@@ -20,6 +20,7 @@ class ParentExpr;
 class BinaryOpExpr;
 class UnaryOpExpr;
 class AssignmentExpr;
+class FunctionCallExpr;
 
 class Visitor {
 public:
@@ -42,6 +43,7 @@ public:
     virtual int visit(BinaryOpExpr &op) { return 0; }
     virtual int visit(UnaryOpExpr &op) { return 0; }
     virtual int visit(AssignmentExpr &expr) { return 0; }
+    virtual int visit(FunctionCallExpr &function) { return 0; }
 };
 
 #endif//CC__VISITOR__H

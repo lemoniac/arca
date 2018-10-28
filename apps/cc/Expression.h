@@ -92,6 +92,14 @@ public:
     static const char *to_str(Kind kind);
 };
 
+class FunctionCallExpr: public Expression {
+public:
+    ExpressionPtr function;
+    std::vector<ExpressionPtr> arguments;
+
+    int visit(Visitor *visitor);
+};
+
 void simplify(ExpressionPtr &expr);
 
 #endif//CC__EXPRESSION__H

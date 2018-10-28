@@ -255,6 +255,14 @@ int CodeGenerator::visit(UnaryOpExpr &op)
         case UnaryOpExpr::Op::PreDec:
             std::cout << "    " << res << " = " << res << " - 1" << std::endl;
             break;
+
+        case UnaryOpExpr::Op::Neg: {
+            int r= getFreeRegister();
+            usedRegisters[r] = 1;
+            std::cout << "    r" << r << " = r0 - " << res << std::endl;
+            res = "r" + std::to_string(r);
+            break;
+        }
     }
 
     return 0;
@@ -335,4 +343,17 @@ int CodeGenerator::visit(AssignmentExpr &expr)
     usedRegisters = oldRegisters;
 
     return 0;
+}
+
+int CodeGenerator::visit(FunctionCallExpr &f)
+{
+    int r = 1;
+    for(const auto &arg : f.arguments)
+    {
+        arg->visit(this);
+        std::cout << "    r" << r << " = " << res << std::endl;
+    }
+    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
+    std::cout << "    call " << function->name << std::endl;
+    res = "r1";
 }

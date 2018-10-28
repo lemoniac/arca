@@ -90,6 +90,20 @@ int SimplifyExpressions::visit(ParentExpr &expr)
     return 0;
 }
 
-int SimplifyExpressions::visit(BinaryOpExpr &op) { simplify(op.left); simplify(op.right); return 0; }
+int SimplifyExpressions::visit(BinaryOpExpr &op)
+{
+    simplify(op.left);
+    simplify(op.right);
+
+    return 0;
+}
 
 int SimplifyExpressions::visit(UnaryOpExpr &op) { simplify(op.expr); return 0; }
+
+int SimplifyExpressions::visit(FunctionCallExpr &f)
+{
+    for(auto &arg : f.arguments)
+        simplify(arg);
+
+    return 0;
+}

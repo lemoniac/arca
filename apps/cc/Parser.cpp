@@ -68,6 +68,8 @@ int Token::to_int() const
 {
     if(text.size() > 2 && text[0] == '0' && text[1] == 'x')
         return std::stoi(std::string(text.begin() + 2, text.end()), nullptr, 16);
+    else if(text.size() == 3 && text[0] == '\'' && text[2] == '\'')
+        return text[1];
     else
         return std::stoi(text);
 }
@@ -288,18 +290,31 @@ ExpressionPtr Parser::parseExpression()
         return expr;
     }
 
+    if(next == '(')
+    {
+        readToken();
+        auto call = std::make_unique<FunctionCallExpr>();
+        call->function = std::move(res);
+        parseArguments(call->arguments);
+        return call;
+    }
+
     return 0;
 }
 
 int Parser::parseArguments(std::vector<ExpressionPtr> &arguments)
 {
-    readToken();
-    while(token.token != ')')
+    int next = peekToken();
+    while(next != ')')
     {
         arguments.push_back(parseExpression());
         readToken();
         if(token.token == ',')
             readToken();
+        else if(token.token == ')')
+            break;
+
+        next = peekToken();
     }
 }
 

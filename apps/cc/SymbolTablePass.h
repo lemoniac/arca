@@ -31,6 +31,7 @@ public:
     int visit(BinaryOpExpr &op);
     int visit(UnaryOpExpr &op);
     int visit(AssignmentExpr &expr);
+    int visit(FunctionCallExpr &f);
 
     TranslationUnit &unit;
 
