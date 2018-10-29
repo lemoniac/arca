@@ -83,6 +83,15 @@ ExpressionPtr BinaryOpExpr::simplify()
     return nullptr;
 }
 
+Type BinaryOpExpr::type() const
+{
+    if(left->type() == right->type())
+        return left->type();
+
+    return Type::Unknown;
+}
+
+
 ExpressionPtr ParentExpr::simplify()
 {
     ::simplify(expr);

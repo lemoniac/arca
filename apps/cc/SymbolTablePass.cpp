@@ -66,19 +66,6 @@ int SymbolTablePass::visit(ReturnStatement &ret)
     return 0;
 }
 
-int SymbolTablePass::visit(FunctionCall &f)
-{
-    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
-
-    auto symbol = f.parent->symbolTable->find(function->name);
-    if(symbol == nullptr)
-    {
-        std::cerr << "error: undefined function '" << function->name << "'" << std::endl;
-        return -1;
-    }
-    return 0;
-}
-
 int SymbolTablePass::visit(TranslationUnit &unit)
 {
     symbols.push_back(&unit.symbolTable);
@@ -88,7 +75,12 @@ int SymbolTablePass::visit(TranslationUnit &unit)
         unit.symbolTable.add(std::move(s));
     }
     for(auto &f : unit.functions)
+    {
+        Symbol s = {f->name, Type::Function, 0};
+        s.function = f.get();
+        unit.symbolTable.add(std::move(s));
         f->visit(this);
+    }
 }
 
 int SymbolTablePass::visit(GotoStatement &gotoStatement)
@@ -163,10 +155,22 @@ int SymbolTablePass::visit(FunctionCallExpr &f)
         return -1;
     }
 
+    if(symbol->function->parameters.size() != f.arguments.size())
+    {
+        std::cerr << "error: invalid number of arguments: " << function->name << std::endl;
+        return -1;
+    }
+
+    int i = 0;
     for(auto &arg: f.arguments)
     {
         if(arg->visit(this) < 0)
             return -1;
+
+        if(symbol->function->parameters[i]->declSpec.type != arg->type())
+            std::cerr << "error: wrong type" << std::endl;
+
+        i++;
     }
 
     return 0;

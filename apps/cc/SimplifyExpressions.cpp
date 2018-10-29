@@ -49,14 +49,6 @@ int SimplifyExpressions::visit(For &statement)
     return 0;
 }
 
-int SimplifyExpressions::visit(FunctionCall &f)
-{
-    for(auto &e : f.arguments)
-        simplify(e);
-
-    return 0;
-}
-
 int SimplifyExpressions::visit(TranslationUnit &unit)
 {
     for(auto &g : unit.globals)

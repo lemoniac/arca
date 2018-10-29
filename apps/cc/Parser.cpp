@@ -94,6 +94,8 @@ bool Token::isBinaryOp(int token)
         case '>':
         case LE_OP:
         case GE_OP:
+        case AND_OP:
+        case OR_OP:
             return true;
     }
 
@@ -120,6 +122,8 @@ BinaryOpExpr::Op token_to_op(int token)
         case '>': return BinaryOpExpr::Op::GT;
         case LE_OP: return BinaryOpExpr::Op::LE;
         case GE_OP: return BinaryOpExpr::Op::GE;
+        case AND_OP: return BinaryOpExpr::Op::And;
+        case OR_OP: return BinaryOpExpr::Op::Or;
     }
 
     throw std::runtime_error("unknown binary operator");
@@ -266,7 +270,7 @@ ExpressionPtr Parser::parseExpression()
     }
 
     int next = peekToken();
-    if (next == ';' || next == ')' || next == 0)
+    if (next == ';' || next == ')' || next == ',' || next == 0)
         return res;
 
     if (Token::isBinaryOp(next))
@@ -305,17 +309,28 @@ ExpressionPtr Parser::parseExpression()
 int Parser::parseArguments(std::vector<ExpressionPtr> &arguments)
 {
     int next = peekToken();
+    if(next == ')')
+    {
+        readToken();
+        return 0;
+    }
+
     while(next != ')')
     {
         arguments.push_back(parseExpression());
         readToken();
         if(token.token == ',')
-            readToken();
+            next = peekToken();
         else if(token.token == ')')
             break;
-
-        next = peekToken();
+        else
+        {
+            std::cerr << "error: unexpected token" << std::endl;
+            return -1;
+        }
     }
+
+    return 0;
 }
 
 StatementBlockPtr Parser::parseStatementBlock()
@@ -392,7 +407,7 @@ StatementBlockPtr Parser::parseStatementBlock()
                 }
                 else if(token.token == '(')
                 {
-                    auto call = std::make_unique<FunctionCall>();
+                    auto call = std::make_unique<FunctionCallExpr>();
                     call->function = std::move(identifier);
                     parseArguments(call->arguments);
                     block->add(std::move(call));

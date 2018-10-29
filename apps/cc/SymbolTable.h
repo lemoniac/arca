@@ -9,12 +9,14 @@
 class Variable;
 class Struct;
 typedef std::shared_ptr<Struct> StructPtr;
+class Function;
 
 struct Symbol {
     std::string name;
     Type type;
     Variable *variable = nullptr;
     StructPtr structInfo;
+    Function *function = nullptr;
 
     int size() const;
 };

@@ -3,7 +3,7 @@
 
 #include <string>
 
-enum class Type { Error = -1, Void, Int, Char, Function, Struct, Union };
+enum class Type { Error = -1, Unknown, Void, Int, Char, Function, Struct, Union };
 
 struct DeclarationSpecifier {
 

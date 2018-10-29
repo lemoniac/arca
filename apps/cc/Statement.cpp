@@ -4,7 +4,6 @@
 #include "Visitor.h"
 
 int ReturnStatement::visit(Visitor *visitor) { visitor->visit(*this); }
-int FunctionCall::visit(Visitor *visitor) { visitor->visit(*this); }
 int StatementBlock::visit(Visitor *visitor) { visitor->visit(*this); }
 int If::visit(Visitor *visitor) { visitor->visit(*this); }
 int While::visit(Visitor *visitor) { visitor->visit(*this); }

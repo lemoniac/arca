@@ -41,12 +41,6 @@ int PrintVisitor::visit(ReturnStatement &ret)
     return 0;
 }
 
-int PrintVisitor::visit(FunctionCall &call)
-{
-    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(call.function.get());
-    std::cout << "    " << function->name << "()" << std::endl;
-}
-
 int PrintVisitor::visit(TranslationUnit &unit)
 {
     for(auto &g : unit.globals)
@@ -68,3 +62,9 @@ int PrintVisitor::visit(LabelStatement &label) { return 0; }
 int PrintVisitor::visit(IntConstant &constant) { return 0; }
 int PrintVisitor::visit(IdentifierExpr &identifier) { return 0; }
 int PrintVisitor::visit(BinaryOpExpr &op) { return 0; }
+
+int PrintVisitor::visit(FunctionCallExpr &call)
+{
+    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(call.function.get());
+    std::cout << "    " << function->name << "()" << std::endl;
+}

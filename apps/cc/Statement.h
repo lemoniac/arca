@@ -42,14 +42,6 @@ public:
 
 typedef std::unique_ptr<StatementBlock> StatementBlockPtr;
 
-class FunctionCall : public Statement {
-public:
-    ExpressionPtr function;
-    std::vector<ExpressionPtr> arguments;
-
-    int visit(Visitor *visitor);
-};
-
 class While : public Statement {
 public:
     ExpressionPtr expression;

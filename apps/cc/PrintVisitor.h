@@ -10,7 +10,6 @@ public:
     int visit(If &ifStatement);
     int visit(While &statement);
     int visit(ReturnStatement &ret);
-    int visit(FunctionCall &call);
     int visit(TranslationUnit &unit);
     int visit(Assignment &assignment);
     int visit(GotoStatement &gotoStatement);
@@ -19,6 +18,7 @@ public:
     int visit(IntConstant &constant);
     int visit(IdentifierExpr &identifier);
     int visit(BinaryOpExpr &op);
+    int visit(FunctionCallExpr &call);
 };
 
 #endif//CC__PRINT_VISITOR__H

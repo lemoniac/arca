@@ -15,6 +15,7 @@ class Expression: public Statement {
 public:
     virtual int visit(Visitor *visitor) = 0;
     virtual ExpressionPtr simplify() { return nullptr; }
+    virtual Type type() const { return Type::Unknown; }
 };
 
 class IntConstant : public Expression {
@@ -22,6 +23,7 @@ public:
     int value;
 
     int visit(Visitor *visitor);
+    Type type() const { return Type::Int; }
 };
 
 class IdentifierExpr : public Expression {
@@ -33,6 +35,7 @@ public:
     Symbol *symbol = nullptr;
 
     int visit(Visitor *visitor);
+    Type type() const { return symbol->type; }
 };
 
 class MemberExpr: public Expression {
@@ -49,6 +52,8 @@ public:
 
     int visit(Visitor *visitor);
     ExpressionPtr simplify();
+
+    Type type() const { return expr->type(); }
 };
 
 class BinaryOpExpr : public Expression {
@@ -64,6 +69,7 @@ public:
     const char *to_str() const;
 
     ExpressionPtr simplify();
+    Type type() const;
 };
 
 class UnaryOpExpr: public Expression {

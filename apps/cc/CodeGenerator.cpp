@@ -91,17 +91,6 @@ int CodeGenerator::visit(ReturnStatement &ret)
     return 0;
 }
 
-int CodeGenerator::visit(FunctionCall &f)
-{
-    int r = 1;
-    for(const auto &arg : f.arguments)
-    {
-        std::cout << "    r" << r << " = 0" << std::endl;
-    }
-    IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
-    std::cout << "    call " << function->name << std::endl;
-}
-
 int CodeGenerator::visit(TranslationUnit &unit)
 {
     Scope s = {&unit.symbolTable};
@@ -352,6 +341,7 @@ int CodeGenerator::visit(FunctionCallExpr &f)
     {
         arg->visit(this);
         std::cout << "    r" << r << " = " << res << std::endl;
+        r++;
     }
     IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
     std::cout << "    call " << function->name << std::endl;
