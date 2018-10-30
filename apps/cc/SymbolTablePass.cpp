@@ -76,6 +76,8 @@ int SymbolTablePass::visit(TranslationUnit &unit)
     {
         Symbol s = {g->name, g->declSpec.type, g.get()};
         unit.symbolTable.add(std::move(s));
+        if(g->valueSet)
+            g->value->visit(this);
     }
     for(auto &f : unit.functions)
     {
@@ -128,6 +130,12 @@ int SymbolTablePass::visit(MemberExpr &member)
     if(member.parent->visit(this) < 0) return -1;
 
     return 0;
+}
+
+int SymbolTablePass::visit(SubscriptExpr &expr)
+{
+    expr.lhs->visit(this);
+    return expr.rhs->visit(this);
 }
 
 int SymbolTablePass::visit(ParentExpr &expr)

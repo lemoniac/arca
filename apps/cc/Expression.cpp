@@ -7,6 +7,7 @@ int IntConstant::visit(Visitor *visitor) { visitor->visit(*this); }
 int StringLiteral::visit(Visitor *visitor) { visitor->visit(*this); }
 int IdentifierExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int MemberExpr::visit(Visitor *visitor) { visitor->visit(*this); }
+int SubscriptExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int ParentExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int BinaryOpExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int UnaryOpExpr::visit(Visitor *visitor) { visitor->visit(*this); }
@@ -44,7 +45,7 @@ const char *BinaryOpExpr::to_str() const
         case Op::LShift: return "<<";
         case Op::RShift: return ">>";
         case Op::Eq: return "^";
-        case Op::NEq: return "^";
+        case Op::NEq: return "|";
         case Op::LT: return "<";
         case Op::GT: return ">";
         case Op::LE: return "<=";

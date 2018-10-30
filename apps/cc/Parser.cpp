@@ -293,8 +293,19 @@ ExpressionPtr Parser::parseExpression()
     }
 
     int next = peekToken();
-    if (next == ';' || next == ')' || next == ',' || next == 0)
+    if (next == ';' || next == ')' || next == ',' || next == ']' || next == 0)
         return res;
+
+    while(next == '[')
+    {
+        readToken();
+        auto subscript = std::make_unique<SubscriptExpr>();
+        subscript->lhs = std::move(res);
+        subscript->rhs = parseExpression();
+        EXPECT("]", 0);
+        res = std::move(subscript);
+        next = peekToken();
+    }
 
     if (Token::isBinaryOp(next))
     {
@@ -326,7 +337,7 @@ ExpressionPtr Parser::parseExpression()
         return call;
     }
 
-    return 0;
+    return res;
 }
 
 int Parser::parseArguments(std::vector<ExpressionPtr> &arguments)

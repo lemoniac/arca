@@ -17,11 +17,14 @@ class IntConstant;
 class StringLiteral;
 class IdentifierExpr;
 class MemberExpr;
+class SubscriptExpr;
 class ParentExpr;
 class BinaryOpExpr;
 class UnaryOpExpr;
 class AssignmentExpr;
 class FunctionCallExpr;
+
+#define VISITOR_VISIT(T)     virtual int visit(T &) { return 0; }
 
 class Visitor {
 public:
@@ -41,6 +44,7 @@ public:
     virtual int visit(StringLiteral &constant) { return 0; }
     virtual int visit(IdentifierExpr &identifier) { return 0; }
     virtual int visit(MemberExpr &identifier) { return 0; }
+    VISITOR_VISIT(SubscriptExpr)
     virtual int visit(ParentExpr &par) { return 0; }
     virtual int visit(BinaryOpExpr &op) { return 0; }
     virtual int visit(UnaryOpExpr &op) { return 0; }

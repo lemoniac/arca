@@ -18,6 +18,7 @@ public:
     int visit(IntConstant &constant);
     int visit(IdentifierExpr &identifier);
     int visit(AssignmentExpr &expr);
+    int visit(SubscriptExpr &expr);
     int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
     int visit(UnaryOpExpr &op);

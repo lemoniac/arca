@@ -237,6 +237,28 @@ int CodeGenerator::visit(MemberExpr &member)
     return 0;
 }
 
+int CodeGenerator::visit(SubscriptExpr &expr)
+{
+    int r = getFreeRegister();
+    usedRegisters[r] = 1;
+
+    expr.lhs->visit(this);
+    auto lhs = res;
+    expr.rhs->visit(this);
+    auto rhs = res;
+
+    std::cout << "    r" << r << " = " << lhs << " + " << rhs << std::endl;
+
+    int r2 = getFreeRegister();
+    usedRegisters[r2] = 1;
+    const char *as = "=";
+    if(expr.lhs->type() == Type::Char)
+        as = "b=";
+    std::cout << "    r" << r2 << " " << as << " *r" << r << std::endl;
+    res = "r" + std::to_string(r2);
+    return 0;
+}
+
 int CodeGenerator::visit(ParentExpr &expr)
 {
     return expr.expr->visit(this);

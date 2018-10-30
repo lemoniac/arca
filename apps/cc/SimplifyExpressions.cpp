@@ -77,6 +77,14 @@ int SimplifyExpressions::visit(AssignmentExpr &expr)
     return 0;
 }
 
+int SimplifyExpressions::visit(SubscriptExpr &expr)
+{
+    simplify(expr.lhs);
+    simplify(expr.rhs);
+
+    return 0;
+}
+
 int SimplifyExpressions::visit(ParentExpr &expr)
 {
     expr.simplify();

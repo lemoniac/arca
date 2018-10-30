@@ -54,6 +54,14 @@ public:
     int visit(Visitor *visitor);
 };
 
+class SubscriptExpr: public Expression {
+public:
+    ExpressionPtr lhs;
+    ExpressionPtr rhs;
+
+    int visit(Visitor *visitor);
+};
+
 class ParentExpr: public Expression {
 public:
     ExpressionPtr expr;

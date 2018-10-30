@@ -27,6 +27,7 @@ public:
     int visit(StringLiteral &str);
     int visit(IdentifierExpr &identifier);
     int visit(MemberExpr &member);
+    int visit(SubscriptExpr &expr);
     int visit(ParentExpr &expr);
     int visit(BinaryOpExpr &op);
     int visit(UnaryOpExpr &op);
