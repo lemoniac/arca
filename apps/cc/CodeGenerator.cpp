@@ -5,8 +5,22 @@
 #include "Expression.h"
 #include "Struct.h"
 
+const char *type_to_str(Type type)
+{
+    switch(type)
+    {
+        case Type::Char: return "char";
+        case Type::Int: return "int";
+        case Type::Short: return "short";
+        return "???";
+    }
+}
+
 int CodeGenerator::visit(Function &f)
 {
+    if(!f.statements)
+        return 0;
+
     isLeaf = true;
     returnSeen = false;
     usedRegisters = 0;
@@ -93,10 +107,12 @@ int CodeGenerator::visit(ReturnStatement &ret)
 
 int CodeGenerator::visit(TranslationUnit &unit)
 {
+    this->unit = &unit;
+
     Scope s = {&unit.symbolTable};
     scope.push_back(s);
 
-    bool initializeGlobals = false;
+    bool initializeGlobals = !unit.strings.empty();
     for(const auto &g : unit.globals)
     {
         if(g->valueSet)
@@ -122,6 +138,9 @@ int CodeGenerator::visit(TranslationUnit &unit)
         }
     }
 
+    for(const auto &s : unit.strings)
+        std::cout << "    char " << s.second << " = " << s.first << std::endl;
+
     for(auto &g : unit.globals)
     {
         if(g->declSpec.type == Type::Struct)
@@ -130,7 +149,7 @@ int CodeGenerator::visit(TranslationUnit &unit)
         }
         else
         {
-            std::cout << "    int " << g->name;
+            std::cout << "    " << type_to_str(g->declSpec.type) << " " << g->name;
             if(g->valueSet && g->isConstant())
                 std::cout << " = " << g->getValue();
             else
@@ -179,6 +198,12 @@ int CodeGenerator::visit(IntConstant &constant)
     return 0;
 }
 
+int CodeGenerator::visit(StringLiteral &str)
+{
+    res = "&" + unit->strings[str.value];
+    return 0;
+}
+
 int CodeGenerator::visit(IdentifierExpr &identifier)
 {
     if(!identifier.symbol)
@@ -194,7 +219,7 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
         res = "r" + std::to_string(r);
         std::cout << "    " << res << " = " << (identifier.ref?"&":"*") << s->name << std::endl;
     }
-    else if(s->type == Type::Int)
+    else if(s->type == Type::Int || s->type == Type::Char)
         res = "r" + std::to_string(s->variable->reg);
 
     return 0;

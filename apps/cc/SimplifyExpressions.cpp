@@ -5,7 +5,8 @@
 
 int SimplifyExpressions::visit(Function &f)
 {
-    f.statements->visit(this);
+    if(f.statements)
+        f.statements->visit(this);
 
     return 0;
 }

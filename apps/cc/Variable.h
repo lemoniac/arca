@@ -21,7 +21,7 @@ struct Variable {
     bool referenced = false;
 
     bool isConstant() const;
-    int getValue() const;
+    std::string getValue() const;
 };
 
 typedef std::unique_ptr<Variable> VariablePtr;

@@ -26,6 +26,14 @@ public:
     Type type() const { return Type::Int; }
 };
 
+class StringLiteral: public Expression {
+public:
+    std::string value;
+
+    int visit(Visitor *visitor);
+    Type type() const { return Type::Char; }
+};
+
 class IdentifierExpr : public Expression {
 public:
     IdentifierExpr(const std::string &name): name(name) { }

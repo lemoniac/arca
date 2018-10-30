@@ -3,7 +3,7 @@
 
 #include <string>
 
-enum class Type { Error = -1, Unknown, Void, Int, Char, Function, Struct, Union };
+enum class Type { Error = -1, Unknown, Void, Int, Char, Short, Function, Struct, Union };
 
 struct DeclarationSpecifier {
 
@@ -15,6 +15,5 @@ struct DeclarationSpecifier {
     bool isStatic = false;
     bool isVolatile = false;
 };
-
 
 #endif//CC__TYPES__H

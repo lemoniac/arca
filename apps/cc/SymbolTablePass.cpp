@@ -8,13 +8,16 @@ int SymbolTablePass::visit(Function &f)
     Symbol s = {f.name, Type::Function};
     unit.symbolTable.symbols.push_back(s);
 
-    for(auto &p : f.parameters)
+    if(f.statements)
     {
-        Symbol s = {p->name, p->declSpec.type, p.get()};
-        f.statements->symbolTable->symbols.push_back(s);
-    }
+        for(auto &p : f.parameters)
+        {
+            Symbol s = {p->name, p->declSpec.type, p.get()};
+            f.statements->symbolTable->symbols.push_back(s);
+        }
 
-    f.statements->visit(this);
+        f.statements->visit(this);
+    }
 
     return 0;
 }
@@ -94,6 +97,17 @@ int SymbolTablePass::visit(LabelStatement &label)
 }
 
 int SymbolTablePass::visit(IntConstant &constant) { return 0; }
+
+int SymbolTablePass::visit(StringLiteral &str)
+{
+    if(unit.strings.find(str.value) == unit.strings.end())
+    {
+        std::string label = "__anonstr_" + std::to_string(unit.strings.size());
+        unit.strings[str.value] = label;
+    }
+
+    return 0;
+}
 
 int SymbolTablePass::visit(IdentifierExpr &identifier)
 {

@@ -4,6 +4,7 @@
 #include "Tokens.h"
 
 int IntConstant::visit(Visitor *visitor) { visitor->visit(*this); }
+int StringLiteral::visit(Visitor *visitor) { visitor->visit(*this); }
 int IdentifierExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int MemberExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int ParentExpr::visit(Visitor *visitor) { visitor->visit(*this); }

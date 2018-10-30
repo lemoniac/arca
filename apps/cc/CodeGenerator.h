@@ -20,6 +20,7 @@ public:
     int visit(LabelStatement &label);
 
     int visit(IntConstant &constant);
+    int visit(StringLiteral &str);
     int visit(IdentifierExpr &identifier);
     int visit(MemberExpr &identifier);
     int visit(ParentExpr &expr);
@@ -37,6 +38,8 @@ protected:
     int getFreeRegister();
 
     int generateLabel();
+
+    TranslationUnit *unit = nullptr;
 
     std::vector<Scope> scope;
     std::bitset<32> usedRegisters;

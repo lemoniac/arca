@@ -16,8 +16,10 @@ Type Token::type() const
 {
     switch(token)
     {
-        case INT: return Type::Int;
-        case LONG: return Type::Int;
+        case INT:
+        case LONG:
+        case UNSIGNED: return Type::Int;
+        case SHORT: return Type::Short;
         case VOID: return Type::Void;
         case CHAR: return Type::Char;
         case STRUCT: return Type::Struct;
@@ -171,17 +173,34 @@ int Parser::expect(const std::string &str)
     }
 
 
+int Parser::parseDeclarationSpecifiers(DeclarationSpecifier &declSpec)
+{
+    readToken();
+    if(token.token == CONST)
+    {
+        declSpec.isConst = true;
+        readToken();
+    }
+
+    declSpec.type = token.type();
+    ERROR(declSpec.type == Type::Error, "Expected type")
+
+    int next = peekToken();
+    if(next == '*')
+    {
+        readToken();
+        declSpec.isPointer = true;
+    }
+
+    return 0;
+}
+
+
 int Parser::parseParameters(FunctionPtr &function)
 {
     auto var = std::make_unique<Variable>();
-    var->declSpec.type = token.type();
-    ERROR(var->declSpec.type == Type::Error, "Expected type")
+    parseDeclarationSpecifiers(var->declSpec);
     readToken();
-    if(token.token == '*')
-    {
-        var->declSpec.isPointer = true;
-        readToken();
-    }
     var->name = token.text;
     readToken();
 
@@ -191,10 +210,7 @@ int Parser::parseParameters(FunctionPtr &function)
         return 0;
 
     if(token.token == ',')
-    {
-        readToken();
         return parseParameters(function);
-    }
 
     printf("error: expected ',' or ')'");
     return -1;
@@ -230,6 +246,13 @@ ExpressionPtr Parser::parseExpression()
         case I_CONSTANT: {
             auto expr = std::make_unique<IntConstant>();
             expr->value = token.to_int();
+            res = std::move(expr);
+            break;
+        }
+
+        case STRING_LITERAL: {
+            auto expr = std::make_unique<StringLiteral>();
+            expr->value = token.text;
             res = std::move(expr);
             break;
         }
@@ -461,9 +484,10 @@ int Parser::parseFunction(Type type, const std::string &name)
 
     EXPECT("(", -1);
 
-    readToken();
-
-    if(token.token != ')')
+    int next = peekToken();
+    if(next == ')')
+        readToken();
+    else
     {
         if(parseParameters(function) < 0)
             return -1;

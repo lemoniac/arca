@@ -24,6 +24,7 @@ public:
     int visit(LabelStatement &label);
 
     int visit(IntConstant &constant);
+    int visit(StringLiteral &str);
     int visit(IdentifierExpr &identifier);
     int visit(MemberExpr &member);
     int visit(ParentExpr &expr);

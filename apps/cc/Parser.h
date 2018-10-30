@@ -42,6 +42,7 @@ protected:
     VariablePtr createVariable(const DeclarationSpecifier &declSpec, const std::string &name);
 
     Type parseType();
+    int parseDeclarationSpecifiers(DeclarationSpecifier &declSpec);
     int parseParameters(FunctionPtr &function);
     bool parseVariableDefinition(VariablePtr &var);
     ExpressionPtr parseExpression();

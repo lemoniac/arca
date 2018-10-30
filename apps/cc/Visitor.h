@@ -14,6 +14,7 @@ class GotoStatement;
 class LabelStatement;
 
 class IntConstant;
+class StringLiteral;
 class IdentifierExpr;
 class MemberExpr;
 class ParentExpr;
@@ -37,6 +38,7 @@ public:
     virtual int visit(LabelStatement &label) { return 0; }
 
     virtual int visit(IntConstant &constant) { return 0; }
+    virtual int visit(StringLiteral &constant) { return 0; }
     virtual int visit(IdentifierExpr &identifier) { return 0; }
     virtual int visit(MemberExpr &identifier) { return 0; }
     virtual int visit(ParentExpr &par) { return 0; }
