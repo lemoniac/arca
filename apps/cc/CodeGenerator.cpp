@@ -128,10 +128,10 @@ int CodeGenerator::visit(TranslationUnit &unit)
 
     for(auto &s : unit.symbolTable.symbols)
     {
-        if(s.type == Type::Struct && s.variable == nullptr)
+        if(s->type == Type::Struct && s->variable == nullptr)
         {
-            std::cout << ".struct " << s.name << std::endl;
-            for(const auto &m : s.structInfo->member)
+            std::cout << ".struct " << s->name << std::endl;
+            for(const auto &m : s->structInfo->member)
                 std::cout << "    int " << m.name << std::endl;
             std::cout << ".endstruct" << std::endl;
             std::cout << std::endl;

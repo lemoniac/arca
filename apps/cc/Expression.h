@@ -7,6 +7,7 @@
 
 class Visitor;
 class Symbol;
+typedef std::shared_ptr<Symbol> SymbolPtr;
 
 class Expression;
 typedef std::unique_ptr<Expression> ExpressionPtr;
@@ -40,7 +41,7 @@ public:
 
     std::string name;
     bool ref = false;
-    Symbol *symbol = nullptr;
+    SymbolPtr symbol = nullptr;
 
     int visit(Visitor *visitor);
     Type type() const { return symbol->type; }

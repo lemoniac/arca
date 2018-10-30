@@ -623,8 +623,7 @@ int Parser::parse(const char *filename)
 
             if(s->varname.empty())
             {
-                Symbol sym = {s->name, Type::Struct, nullptr, s};
-                unit.symbolTable.symbols.push_back(sym);
+                unit.symbolTable.add(s->name, Type::Struct, nullptr, s);
             }
             else
             {

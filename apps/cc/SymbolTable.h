@@ -18,17 +18,21 @@ struct Symbol {
     StructPtr structInfo;
     Function *function = nullptr;
 
+    Symbol(const std::string &name, Type type, Variable *variable, StructPtr structInfo);
+
     int size() const;
 };
 
+typedef std::shared_ptr<Symbol> SymbolPtr;
+
 class SymbolTable {
 public:
-    std::vector<Symbol> symbols;
+    std::vector<SymbolPtr> symbols;
     SymbolTable *parent = nullptr;
 
-    Symbol *find(const std::string &name);
+    SymbolPtr find(const std::string &name);
     bool isLocal(const std::string &name) const;
-    bool add(Symbol &&symbol);
+    bool add(const std::string &name, Type type, Variable *var = nullptr, StructPtr structInfo = nullptr);
 };
 
 #endif//ARCA__CC__SYMBOL_TABLE__H

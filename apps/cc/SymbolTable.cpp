@@ -15,11 +15,17 @@ int Symbol::size() const
     return 0;
 }
 
-Symbol *SymbolTable::find(const std::string &name)
+Symbol::Symbol(const std::string &name, Type type, Variable *variable, StructPtr structInfo):
+    name(name), type(type), variable(variable), structInfo(structInfo)
+{
+}
+
+
+SymbolPtr SymbolTable::find(const std::string &name)
 {
     for(auto &s : symbols)
-        if(s.name == name)
-            return &s;
+        if(s->name == name)
+            return s;
 
     if(parent != nullptr)
         return parent->find(name);
@@ -30,31 +36,33 @@ Symbol *SymbolTable::find(const std::string &name)
 bool SymbolTable::isLocal(const std::string &name) const
 {
     for(auto &s : symbols)
-        if(s.name == name)
+        if(s->name == name)
             return true;
 
     return false;
 }
 
-bool SymbolTable::add(Symbol &&symbol)
+bool SymbolTable::add(const std::string &name, Type type, Variable *var, StructPtr structInfo)
 {
-    if(isLocal(symbol.name))
+    if(isLocal(name))
     {
-        std::cerr << "error: redeclaration of " << symbol.name << std::endl;
+        std::cerr << "error: redeclaration of " << name << std::endl;
         return false;
     }
 
-    if(symbol.type == Type::Struct)
+    auto symbol = std::make_shared<Symbol>(name, type, var, structInfo);
+
+    if(type == Type::Struct)
     {
-        auto s = find(symbol.variable->declSpec.structName);
+        auto s = find(var->declSpec.structName);
         if(!s)
         {
-            std::cerr << "error: unknown struct " << symbol.variable->declSpec.structName << std::endl;
+            std::cerr << "error: unknown struct " << var->declSpec.structName << std::endl;
             return false;
         }
-        symbol.structInfo = s->structInfo;
+        symbol->structInfo = s->structInfo;
     }
 
-    symbols.emplace_back(symbol);
+    symbols.push_back(symbol);
     return true;
 }

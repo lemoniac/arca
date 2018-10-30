@@ -5,16 +5,12 @@
 
 int SymbolTablePass::visit(Function &f)
 {
-    Symbol s = {f.name, Type::Function};
-    unit.symbolTable.symbols.push_back(s);
+    unit.symbolTable.add(f.name, Type::Function);
 
     if(f.statements)
     {
         for(auto &p : f.parameters)
-        {
-            Symbol s = {p->name, p->declSpec.type, p.get()};
-            f.statements->symbolTable->symbols.push_back(s);
-        }
+            f.statements->symbolTable->add(p->name, p->declSpec.type, p.get());
 
         f.statements->visit(this);
     }
@@ -30,8 +26,7 @@ int SymbolTablePass::visit(StatementBlock &block)
     {
         if(l->valueSet)
             l->value->visit(this);
-        Symbol s = {l->name, l->declSpec.type, l.get()};
-        block.symbolTable->add(std::move(s));
+        block.symbolTable->add(l->name, l->declSpec.type, l.get());
     }
 
     for(auto &s : block.statements)
@@ -74,18 +69,13 @@ int SymbolTablePass::visit(TranslationUnit &unit)
     symbols.push_back(&unit.symbolTable);
     for(auto &g : unit.globals)
     {
-        Symbol s = {g->name, g->declSpec.type, g.get()};
-        unit.symbolTable.add(std::move(s));
+        unit.symbolTable.add(g->name, g->declSpec.type, g.get());
         if(g->valueSet)
             g->value->visit(this);
     }
+
     for(auto &f : unit.functions)
-    {
-        Symbol s = {f->name, Type::Function, 0};
-        s.function = f.get();
-        unit.symbolTable.add(std::move(s));
         f->visit(this);
-    }
 }
 
 int SymbolTablePass::visit(GotoStatement &gotoStatement)
