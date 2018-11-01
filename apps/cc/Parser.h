@@ -18,6 +18,7 @@ struct Token {
     std::string text;
 
     Type type() const;
+    static Type type(int token);
     bool isAssignment() const;
     static bool isAssignment(int token);
     bool isRelational() const;

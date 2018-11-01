@@ -18,7 +18,7 @@ struct Symbol {
     StructPtr structInfo;
     Function *function = nullptr;
 
-    Symbol(const std::string &name, Type type, Variable *variable, StructPtr structInfo);
+    Symbol(const std::string &name, Type type, Variable *variable, StructPtr structInfo, Function *function);
 
     int size() const;
 };
@@ -32,7 +32,8 @@ public:
 
     SymbolPtr find(const std::string &name);
     bool isLocal(const std::string &name) const;
-    bool add(const std::string &name, Type type, Variable *var = nullptr, StructPtr structInfo = nullptr);
+    bool add(const std::string &name, Type type, Variable *var = nullptr, StructPtr structInfo = nullptr, Function *function = nullptr);
+    bool addFunction(const std::string &name, Function *function = nullptr);
 };
 
 #endif//ARCA__CC__SYMBOL_TABLE__H

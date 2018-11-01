@@ -14,6 +14,11 @@ void yyerror(const char *error)
 
 Type Token::type() const
 {
+    return type(token);
+}
+
+Type Token::type(int token)
+{
     switch(token)
     {
         case INT:
@@ -175,17 +180,26 @@ int Parser::expect(const std::string &str)
 
 int Parser::parseDeclarationSpecifiers(DeclarationSpecifier &declSpec)
 {
-    readToken();
-    if(token.token == CONST)
+    int next = peekToken();
+    if(next == STATIC)
     {
-        declSpec.isConst = true;
         readToken();
+        declSpec.isStatic = true;
+        next = peekToken();
+    }
+    if(next == CONST)
+    {
+        readToken();
+        declSpec.isConst = true;
+        next = peekToken();
     }
 
-    declSpec.type = token.type();
-    ERROR(declSpec.type == Type::Error, "Expected type")
+    declSpec.type = Token::type(next);
+    if(declSpec.type == Type::Error)
+        return -1;
 
-    int next = peekToken();
+    readToken();
+    next = peekToken();
     if(next == '*')
     {
         readToken();
@@ -370,31 +384,23 @@ int Parser::parseArguments(std::vector<ExpressionPtr> &arguments)
 StatementBlockPtr Parser::parseStatementBlock()
 {
     auto block = std::make_unique<StatementBlock>();
-    readToken();
+
     // local variables
-    while(token.type() != Type::Error)
+    DeclarationSpecifier declSpec;
+    while(parseDeclarationSpecifiers(declSpec) >= 0)
     {
-        DeclarationSpecifier declSpec;
-        declSpec.type = token.type();
-        int next = peekToken();
-        if(next == '*')
-            readToken();
-        if(declSpec.type == Type::Struct)
-        {
-            readToken();
-            declSpec.structName = token.text;
-        }
         readToken();
         auto var = createVariable(declSpec, token.text);
-        next = peekToken();
+        int next = peekToken();
         next = checkDimensions(next);
 
         if(next == '=' && !parseVariableDefinition(var))
             return 0;
         EXPECT(";", 0);
         block->locals.push_back(std::move(var));
-        readToken();
     }
+
+    readToken();
 
     // statements
     do {

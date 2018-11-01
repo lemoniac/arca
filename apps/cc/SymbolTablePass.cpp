@@ -3,16 +3,18 @@
 #include "SymbolTablePass.h"
 #include "SymbolTable.h"
 
+#define VISIT(a) if(a->visit(this) < 0) return -1;
+
 int SymbolTablePass::visit(Function &f)
 {
-    unit.symbolTable.add(f.name, Type::Function);
+    unit.symbolTable.addFunction(f.name, &f);
 
     if(f.statements)
     {
         for(auto &p : f.parameters)
             f.statements->symbolTable->add(p->name, p->declSpec.type, p.get());
 
-        f.statements->visit(this);
+        VISIT(f.statements)
     }
 
     return 0;
@@ -25,12 +27,13 @@ int SymbolTablePass::visit(StatementBlock &block)
     for(auto &l : block.locals)
     {
         if(l->valueSet)
-            l->value->visit(this);
+            VISIT(l->value)
+
         block.symbolTable->add(l->name, l->declSpec.type, l.get());
     }
 
     for(auto &s : block.statements)
-        s->visit(this);
+        VISIT(s)
 
     symbols.pop_back();
 
@@ -39,21 +42,21 @@ int SymbolTablePass::visit(StatementBlock &block)
 
 int SymbolTablePass::visit(If &ifStatement)
 {
-    ifStatement.expression->visit(this);
+    VISIT(ifStatement.expression)
     return ifStatement.block->visit(this);
 }
 
 int SymbolTablePass::visit(While &statement)
 {
-    statement.expression->visit(this);
+    VISIT(statement.expression);
     return statement.block->visit(this);
 }
 
 int SymbolTablePass::visit(For &statement)
 {
-    statement.clause1->visit(this);
-    statement.expression2->visit(this);
-    statement.expression3->visit(this);
+    VISIT(statement.clause1);
+    VISIT(statement.expression2);
+    VISIT(statement.expression3);
     return statement.block->visit(this);
 }
 
@@ -71,11 +74,13 @@ int SymbolTablePass::visit(TranslationUnit &unit)
     {
         unit.symbolTable.add(g->name, g->declSpec.type, g.get());
         if(g->valueSet)
-            g->value->visit(this);
+            VISIT(g->value);
     }
 
     for(auto &f : unit.functions)
-        f->visit(this);
+        VISIT(f)
+
+    return 0;
 }
 
 int SymbolTablePass::visit(GotoStatement &gotoStatement)
@@ -124,7 +129,7 @@ int SymbolTablePass::visit(MemberExpr &member)
 
 int SymbolTablePass::visit(SubscriptExpr &expr)
 {
-    expr.lhs->visit(this);
+    VISIT(expr.lhs);
     return expr.rhs->visit(this);
 }
 

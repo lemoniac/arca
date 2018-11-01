@@ -15,8 +15,8 @@ int Symbol::size() const
     return 0;
 }
 
-Symbol::Symbol(const std::string &name, Type type, Variable *variable, StructPtr structInfo):
-    name(name), type(type), variable(variable), structInfo(structInfo)
+Symbol::Symbol(const std::string &name, Type type, Variable *variable, StructPtr structInfo, Function *function):
+    name(name), type(type), variable(variable), structInfo(structInfo), function(function)
 {
 }
 
@@ -42,7 +42,7 @@ bool SymbolTable::isLocal(const std::string &name) const
     return false;
 }
 
-bool SymbolTable::add(const std::string &name, Type type, Variable *var, StructPtr structInfo)
+bool SymbolTable::add(const std::string &name, Type type, Variable *var, StructPtr structInfo, Function *function)
 {
     if(isLocal(name))
     {
@@ -50,9 +50,9 @@ bool SymbolTable::add(const std::string &name, Type type, Variable *var, StructP
         return false;
     }
 
-    auto symbol = std::make_shared<Symbol>(name, type, var, structInfo);
+    auto symbol = std::make_shared<Symbol>(name, type, var, structInfo, function);
 
-    if(type == Type::Struct)
+    if(type == Type::Struct && var)
     {
         auto s = find(var->declSpec.structName);
         if(!s)
@@ -62,6 +62,20 @@ bool SymbolTable::add(const std::string &name, Type type, Variable *var, StructP
         }
         symbol->structInfo = s->structInfo;
     }
+
+    symbols.push_back(symbol);
+    return true;
+}
+
+bool SymbolTable::addFunction(const std::string &name, Function *function)
+{
+    if(isLocal(name))
+    {
+        std::cerr << "error: redeclaration of " << name << std::endl;
+        return false;
+    }
+
+    auto symbol = std::make_shared<Symbol>(name, Type::Function, nullptr, nullptr, function);
 
     symbols.push_back(symbol);
     return true;
