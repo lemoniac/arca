@@ -34,21 +34,3 @@ void StatementBlock::setParent(StatementBlock *parent)
     Statement::setParent(parent);
     symbolTable->parent = parent->symbolTable.get();
 }
-
-void If::setParent(StatementBlock *parent)
-{
-    Statement::setParent(parent);
-    block->symbolTable->parent = parent->symbolTable.get();
-}
-
-void While::setParent(StatementBlock *parent)
-{
-    Statement::setParent(parent);
-    block->symbolTable->parent = parent->symbolTable.get();
-}
-
-void For::setParent(StatementBlock *parent)
-{
-    Statement::setParent(parent);
-    block->symbolTable->parent = parent->symbolTable.get();
-}

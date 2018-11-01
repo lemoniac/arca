@@ -50,6 +50,7 @@ protected:
     ExpressionPtr parseExpression();
     int parseArguments(std::vector<ExpressionPtr> &arguments);
     StatementBlockPtr parseStatementBlock();
+    StatementPtr parseStatement();
     int parseFunction(Type type, const std::string &name);
     StatementPtr parseIf();
     StatementPtr parseWhile();
@@ -57,6 +58,8 @@ protected:
     StructPtr parseStruct();
 
     int checkDimensions(int next);
+
+    StatementBlock *currentBlock = nullptr;
 
     std::vector<Token> nextTokens;
     FILE *file = nullptr;

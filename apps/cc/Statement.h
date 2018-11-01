@@ -45,10 +45,9 @@ typedef std::unique_ptr<StatementBlock> StatementBlockPtr;
 class While : public Statement {
 public:
     ExpressionPtr expression;
-    StatementBlockPtr block;
+    StatementPtr statement;
 
     int visit(Visitor *visitor);
-    void setParent(StatementBlock *parent);
 };
 
 class For : public Statement {
@@ -56,20 +55,18 @@ public:
     ExpressionPtr clause1;
     ExpressionPtr expression2;
     ExpressionPtr expression3;
-    StatementBlockPtr block;
+    StatementPtr statement;
 
     int visit(Visitor *visitor);
-    void setParent(StatementBlock *parent);
 };
 
 class If : public Statement {
 public:
     ExpressionPtr expression;
-    StatementBlockPtr block;
-    StatementBlockPtr elseBlock;
+    StatementPtr statement;
+    StatementPtr elseStatement;
 
     int visit(Visitor *visitor);
-    void setParent(StatementBlock *parent);
 };
 
 class ReturnStatement: public Statement {

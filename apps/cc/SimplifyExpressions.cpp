@@ -30,14 +30,14 @@ int SimplifyExpressions::visit(ReturnStatement &ret) { if(ret.returnValue) simpl
 int SimplifyExpressions::visit(If &ifStatement)
 {
     simplify(ifStatement.expression);
-    ifStatement.block->visit(this);
+    ifStatement.statement->visit(this);
     return 0;
 }
 
 int SimplifyExpressions::visit(While &statement)
 {
     simplify(statement.expression);
-    statement.block->visit(this);
+    statement.statement->visit(this);
     return 0;
 }
 
@@ -46,7 +46,7 @@ int SimplifyExpressions::visit(For &statement)
     simplify(statement.clause1);
     simplify(statement.expression2);
     simplify(statement.expression3);
-    statement.block->visit(this);
+    statement.statement->visit(this);
     return 0;
 }
 

@@ -43,13 +43,13 @@ int SymbolTablePass::visit(StatementBlock &block)
 int SymbolTablePass::visit(If &ifStatement)
 {
     VISIT(ifStatement.expression)
-    return ifStatement.block->visit(this);
+    return ifStatement.statement->visit(this);
 }
 
 int SymbolTablePass::visit(While &statement)
 {
     VISIT(statement.expression);
-    return statement.block->visit(this);
+    return statement.statement->visit(this);
 }
 
 int SymbolTablePass::visit(For &statement)
@@ -57,7 +57,7 @@ int SymbolTablePass::visit(For &statement)
     VISIT(statement.clause1);
     VISIT(statement.expression2);
     VISIT(statement.expression3);
-    return statement.block->visit(this);
+    return statement.statement->visit(this);
 }
 
 int SymbolTablePass::visit(ReturnStatement &ret)

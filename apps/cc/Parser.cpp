@@ -409,108 +409,121 @@ StatementBlockPtr Parser::parseStatementBlock()
         block->locals.push_back(std::move(var));
     }
 
-    readToken();
+    int next = peekToken();
+
+    StatementBlock *oldBlock = currentBlock;
+    currentBlock = block.get();
 
     // statements
-    do {
-        switch(token.token)
-        {
-            case WHILE: block->add(parseWhile()); break;
-            case IF: block->add(parseIf()); break;
-            case FOR: block->add(parseFor()); break;
+    while(next != 0 && next != '}') {
+        auto statement = parseStatement();
+        block->add(std::move(statement));
+        next = peekToken();
+    };
 
-            case RETURN:
-            {
-                auto ret = std::make_unique<ReturnStatement>();
-                if(peekToken() != ';')
-                {
-                    ret->returnValue = parseExpression();
-                }
-                EXPECT(";", 0);
-                block->add(std::move(ret));
-                break;
-            }
+    EXPECT("}", 0);
 
-            case IDENTIFIER: {
-                ExpressionPtr identifier = std::make_unique<IdentifierExpr>(token.text);
-                int next = peekToken();
-                if(next == '.')
-                {
-                    readToken();
-                    readToken();
-                    auto member = std::make_unique<MemberExpr>();
-                    member->name = token.text;
-                    dynamic_cast<IdentifierExpr *>(identifier.get())->ref = true;
-                    member->parent = std::move(identifier);
-                    identifier = std::move(member);
-                }
-                readToken();
-                if(token.isAssignment())
-                {
-                    auto assignment = std::make_unique<AssignmentExpr>();
-                    assignment->kind = (int)token_to_assignment(token.token);
-                    assignment->lhs = std::move(identifier);
-                    assignment->rhs = parseExpression();
-                    EXPECT(";", 0);
-                    block->add(std::move(assignment));
-                }
-                else if(token.token == '(')
-                {
-                    auto call = std::make_unique<FunctionCallExpr>();
-                    call->function = std::move(identifier);
-                    parseArguments(call->arguments);
-                    block->add(std::move(call));
-                    EXPECT(";", 0);
-                }
-                else if(token.token == ':')
-                {
-                    auto l = std::make_unique<LabelStatement>();
-                    l->label = std::move(identifier);
-                    block->add(std::move(l));
-                }
-                else if(token.token == ';')
-                {}
-                else
-                    std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
-                break;
-            }
-
-            case GOTO: {
-                readToken();
-                block->add(std::make_unique<GotoStatement>(token.text));
-                EXPECT(";", 0);
-                break;
-            }
-
-            case ASM: {
-                EXPECT("(", 0);
-                readToken();
-                auto a = std::make_unique<AsmStatement>();
-                a->statement = token.to_str();
-                EXPECT(")", 0);
-                EXPECT(";", 0);
-                block->add(std::move(a));
-                break;
-            }
-
-            case '{':
-            {
-                auto inblock = parseStatementBlock();
-                inblock->setParent(block.get());
-                block->add(std::move(inblock));
-                break;
-            }
-
-            case '}':
-                return block;
-
-            default:
-                std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
-        }
-        readToken();
-    } while(token.token != 0);
+    currentBlock = oldBlock;
 
     return block;
+}
+
+StatementPtr Parser::parseStatement()
+{
+    StatementPtr statement;
+    readToken();
+
+    switch(token.token)
+    {
+        case WHILE: statement = parseWhile(); break;
+        case IF: statement = parseIf(); break;
+        case FOR: statement = parseFor(); break;
+
+        case RETURN:
+        {
+            auto ret = std::make_unique<ReturnStatement>();
+            if(peekToken() != ';')
+                ret->returnValue = parseExpression();
+            EXPECT(";", 0);
+
+            statement = std::move(ret);
+            break;
+        }
+
+        case IDENTIFIER: {
+            ExpressionPtr identifier = std::make_unique<IdentifierExpr>(token.text);
+            int next = peekToken();
+            if(next == '.')
+            {
+                readToken();
+                readToken();
+                auto member = std::make_unique<MemberExpr>();
+                member->name = token.text;
+                dynamic_cast<IdentifierExpr *>(identifier.get())->ref = true;
+                member->parent = std::move(identifier);
+                identifier = std::move(member);
+            }
+            readToken();
+            if(token.isAssignment())
+            {
+                auto assignment = std::make_unique<AssignmentExpr>();
+                assignment->kind = (int)token_to_assignment(token.token);
+                assignment->lhs = std::move(identifier);
+                assignment->rhs = parseExpression();
+                statement = std::move(assignment);
+            }
+            else if(token.token == '(')
+            {
+                auto call = std::make_unique<FunctionCallExpr>();
+                call->function = std::move(identifier);
+                parseArguments(call->arguments);
+                statement = std::move(call);
+            }
+            else if(token.token == ':')
+            {
+                auto l = std::make_unique<LabelStatement>();
+                l->label = std::move(identifier);
+                statement = std::move(l);
+            }
+            else if(token.token == ';')
+            {}
+            else
+                std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
+            EXPECT(";", 0);
+            break;
+        }
+
+        case GOTO: {
+            readToken();
+            statement = std::make_unique<GotoStatement>(token.text);
+            EXPECT(";", 0);
+            break;
+        }
+
+        case ASM: {
+            EXPECT("(", 0);
+            readToken();
+            auto a = std::make_unique<AsmStatement>();
+            a->statement = token.to_str();
+            EXPECT(")", 0);
+            EXPECT(";", 0);
+            statement = std::move(a);
+            break;
+        }
+
+        case '{':
+        {
+            auto inblock = parseStatementBlock();
+            inblock->setParent(currentBlock);
+            statement = std::move(inblock);
+            break;
+        }
+
+        default:
+            std::cerr << yylineno << ": unexpected token " << token.text << std::endl;
+    }
+
+    return statement;
 }
 
 int Parser::parseFunction(Type type, const std::string &name)
@@ -556,8 +569,7 @@ StatementPtr Parser::parseIf()
     EXPECT("(", 0);
     s->expression = parseExpression();
     EXPECT(")", 0);
-    EXPECT("{", 0);
-    s->block = parseStatementBlock();
+    s->statement = parseStatement();
 
     return s;
 }
@@ -568,8 +580,7 @@ StatementPtr Parser::parseWhile()
     EXPECT("(", 0);
     s->expression = parseExpression();
     EXPECT(")", 0);
-    EXPECT("{", 0);
-    s->block = parseStatementBlock();
+    s->statement = parseStatement();
 
     return s;
 }
@@ -584,8 +595,8 @@ StatementPtr Parser::parseFor()
     EXPECT(";", 0);
     f->expression3 = parseExpression();
     EXPECT(")", 0);
-    EXPECT("{", 0);
-    f->block = parseStatementBlock();
+    //EXPECT("{", 0);
+    f->statement = parseStatement();
 
     return f;
 }

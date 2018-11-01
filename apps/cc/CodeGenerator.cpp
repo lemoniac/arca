@@ -311,7 +311,7 @@ int CodeGenerator::visit(If &ifStatement)
     int label = generateLabel();
     std::cout << "    if " << res << " == r0 goto if_" << label << std::endl;
 
-    ifStatement.block->visit(this);
+    ifStatement.statement->visit(this);
 
     std::cout << "if_" << label << ":" << std::endl;
 
@@ -326,7 +326,7 @@ int CodeGenerator::visit(While &statement)
     statement.expression->visit(this);
     std::cout << "    if " << res << " == r0 goto while_end_" << label << std::endl;
 
-    statement.block->visit(this);
+    statement.statement->visit(this);
 
     std::cout << "    jmp while_" << label << std::endl;
     std::cout << "while_end_" << label << ":" << std::endl;
@@ -343,7 +343,7 @@ int CodeGenerator::visit(For &statement)
     statement.expression2->visit(this);
     std::cout << "    if " << res << " == r0 goto for_end_" << label << std::endl;
 
-    statement.block->visit(this);
+    statement.statement->visit(this);
 
     statement.expression3->visit(this);
     std::cout << "    jmp for_" << label << std::endl;
