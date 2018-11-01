@@ -74,5 +74,6 @@
 #define NORETURN 328
 #define STATIC_ASSERT 329
 #define THREAD_LOCAL 330
+#define ASM 331
 
 #endif//CC__TOKENS__H

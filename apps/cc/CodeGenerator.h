@@ -18,6 +18,7 @@ public:
     int visit(TranslationUnit &unit);
     int visit(GotoStatement &gotoStatement);
     int visit(LabelStatement &label);
+    int visit(AsmStatement &statement);
 
     int visit(IntConstant &constant);
     int visit(StringLiteral &str);

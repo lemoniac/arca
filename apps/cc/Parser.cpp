@@ -81,6 +81,15 @@ int Token::to_int() const
         return std::stoi(text);
 }
 
+std::string Token::to_str() const
+{
+    if(text.size() <= 2)
+        return text;
+
+    return std::string(text.begin() + 1, text.end() - 1);
+}
+
+
 bool Token::isBinaryOp(int token)
 {
     switch(token)
@@ -470,6 +479,17 @@ StatementBlockPtr Parser::parseStatementBlock()
                 readToken();
                 block->add(std::make_unique<GotoStatement>(token.text));
                 EXPECT(";", 0);
+                break;
+            }
+
+            case ASM: {
+                EXPECT("(", 0);
+                readToken();
+                auto a = std::make_unique<AsmStatement>();
+                a->statement = token.to_str();
+                EXPECT(")", 0);
+                EXPECT(";", 0);
+                block->add(std::move(a));
                 break;
             }
 

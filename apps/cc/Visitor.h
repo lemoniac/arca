@@ -12,6 +12,7 @@ class TranslationUnit;
 class Assignment;
 class GotoStatement;
 class LabelStatement;
+class AsmStatement;
 
 class IntConstant;
 class StringLiteral;
@@ -39,6 +40,7 @@ public:
     virtual int visit(Assignment &assignment) { return 0; }
     virtual int visit(GotoStatement &gotoStatement) { return 0; }
     virtual int visit(LabelStatement &label) { return 0; }
+    VISITOR_VISIT(AsmStatement);
 
     virtual int visit(IntConstant &constant) { return 0; }
     virtual int visit(StringLiteral &constant) { return 0; }

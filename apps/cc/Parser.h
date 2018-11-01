@@ -23,6 +23,7 @@ struct Token {
     static bool isAssignment(int token);
     bool isRelational() const;
     int to_int() const;
+    std::string to_str() const;
     static bool isBinaryOp(int token);
 };
 

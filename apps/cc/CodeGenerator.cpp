@@ -365,6 +365,13 @@ int CodeGenerator::visit(LabelStatement &label)
     return 0;
 }
 
+int CodeGenerator::visit(AsmStatement &statement)
+{
+    std::cout << "    " << statement.statement << std::endl;
+    return 0;
+}
+
+
 int CodeGenerator::visit(AssignmentExpr &expr)
 {
     std::bitset<32> oldRegisters = usedRegisters;

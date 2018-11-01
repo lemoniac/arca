@@ -95,4 +95,11 @@ public:
     int visit(Visitor *visitor);
 };
 
+class AsmStatement: public Statement {
+public:
+    std::string statement;
+
+    int visit(Visitor *visitor);
+};
+
 #endif//CC__STATEMENT__H

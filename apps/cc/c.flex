@@ -44,6 +44,7 @@ static int check_type(void);
 "//".*                                    { /* consume //-comment */ }
 
 "auto"					{ return(AUTO); }
+"asm"					{ return(ASM); }
 "break"					{ return(BREAK); }
 "case"					{ return(CASE); }
 "char"					{ return(CHAR); }

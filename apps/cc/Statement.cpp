@@ -10,6 +10,7 @@ int While::visit(Visitor *visitor) { visitor->visit(*this); }
 int For::visit(Visitor *visitor) { visitor->visit(*this); }
 int GotoStatement::visit(Visitor *visitor) { visitor->visit(*this); }
 int LabelStatement::visit(Visitor *visitor) { visitor->visit(*this); }
+int AsmStatement::visit(Visitor *visitor) { visitor->visit(*this); }
 
 void StatementBlock::add(StatementPtr statement)
 {
