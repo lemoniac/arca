@@ -38,6 +38,8 @@ public:
 
     bool step();
 
+    const unsigned VRAM_BASEADDR = 0x10000000;
+
 protected:
 
     void interrupt(uint8_t n);

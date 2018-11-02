@@ -107,6 +107,7 @@ bool VM::step()
         case LUI: {
             decodeC(dst, imm);
             regs[dst] = imm << 12;
+            break;
         }
 
         case LOADR: {
@@ -127,11 +128,18 @@ bool VM::step()
             int off = extendSign(imm, 14);
             unsigned addr = regs[dst] + off;
             unsigned value = regs[src0];
-            switch(width)
+            if(addr >= VRAM_BASEADDR && addr < VRAM_BASEADDR + gpu.vram_size())
             {
-                case MEM_STOREW: *(unsigned *)(baseaddr + addr) = value; break;
-                case MEM_STOREH: *(uint16_t *)(baseaddr + addr) = value; break;
-                case MEM_STOREB: *(uint8_t *)(baseaddr + addr) = value; break;
+                gpu.memory(addr - VRAM_BASEADDR, value);
+            }
+            else
+            {
+                switch(width)
+                {
+                    case MEM_STOREW: *(unsigned *)(baseaddr + addr) = value; break;
+                    case MEM_STOREH: *(uint16_t *)(baseaddr + addr) = value; break;
+                    case MEM_STOREB: *(uint8_t *)(baseaddr + addr) = value; break;
+                }
             }
             break;
         }
@@ -291,6 +299,18 @@ bool VM::step()
         case ORI: {
             decodeB(dst, src0, imm);
             uint32_t res = regs[src0] | imm;
+
+            is_zero = res == 0;
+
+            if (dst != 0)
+                regs[dst] = res;
+
+            break;
+        }
+
+        case XORI: {
+            decodeB(dst, src0, imm);
+            uint32_t res = regs[src0] ^ imm;
 
             is_zero = res == 0;
 

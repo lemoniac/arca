@@ -20,6 +20,10 @@ public:
     void draw(unsigned type, unsigned numVertex, int *vertices);
     void flush();
 
+    void memory(unsigned address, unsigned value);
+    unsigned memory(unsigned address);
+    unsigned vram_size() const;
+
 protected:
     SDL_Window *window;
     SDL_Surface *surface;

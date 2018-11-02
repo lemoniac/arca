@@ -188,3 +188,18 @@ void GPU::flush()
 {
     SDL_UpdateWindowSurface(window);
 }
+
+void GPU::memory(unsigned address, unsigned value)
+{
+    ((unsigned *)surface->pixels)[address/4] = value;
+}
+
+unsigned GPU::memory(unsigned address)
+{
+    return ((unsigned *)surface->pixels)[address/4];
+}
+
+unsigned GPU::vram_size() const
+{
+    return 640 * 480 * 4;
+}
