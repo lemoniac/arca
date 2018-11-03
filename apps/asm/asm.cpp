@@ -28,6 +28,8 @@ class Parser {
     const std::regex andi_re = std::regex("r(\\d+) = r(\\d+) & (" NUMBER ")");
     const std::regex or_re = std::regex("r(\\d+) = r(\\d+) \\| r(\\d+)");
     const std::regex ori_re = std::regex("r(\\d+) = r(\\d+) \\| (" NUMBER ")");
+    const std::regex xor_re = std::regex("r(\\d+) = r(\\d+) \\^ r(\\d+)");
+    const std::regex xori_re = std::regex("r(\\d+) = r(\\d+) \\^ (\\d+)");
     const std::regex inc_re = std::regex("r(\\d+) \\+= (\\d+)");
     const std::regex slt_re = std::regex("r(\\d+) = r(\\d+) < r(\\d+)");
     const std::regex slti_re = std::regex("r(\\d+) = r(\\d+) < (\\d+)");
@@ -300,9 +302,13 @@ protected:
             arith(ALU_OR, "|", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, ori_re) && match.size() > 1)
             arithi(ORI, "|", match.str(1), match.str(2), match.str(3));
-        if(std::regex_match(line, match, slt_re) && match.size() > 1)
+        else if(std::regex_match(line, match, xor_re) && match.size() > 1)
+            arith(ALU_XOR, "^", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, xori_re) && match.size() > 1)
+            arithi(XORI, "^", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, slt_re) && match.size() > 1)
             arith(ALU_SLT, "<", match.str(1), match.str(2), match.str(3));
-        if(std::regex_match(line, match, slti_re) && match.size() > 1)
+        else if(std::regex_match(line, match, slti_re) && match.size() > 1)
             arithi(SLTI, "<", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, inc_re) && match.size() > 1)
             inc(match.str(1), match.str(2));

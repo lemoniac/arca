@@ -68,6 +68,8 @@ const char *cond2str(unsigned cond)
         case COND_LTU: return ".ltu";
         case COND_GE: return ".ge";
         case COND_GEU: return ".geu";
+        case COND_EQ: return ".eq";
+        case COND_NE: return ".ne";
         default: return ".??";
     }
 }
