@@ -5,9 +5,12 @@
 #include "Expression.h"
 #include "Struct.h"
 
-const char *type_to_str(Type type)
+const char *type_to_str(const DeclarationSpecifier &declSpec)
 {
-    switch(type)
+    if(declSpec.isPointer)
+        return "int";
+
+    switch(declSpec.type)
     {
         case Type::Char: return "char";
         case Type::Int: return "int";
@@ -149,7 +152,7 @@ int CodeGenerator::visit(TranslationUnit &unit)
         }
         else
         {
-            std::cout << "    " << type_to_str(g->declSpec.type) << " " << g->name;
+            std::cout << "    " << type_to_str(g->declSpec) << " " << g->name;
             if(g->valueSet && g->isConstant())
                 std::cout << " = " << g->getValue();
             else
