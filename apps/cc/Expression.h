@@ -21,6 +21,7 @@ public:
 
 class IntConstant : public Expression {
 public:
+    IntConstant(int value): value(value) { }
     int value;
 
     int visit(Visitor *visitor);
@@ -29,6 +30,7 @@ public:
 
 class StringLiteral: public Expression {
 public:
+    StringLiteral(const std::string &value): value(value) { }
     std::string value;
 
     int visit(Visitor *visitor);
@@ -76,6 +78,9 @@ public:
 class BinaryOpExpr : public Expression {
 public:
     enum class Op {Add, Sub, Mul, Div, Mod, And, Or, Xor, LShift, RShift, Eq, NEq, GT, LT, GE, LE};
+
+    BinaryOpExpr(Op op): op(op) { }
+
     Op op;
     ExpressionPtr left;
     ExpressionPtr right;
@@ -92,6 +97,9 @@ public:
 class UnaryOpExpr: public Expression {
 public:
     enum class Op {Neg, AddrOf, Ref, SizeOf, PreInc, PostInc, PreDec, PostDec};
+
+    UnaryOpExpr(Op op): op(op) { }
+
     Op op;
     ExpressionPtr expr;
 
@@ -107,7 +115,7 @@ public:
 
     ExpressionPtr lhs;
     ExpressionPtr rhs;
-    int kind = 0;
+    Kind kind;
 
     int visit(Visitor *visitor);
     ExpressionPtr simplify();

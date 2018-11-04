@@ -66,16 +66,16 @@ ExpressionPtr BinaryOpExpr::simplify()
 
     if(left && right)
     {
-        auto res = std::make_unique<IntConstant>();
+        int value;
         switch(op)
         {
-            case Op::Add: res->value = left->value + right->value; break;
-            case Op::Sub: res->value = left->value - right->value; break;
-            case Op::Mul: res->value = left->value * right->value; break;
-            case Op::Div: res->value = left->value / right->value; break;
+            case Op::Add: value = left->value + right->value; break;
+            case Op::Sub: value = left->value - right->value; break;
+            case Op::Mul: value = left->value * right->value; break;
+            case Op::Div: value = left->value / right->value; break;
             default: return nullptr;
         }
-        return res;
+        return std::make_unique<IntConstant>(value);
     }
     else if(left && (op == Op::Add || op == Op::Mul))
     {
@@ -111,11 +111,7 @@ ExpressionPtr UnaryOpExpr::simplify()
     {
         auto s = dynamic_cast<IdentifierExpr *>(expr.get());
         if(s)
-        {
-            auto i = std::make_unique<IntConstant>();
-            i->value = s->symbol->size();
-            return i;
-        }
+            return std::make_unique<IntConstant>(s->symbol->size());
     }
 
     return 0;
