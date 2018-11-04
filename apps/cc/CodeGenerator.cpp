@@ -24,19 +24,30 @@ int CodeGenerator::visit(Function &f)
     if(!f.statements)
         return 0;
 
+    functionName = f.name;
+    std::cout << f.name << ":" << std::endl;
+
     isLeaf = true;
     returnSeen = false;
     usedRegisters = 0;
     usedRegisters[14] = usedRegisters[15] = 1; // SP, LR
+    unsigned soff = 0;
     for(unsigned i = 0; i < f.parameters.size(); i++)
     {
-        f.parameters[i]->reg = i + 1;
-        usedRegisters[i + 1] = 1;
+        int r = i + 1;
+        f.parameters[i]->reg = r;
+        usedRegisters[r] = 1;
+
+        auto &p = f.parameters[i];
+        if(p->referenced)
+        {
+            //auto s = scope.back().symbols->find(p->name);
+            std::cout << "    r14 = r14 - 4" /*<< s->size()*/ << std::endl;
+            std::cout << "    *r14 = r" << r << std::endl;
+            p->stackOffset = soff;
+            soff+= 4;
+        }
     }
-
-    functionName = f.name;
-
-    std::cout << f.name << ":" << std::endl;
 
     visit(*f.statements.get());
 
@@ -222,8 +233,11 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
         res = "r" + std::to_string(r);
         std::cout << "    " << res << " = " << (identifier.ref?"&":"*") << s->name << std::endl;
     }
-    else if(s->type == Type::Int || s->type == Type::Char)
+    else if(s->type == Type::Int || s->type == Type::Char ||
+        (s->variable && s->variable->declSpec.isPointer))
+    {
         res = "r" + std::to_string(s->variable->reg);
+    }
 
     return 0;
 }
@@ -283,23 +297,43 @@ int CodeGenerator::visit(BinaryOpExpr &op)
 
 int CodeGenerator::visit(UnaryOpExpr &op)
 {
-    op.expr->visit(this);
-
     switch(op.op)
     {
         case UnaryOpExpr::Op::PreInc:
+            op.expr->visit(this);
             std::cout << "    " << res << " = " << res << " + 1" << std::endl;
             break;
 
         case UnaryOpExpr::Op::PreDec:
+            op.expr->visit(this);
             std::cout << "    " << res << " = " << res << " - 1" << std::endl;
             break;
 
         case UnaryOpExpr::Op::Neg: {
-            int r= getFreeRegister();
+            op.expr->visit(this);
+            int r = getFreeRegister();
             usedRegisters[r] = 1;
             std::cout << "    r" << r << " = r0 - " << res << std::endl;
             res = "r" + std::to_string(r);
+            break;
+        }
+
+        case UnaryOpExpr::Op::AddrOf: {
+            const IdentifierExpr *id = dynamic_cast<const IdentifierExpr *>(op.expr.get());
+            if(id)
+            {
+                if(id->symbol->variable->isGlobal)
+                    res = "&" + id->name;
+                else
+                    res = "r14 + " + std::to_string(id->symbol->variable->stackOffset);
+            }
+            break;
+        }
+
+        case UnaryOpExpr::Op::Ref: {
+            const IdentifierExpr *id = dynamic_cast<const IdentifierExpr *>(op.expr.get());
+            if(id)
+                res = "*" + id->name;
             break;
         }
     }

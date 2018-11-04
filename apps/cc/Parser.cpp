@@ -302,6 +302,8 @@ ExpressionPtr Parser::parseExpression()
         case INC_OP:
         case DEC_OP:
         case '-':
+        case '&':
+        case '*':
         {
             auto s = std::make_unique<UnaryOpExpr>();
             s->op = UnaryOpExpr::from_token(token.token);

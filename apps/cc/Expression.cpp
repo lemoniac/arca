@@ -126,6 +126,8 @@ UnaryOpExpr::Op UnaryOpExpr::from_token(int token)
     switch(token)
     {
         case '-': return Op::Neg;
+        case '&': return Op::AddrOf;
+        case '*': return Op::Ref;
         case INC_OP: return Op::PreInc;
         case DEC_OP: return Op::PreDec;
     }

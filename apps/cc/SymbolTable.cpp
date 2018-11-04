@@ -8,6 +8,7 @@ int Symbol::size() const
     switch(type)
     {
         case Type::Char: return 1;
+        case Type::Short: return 2;
         case Type::Int: return 4;
         case Type::Struct: return structInfo->size();
     }

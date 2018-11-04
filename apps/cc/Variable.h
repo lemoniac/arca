@@ -19,6 +19,7 @@ struct Variable {
     bool isSigned = true;
     bool used = false;
     bool referenced = false;
+    unsigned stackOffset = 0;
 
     bool isConstant() const;
     std::string getValue() const;

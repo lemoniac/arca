@@ -146,7 +146,20 @@ int SymbolTablePass::visit(BinaryOpExpr &op)
 
 int SymbolTablePass::visit(UnaryOpExpr &op)
 {
-    return op.expr->visit(this);
+    VISIT(op.expr);
+
+    if(op.op == UnaryOpExpr::Op::AddrOf)
+    {
+        IdentifierExpr *id = dynamic_cast<IdentifierExpr *>(op.expr.get());
+        if(id)
+        {
+            auto symbol = symbols.back()->find(id->name);
+            if(symbol->variable)
+                symbol->variable->referenced = true;
+        }
+    }
+
+    return 0;
 }
 
 int SymbolTablePass::visit(AssignmentExpr &expr)
