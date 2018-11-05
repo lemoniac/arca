@@ -208,6 +208,12 @@ int Parser::parseDeclarationSpecifiers(DeclarationSpecifier &declSpec)
         return -1;
 
     readToken();
+    if(declSpec.type == Type::Struct)
+    {
+        readToken();
+        declSpec.structName = token.text;
+    }
+
     next = peekToken();
     if(next == '*')
     {
@@ -329,7 +335,6 @@ ExpressionPtr Parser::parseExpression()
         readToken();
         auto member = std::make_unique<MemberExpr>();
         member->name = token.text;
-        dynamic_cast<IdentifierExpr *>(res.get())->ref = true;
         member->parent = std::move(res);
         res = std::move(member);
         next = peekToken();

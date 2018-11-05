@@ -122,7 +122,7 @@ int SymbolTablePass::visit(IdentifierExpr &identifier)
 
 int SymbolTablePass::visit(MemberExpr &member)
 {
-    if(member.parent->visit(this) < 0) return -1;
+    VISIT(member.parent);
 
     return 0;
 }
@@ -140,7 +140,7 @@ int SymbolTablePass::visit(ParentExpr &expr)
 
 int SymbolTablePass::visit(BinaryOpExpr &op)
 {
-    if(op.left->visit(this) < 0) return -1;
+    VISIT(op.left);
     return op.right->visit(this);
 }
 
@@ -164,7 +164,7 @@ int SymbolTablePass::visit(UnaryOpExpr &op)
 
 int SymbolTablePass::visit(AssignmentExpr &expr)
 {
-    if(expr.lhs->visit(this) < 0) return -1;
+    VISIT(expr.lhs);
     return expr.rhs->visit(this);
 }
 
@@ -194,8 +194,7 @@ int SymbolTablePass::visit(FunctionCallExpr &f)
     int i = 0;
     for(auto &arg: f.arguments)
     {
-        if(arg->visit(this) < 0)
-            return -1;
+        VISIT(arg);
 
         if(symbol->function->parameters[i]->declSpec.type != arg->type())
             std::cerr << "error: wrong type" << std::endl;

@@ -231,10 +231,10 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
         usedRegisters[r] = true;
         s->variable->reg = r;
         res = "r" + std::to_string(r);
-        std::cout << "    " << res << " = " << (identifier.ref?"&":"*") << s->name << std::endl;
+        std::cout << "    " << res << " = &" << s->name << std::endl;
     }
     else if(s->type == Type::Int || s->type == Type::Char ||
-        (s->variable && s->variable->declSpec.isPointer))
+        (s->variable && s->variable->declSpec.isPointer) || s->type == Type::Struct)
     {
         res = "r" + std::to_string(s->variable->reg);
     }

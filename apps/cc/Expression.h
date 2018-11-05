@@ -42,7 +42,6 @@ public:
     IdentifierExpr(const std::string &name): name(name) { }
 
     std::string name;
-    bool ref = false;
     SymbolPtr symbol = nullptr;
 
     int visit(Visitor *visitor);
