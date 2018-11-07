@@ -130,6 +130,16 @@ int SymbolTablePass::visit(MemberExpr &member)
 int SymbolTablePass::visit(SubscriptExpr &expr)
 {
     VISIT(expr.lhs);
+
+    int s = size(expr.lhs->type());
+    if(s > 1)
+    {
+        auto mult = std::make_unique<BinaryOpExpr>(BinaryOpExpr::Op::Mul);
+        mult->left = std::move(expr.rhs);
+        mult->right = std::make_unique<IntConstant>(s);
+        expr.rhs = std::move(mult);
+    }
+
     return expr.rhs->visit(this);
 }
 

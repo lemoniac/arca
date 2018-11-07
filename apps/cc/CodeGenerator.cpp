@@ -5,6 +5,19 @@
 #include "Expression.h"
 #include "Struct.h"
 
+int size(Type type)
+{
+    switch(type)
+    {
+        case Type::Char: return 1;
+        case Type::Short: return 2;
+        case Type::Int: return 4;
+        default:
+            return -1;
+
+    }
+}
+
 const char *type_to_str(const DeclarationSpecifier &declSpec)
 {
     if(declSpec.isPointer)

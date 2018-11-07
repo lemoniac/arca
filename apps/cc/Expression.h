@@ -62,6 +62,7 @@ public:
     ExpressionPtr rhs;
 
     int visit(Visitor *visitor);
+    ExpressionPtr simplify();
 };
 
 class ParentExpr: public Expression {

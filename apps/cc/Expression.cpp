@@ -93,6 +93,11 @@ Type BinaryOpExpr::type() const
     return Type::Unknown;
 }
 
+ExpressionPtr SubscriptExpr::simplify()
+{
+    ::simplify(lhs);
+    ::simplify(rhs);
+}
 
 ExpressionPtr ParentExpr::simplify()
 {

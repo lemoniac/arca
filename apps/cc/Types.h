@@ -16,4 +16,6 @@ struct DeclarationSpecifier {
     bool isVolatile = false;
 };
 
+int size(Type type);
+
 #endif//CC__TYPES__H
