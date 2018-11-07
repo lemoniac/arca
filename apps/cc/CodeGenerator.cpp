@@ -342,7 +342,12 @@ int CodeGenerator::visit(UnaryOpExpr &op)
         case UnaryOpExpr::Op::Ref: {
             const IdentifierExpr *id = dynamic_cast<const IdentifierExpr *>(op.expr.get());
             if(id)
-                res = "*" + id->name;
+            {
+                if(id->symbol->variable->isGlobal)
+                    res = "???";
+                else
+                    res = "*r" + std::to_string(id->symbol->variable->reg);
+            }
             break;
         }
     }
@@ -426,6 +431,14 @@ int CodeGenerator::visit(AssignmentExpr &expr)
     std::string left = res;
     expr.rhs->visit(this);
     std::string right = res;
+    if(left[0] == '*' && isdigit(right[0]))
+    {
+        int r = allocateRegister();
+        res = "r" + std::to_string(r);
+        std::cout << "    " << res << " = " << right << std::endl;
+        right = res;
+    }
+
     std::cout << "    " << left << " " << AssignmentExpr::to_str(AssignmentExpr::Kind(expr.kind))
         << " " << right << std::endl;
 
