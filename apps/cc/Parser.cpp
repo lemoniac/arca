@@ -74,7 +74,14 @@ bool Token::isRelational() const
 int Token::to_int() const
 {
     if(text.size() > 2 && text[0] == '0' && text[1] == 'x')
+    {
+        if(text.size() > 10)
+        {
+            std::cerr << yylineno << ": warning: number too big " << text << std::endl;
+            return -1;
+        }
         return std::stoi(std::string(text.begin() + 2, text.end()), nullptr, 16);
+    }
     else if(text.size() == 3 && text[0] == '\'' && text[2] == '\'')
         return text[1];
     else
