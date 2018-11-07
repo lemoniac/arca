@@ -38,6 +38,7 @@ protected:
     };
 
     int getFreeRegister();
+    int allocateRegister();
 
     int generateLabel();
 

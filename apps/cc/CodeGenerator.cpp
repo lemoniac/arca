@@ -200,6 +200,14 @@ int CodeGenerator::getFreeRegister()
     return -1;
 }
 
+int CodeGenerator::allocateRegister()
+{
+    int r = getFreeRegister();
+    usedRegisters[r] = true;
+    return r;
+}
+
+
 int CodeGenerator::generateLabel()
 {
     labelCounter++;
@@ -227,11 +235,12 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
 
     if(s->variable->isGlobal)
     {
-        int r = getFreeRegister();
-        usedRegisters[r] = true;
+        int r = allocateRegister();
+        int r2 = allocateRegister();
         s->variable->reg = r;
-        res = "r" + std::to_string(r);
-        std::cout << "    " << res << " = &" << s->name << std::endl;
+        std::cout << "    r" << r << " = &" << s->name << std::endl;
+        std::cout << "    r" << r2 << " = *r" << r << std::endl;
+        res = "r" + std::to_string(r2);
     }
     else if(s->type == Type::Int || s->type == Type::Char ||
         (s->variable && s->variable->declSpec.isPointer) || s->type == Type::Struct)
