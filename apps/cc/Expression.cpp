@@ -97,6 +97,8 @@ ExpressionPtr SubscriptExpr::simplify()
 {
     ::simplify(lhs);
     ::simplify(rhs);
+
+    return 0;
 }
 
 ExpressionPtr ParentExpr::simplify()
