@@ -7,6 +7,31 @@
 
 class SymbolTable;
 
+struct Res {
+    enum Type { Reg, Imm, Symbol };
+    union {
+        int reg;
+        int imm;
+    };
+
+    std::string name;
+    std::string member;
+
+    Type type = Reg;
+    bool pointer = false;
+    bool ref = false;
+    unsigned offset = 0;
+
+    Res(Type type, int v, bool pointer = false, bool ref = false): type(type), reg(v), pointer(pointer), ref(ref) { }
+    Res() { }
+    std::string to_string() const;
+
+    static Res R(int r);
+    static Res I(int v);
+    static Res Sym(const std::string &name);
+    static Res Ptr(int r);
+};
+
 class CodeGenerator: public Visitor {
 public:
     int visit(Function &f);
@@ -50,7 +75,7 @@ protected:
     bool returnSeen;
     std::string functionName;
     int rdest = -1;
-    std::string res;
+    Res res;
 
     int labelCounter = 0;
 };

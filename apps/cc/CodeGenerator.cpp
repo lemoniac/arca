@@ -32,6 +32,70 @@ const char *type_to_str(const DeclarationSpecifier &declSpec)
     }
 }
 
+std::string Res::to_string() const
+{
+    std::string res;
+    if(type == Res::Reg)
+    {
+        if(pointer)
+            res = "*";
+        else if(ref)
+            res = "&";
+        res += "r" + std::to_string(reg);
+
+        if(offset > 0)
+            res += " + " + std::to_string(offset);
+
+        if(!member.empty())
+            res += "." + name + "." + member;
+    }
+    else if(type == Res::Imm)
+        res = std::to_string(imm);
+    else
+    {
+        if(ref)
+            res = "&";
+        res += name;
+    }
+
+    return res;
+}
+
+Res Res::R(int r)
+{
+    Res res;
+    res.type = Res::Reg;
+    res.reg = r;
+    return res;
+}
+
+Res Res::I(int v)
+{
+    Res res;
+    res.type = Res::Imm;
+    res.imm = v;
+    return res;
+}
+
+Res Res::Sym(const std::string &name)
+{
+    Res res;
+    res.type = Res::Symbol;
+    res.ref = true;
+    res.name = name;
+    return res;
+}
+
+Res Res::Ptr(int r)
+{
+    Res res;
+    res.type = Res::Reg;
+    res.pointer = true;
+    res.reg = r;
+    return res;
+}
+
+
 int CodeGenerator::visit(Function &f)
 {
     if(!f.statements)
@@ -98,7 +162,7 @@ int CodeGenerator::visit(StatementBlock &block)
         {
             rdest = r;
             l->value->visit(this);
-            std::cout << "    r" << r << " = " << res << std::endl;
+            std::cout << "    r" << r << " = " << res.to_string() << std::endl;
         }
     }
 
@@ -121,7 +185,7 @@ int CodeGenerator::visit(ReturnStatement &ret)
     if(ret.returnValue)
     {
         ret.returnValue->visit(this);
-        std::cout << "    r1 = " << res << std::endl;
+        std::cout << "    r1 = " << res.to_string() << std::endl;
     }
 
     if(isLeaf)
@@ -229,13 +293,15 @@ int CodeGenerator::generateLabel()
 
 int CodeGenerator::visit(IntConstant &constant)
 {
-    res = std::to_string(constant.value);
+    res = Res::I(constant.value);
     return 0;
 }
 
 int CodeGenerator::visit(StringLiteral &str)
 {
-    res = "&" + unit->strings[str.value];
+    res = Res();
+    res.ref = true;
+    res.name = unit->strings[str.value];
     return 0;
 }
 
@@ -253,12 +319,12 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
         s->variable->reg = r;
         std::cout << "    r" << r << " = &" << s->name << std::endl;
         std::cout << "    r" << r2 << " = *r" << r << std::endl;
-        res = "r" + std::to_string(r2);
+        res = Res::R(r2);
     }
     else if(s->type == Type::Int || s->type == Type::Char ||
         (s->variable && s->variable->declSpec.isPointer) || s->type == Type::Struct)
     {
-        res = "r" + std::to_string(s->variable->reg);
+        res = Res::R(s->variable->reg);
     }
 
     return 0;
@@ -271,7 +337,9 @@ int CodeGenerator::visit(MemberExpr &member)
     IdentifierExpr *identifier = dynamic_cast<IdentifierExpr *>(member.parent.get());
     const auto symbol = scope.back().symbols->find(identifier->name);
 
-    res = "*" + res + "." + symbol->variable->declSpec.structName + "." + member.name;
+    res.name = symbol->variable->declSpec.structName;
+    res.member = member.name;
+    res.pointer = true;
 
     return 0;
 }
@@ -286,7 +354,7 @@ int CodeGenerator::visit(SubscriptExpr &expr)
     expr.rhs->visit(this);
     auto rhs = res;
 
-    std::cout << "    r" << r << " = " << lhs << " + " << rhs << std::endl;
+    std::cout << "    r" << r << " = " << lhs.to_string() << " + " << rhs.to_string() << std::endl;
 
     int r2 = getFreeRegister();
     usedRegisters[r2] = 1;
@@ -294,7 +362,7 @@ int CodeGenerator::visit(SubscriptExpr &expr)
     if(expr.lhs->type() == Type::Char)
         as = "b=";
     std::cout << "    r" << r2 << " " << as << " *r" << r << std::endl;
-    res = "r" + std::to_string(r2);
+    res = Res::R(r2);
     return 0;
 }
 
@@ -312,8 +380,8 @@ int CodeGenerator::visit(BinaryOpExpr &op)
     op.right->visit(this);
     auto right = res;
 
-    std::cout << "    r" << r << " = " << left << " " << op.to_str() << " " << right << std::endl;
-    res = "r" + std::to_string(r);
+    std::cout << "    r" << r << " = " << left.to_string() << " " << op.to_str() << " " << right.to_string() << std::endl;
+    res = Res::R(r);
     return 0;
 }
 
@@ -323,20 +391,20 @@ int CodeGenerator::visit(UnaryOpExpr &op)
     {
         case UnaryOpExpr::Op::PreInc:
             op.expr->visit(this);
-            std::cout << "    " << res << " = " << res << " + 1" << std::endl;
+            std::cout << "    " << res.to_string() << " = " << res.to_string() << " + 1" << std::endl;
             break;
 
         case UnaryOpExpr::Op::PreDec:
             op.expr->visit(this);
-            std::cout << "    " << res << " = " << res << " - 1" << std::endl;
+            std::cout << "    " << res.to_string() << " = " << res.to_string() << " - 1" << std::endl;
             break;
 
         case UnaryOpExpr::Op::Neg: {
             op.expr->visit(this);
             int r = getFreeRegister();
             usedRegisters[r] = 1;
-            std::cout << "    r" << r << " = r0 - " << res << std::endl;
-            res = "r" + std::to_string(r);
+            std::cout << "    r" << r << " = r0 - " << res.to_string() << std::endl;
+            res = Res::R(r);
             break;
         }
 
@@ -345,9 +413,12 @@ int CodeGenerator::visit(UnaryOpExpr &op)
             if(id)
             {
                 if(id->symbol->variable->isGlobal)
-                    res = "&" + id->name;
+                    res = Res::Sym(id->name);
                 else
-                    res = "r14 + " + std::to_string(id->symbol->variable->stackOffset);
+                {
+                    res = Res::R(14);
+                    res.offset = id->symbol->variable->stackOffset;
+                }
             }
             break;
         }
@@ -357,9 +428,9 @@ int CodeGenerator::visit(UnaryOpExpr &op)
             if(id)
             {
                 if(id->symbol->variable->isGlobal)
-                    res = "???";
+                    res = Res::Sym(id->name);
                 else
-                    res = "*r" + std::to_string(id->symbol->variable->reg);
+                    res = Res::Ptr(id->symbol->variable->reg);
             }
             break;
         }
@@ -373,7 +444,7 @@ int CodeGenerator::visit(If &ifStatement)
     ifStatement.expression->visit(this);
     
     int label = generateLabel();
-    std::cout << "    if " << res << " == r0 goto if_" << label << std::endl;
+    std::cout << "    if " << res.to_string() << " == r0 goto if_" << label << std::endl;
 
     ifStatement.statement->visit(this);
 
@@ -388,7 +459,7 @@ int CodeGenerator::visit(While &statement)
 
     std::cout << "while_" << label << ":" << std::endl;
     statement.expression->visit(this);
-    std::cout << "    if " << res << " == r0 goto while_end_" << label << std::endl;
+    std::cout << "    if " << res.to_string() << " == r0 goto while_end_" << label << std::endl;
 
     statement.statement->visit(this);
 
@@ -405,7 +476,7 @@ int CodeGenerator::visit(For &statement)
 
     std::cout << "for_" << label << ":" << std::endl;
     statement.expression2->visit(this);
-    std::cout << "    if " << res << " == r0 goto for_end_" << label << std::endl;
+    std::cout << "    if " << res.to_string() << " == r0 goto for_end_" << label << std::endl;
 
     statement.statement->visit(this);
 
@@ -441,19 +512,27 @@ int CodeGenerator::visit(AssignmentExpr &expr)
     std::bitset<32> oldRegisters = usedRegisters;
 
     expr.lhs->visit(this);
-    std::string left = res;
+    Res left = res;
     expr.rhs->visit(this);
-    std::string right = res;
-    if(left[0] == '*' && isdigit(right[0]))
+    Res right = res;
+    if(left.pointer && right.type == Res::Imm)
     {
         int r = allocateRegister();
-        res = "r" + std::to_string(r);
-        std::cout << "    " << res << " = " << right << std::endl;
+        res = Res::R(r);
+        std::cout << "    " << res.to_string() << " = " << right.to_string() << std::endl;
         right = res;
     }
+    else if(left.type == Res::Symbol)
+    {
+        int r = allocateRegister();
+        res = Res::R(r);
+        std::cout << "    " << res.to_string() << " = " << left.to_string() << std::endl;
+        res.pointer = true;
+        left = res;
+    }
 
-    std::cout << "    " << left << " " << AssignmentExpr::to_str(AssignmentExpr::Kind(expr.kind))
-        << " " << right << std::endl;
+    std::cout << "    " << left.to_string() << " " << AssignmentExpr::to_str(AssignmentExpr::Kind(expr.kind))
+        << " " << right.to_string() << std::endl;
 
     usedRegisters = oldRegisters;
 
@@ -466,10 +545,10 @@ int CodeGenerator::visit(FunctionCallExpr &f)
     for(const auto &arg : f.arguments)
     {
         arg->visit(this);
-        std::cout << "    r" << r << " = " << res << std::endl;
+        std::cout << "    r" << r << " = " << res.to_string() << std::endl;
         r++;
     }
     IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
     std::cout << "    call " << function->name << std::endl;
-    res = "r1";
+    res = Res::R(1);
 }
