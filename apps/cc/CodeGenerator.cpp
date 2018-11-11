@@ -223,7 +223,7 @@ int CodeGenerator::visit(TranslationUnit &unit)
         {
             std::cout << ".struct " << s->name << std::endl;
             for(const auto &m : s->structInfo->member)
-                std::cout << "    int " << m.name << std::endl;
+                std::cout << "    " << type_to_str(m.declSpec) << " " << m.name << std::endl;
             std::cout << ".endstruct" << std::endl;
             std::cout << std::endl;
         }

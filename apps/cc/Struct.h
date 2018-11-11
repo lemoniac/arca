@@ -9,7 +9,7 @@
 class Struct {
 public:
     struct Member {
-        Type type;
+        DeclarationSpecifier declSpec;
         std::string name;
     };
 

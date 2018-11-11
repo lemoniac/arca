@@ -603,16 +603,18 @@ StructPtr Parser::parseStruct()
     if(next == '{')
     {
         EXPECT("{", 0);
-        readToken();
-        while(token.token != '}')
+        next = peekToken();
+        while(next != '}')
         {
-            Type type = token.type();
+            DeclarationSpecifier declSpec;
+            if(parseDeclarationSpecifiers(declSpec) < 0) return 0;
             readToken();
             std::string identifier = token.text;
             EXPECT(";", 0);
-            s->member.push_back(Struct::Member{type, identifier});
-            readToken();
+            s->member.push_back(Struct::Member{declSpec, identifier});
+            next = peekToken();
         }
+        EXPECT("}", 0);
     }
     else if(next == IDENTIFIER)
     {

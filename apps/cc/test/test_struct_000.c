@@ -2,6 +2,8 @@ struct A {
     int a;
     char b;
     //int c[10];
+    int *d;
+    const short e;
 };
 
 struct A g_a;
