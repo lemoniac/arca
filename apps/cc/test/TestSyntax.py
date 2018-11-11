@@ -9,6 +9,7 @@ class TestSyntax(unittest.TestCase):
         ["test_for_001.c", True],
         ["test_function_000.c", False],
         ["test_globals_000.c", False],
+        ["test_struct_000.c", False],
     ]
 
     def runfile(self, filename):
@@ -28,8 +29,7 @@ class TestSyntax(unittest.TestCase):
     def test_parse(self):
         for item in self.files:
             (out, err) = self.runfile(item[0])
-            if (len(err) > 0) != item[1]:
-                print item[0], "expected to", item[1], err
+            self.assertEqual(len(err) > 0, item[1], item[0] + " expected " + str(item[1]) + "\n" + err)
 
 if __name__ == '__main__':
     unittest.main()
