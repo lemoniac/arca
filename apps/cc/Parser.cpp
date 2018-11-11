@@ -182,14 +182,14 @@ int Parser::expect(const std::string &str)
 #define EXPECT(str, ret) \
     if(expect(str) < 0) \
     { \
-        printf("error: line %u found %s expected %s\n", yylineno, token.text.c_str(), str); \
+        fprintf(stderr, "error: line %u found %s expected %s\n", yylineno, token.text.c_str(), str); \
         return ret; \
     }
 
 #define ERROR(a, error_msg) \
     if((a)) \
     { \
-        printf("%s\n", error_msg); \
+        fprintf(stderr, "%s\n", error_msg); \
         return -1; \
     }
 
@@ -336,9 +336,9 @@ ExpressionPtr Parser::parseExpression()
         next = peekToken();
     }
 
-    if(next == '.')
+    if(next == '.' || next == PTR_OP)
     {
-        EXPECT(".", 0);
+        readToken();
         readToken();
         auto member = std::make_unique<MemberExpr>();
         member->name = token.text;
