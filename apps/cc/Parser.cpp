@@ -417,10 +417,11 @@ StatementBlockPtr Parser::parseStatementBlock()
         readToken();
         auto var = createVariable(declSpec, token.text);
         int next = peekToken();
-        next = checkDimensions(next);
+        int dim = checkDimensions(next);
 
         if(next == '=' && !parseVariableDefinition(var))
             return 0;
+        var->elems = dim;
         EXPECT(";", 0);
         block->locals.push_back(std::move(var));
     }
@@ -610,6 +611,8 @@ StructPtr Parser::parseStruct()
             if(parseDeclarationSpecifiers(declSpec) < 0) return 0;
             readToken();
             std::string identifier = token.text;
+            next = peekToken();
+            int dim = checkDimensions(next);
             EXPECT(";", 0);
             s->member.push_back(Struct::Member{declSpec, identifier});
             next = peekToken();
@@ -688,7 +691,7 @@ int Parser::parse(const char *filename)
             readToken();
             std::string name = token.text;
             next = peekToken();
-            next = checkDimensions(next);
+            int dim = checkDimensions(next);
 
             if(next == '(')
             {
@@ -702,6 +705,7 @@ int Parser::parse(const char *filename)
                     return -1;
                 EXPECT(";", 0);
                 var->isGlobal = true;
+                var->elems = dim;
                 unit.globals.push_back(std::move(var));
             }
         }
@@ -711,19 +715,21 @@ int Parser::parse(const char *filename)
     return 0;
 }
 
-int Parser::checkDimensions(int next)
+int Parser::checkDimensions(int &next)
 {
+    int res = 0;
     if(next == -1)
         next = peekToken();
     while(next == '[')
     {
         readToken();
         readToken();
+        res = token.to_int();
         EXPECT("]", 0);
         next = peekToken();
     }
 
-    return next;
+    return res;
 }
 
 

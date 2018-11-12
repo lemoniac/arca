@@ -57,7 +57,7 @@ protected:
     StatementPtr parseFor();
     StructPtr parseStruct();
 
-    int checkDimensions(int next);
+    int checkDimensions(int &next);
 
     StatementBlock *currentBlock = nullptr;
 

@@ -1,7 +1,7 @@
 struct A {
     int a;
     char b;
-    //int c[10];
+    int c[10];
     int *d;
     const short e;
 };
@@ -24,4 +24,3 @@ void f1(struct A *i)
     i->a = 1;
     (*i).a = 2;
 }
-
