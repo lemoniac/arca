@@ -27,7 +27,7 @@ const char *type_to_str(const DeclarationSpecifier &declSpec)
     {
         case Type::Char: return "char";
         case Type::Int: return "int";
-        case Type::Short: return "short";
+        case Type::Short: return "uint16";
         return "???";
     }
 }
@@ -241,10 +241,14 @@ int CodeGenerator::visit(TranslationUnit &unit)
         else
         {
             std::cout << "    " << type_to_str(g->declSpec) << " " << g->name;
-            if(g->valueSet && g->isConstant())
-                std::cout << " = " << g->getValue();
-            else
-                std::cout << " = 0";
+            if(g->elems > 0)
+                std::cout << "[" << g->elems << "]";
+            else {
+                if(g->valueSet && g->isConstant())
+                    std::cout << " = " << g->getValue();
+                else
+                    std::cout << " = 0";
+            }
             std::cout << std::endl;
         }
     }
