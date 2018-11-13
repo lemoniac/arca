@@ -93,6 +93,14 @@ Type BinaryOpExpr::type() const
     return Type::Unknown;
 }
 
+ExpressionPtr MemberExpr::simplify()
+{
+    ::simplify(parent);
+
+    return 0;
+}
+
+
 ExpressionPtr SubscriptExpr::simplify()
 {
     ::simplify(lhs);
@@ -104,10 +112,7 @@ ExpressionPtr SubscriptExpr::simplify()
 ExpressionPtr ParentExpr::simplify()
 {
     ::simplify(expr);
-    if(dynamic_cast<IntConstant *>(expr.get()) || dynamic_cast<IdentifierExpr *>(expr.get()))
-        return std::move(expr);
-
-    return 0;
+    return std::move(expr);
 }
 
 ExpressionPtr UnaryOpExpr::simplify()

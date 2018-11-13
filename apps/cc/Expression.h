@@ -54,6 +54,7 @@ public:
     ExpressionPtr parent;
 
     int visit(Visitor *visitor);
+    ExpressionPtr simplify();
 };
 
 class SubscriptExpr: public Expression {
