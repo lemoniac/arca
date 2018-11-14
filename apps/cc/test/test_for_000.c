@@ -1,4 +1,4 @@
-void f()
+int main()
 {
     int i;
     int c = 0;
@@ -11,4 +11,6 @@ void f()
     {
         d = d + i;
     }
+
+    return c + d;
 }

@@ -8,6 +8,9 @@
 
 int main(int argc, char **argv)
 {
+    unsigned delay = 0;
+    bool gpuEnabled = true;
+
     if (argc != 2 && argc != 3)
     {
         fprintf(stderr, "emu file [diskimage]\n");
@@ -35,10 +38,11 @@ int main(int argc, char **argv)
     fread(vm.RAM, vm.codesize, 1, file);
     //fread(vm.data, vm.datasize, 1, file);
 
+    vm.setGpuEnabled(gpuEnabled);
     vm.init();
     vm.run();
 
-    SDL_Delay(5000);
+    SDL_Delay(delay);
 
     return 0;
 }

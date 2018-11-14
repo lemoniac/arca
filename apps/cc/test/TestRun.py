@@ -3,7 +3,9 @@ from TestBase import TestBase
 
 class TestRun(TestBase):
     files = [
-        ["test_main_000.c", 123]
+        ["test_for_000.c", 90],
+        ["test_main_000.c", 123],
+        ["test_array_001.c", 45],
     ]
 
     def test_run(self):

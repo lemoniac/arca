@@ -40,6 +40,8 @@ public:
 
     const unsigned VRAM_BASEADDR = 0x10000000;
 
+    void setGpuEnabled(bool enabled) { gpuEnabled = enabled; }
+
 protected:
 
     void interrupt(uint8_t n);
@@ -75,6 +77,7 @@ protected:
     MousePos mousePos;
 
     bool interruptsEnabled = false;
+    bool gpuEnabled = false;
 };
 
 #endif//ARCA__VM__H

@@ -15,7 +15,8 @@ void VM::setDisk(const char *filename)
 
 void VM::init()
 {
-    gpu.init();
+    if(gpuEnabled)
+        gpu.init();
 
     regs[15] = codesize;
 }
@@ -63,7 +64,8 @@ void VM::run()
             break;
     }
 
-    gpu.flush();
+    if(gpuEnabled)
+        gpu.flush();
 
     for(int i = 0; i < 32; i++)
         std::cout << "r" << i << ": " << regs[i] << "    ";
@@ -132,7 +134,8 @@ bool VM::step()
             unsigned value = regs[src0];
             if(addr >= VRAM_BASEADDR && addr < VRAM_BASEADDR + gpu.vram_size())
             {
-                gpu.memory(addr - VRAM_BASEADDR, value);
+                if(gpuEnabled)
+                    gpu.memory(addr - VRAM_BASEADDR, value);
             }
             else
             {
