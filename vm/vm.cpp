@@ -16,6 +16,8 @@ void VM::setDisk(const char *filename)
 void VM::init()
 {
     gpu.init();
+
+    regs[15] = codesize;
 }
 
 void VM::run()
