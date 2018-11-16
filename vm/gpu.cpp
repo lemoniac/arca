@@ -1,4 +1,5 @@
 #include <iostream>
+#include <SDL2/SDL_image.h>
 #include "gpu.h"
 
 void GPU::init()
@@ -202,4 +203,9 @@ unsigned GPU::memory(unsigned address)
 unsigned GPU::vram_size() const
 {
     return 640 * 480 * 4;
+}
+
+void GPU::screenshot()
+{
+    IMG_SavePNG(surface, "screenshot.png");
 }

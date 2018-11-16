@@ -33,7 +33,7 @@ class TestBase(unittest.TestCase):
 
 
     def run_file(self, filename):
-        proc = subprocess.Popen(["../../../emu", filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(["../../../emu", "--no-gpu", filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.assertGreaterEqual(proc.wait(), 0, "vm crashed")
         err = ""
         for line in proc.stderr:

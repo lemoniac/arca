@@ -10,6 +10,15 @@ int main(int argc, char **argv)
 {
     unsigned delay = 0;
     bool gpuEnabled = true;
+    bool screenshot = false;
+
+    for(; argc > 1 && argv[1][0] == '-'; argc--, argv++)
+    {
+        if(strcmp(argv[1], "--no-gpu") == 0)
+            gpuEnabled = false;
+        else if(strcmp(argv[1], "--screenshot") == 0)
+            screenshot = false;
+    }
 
     if (argc != 2 && argc != 3)
     {
@@ -41,6 +50,9 @@ int main(int argc, char **argv)
     vm.setGpuEnabled(gpuEnabled);
     vm.init();
     vm.run();
+
+    if(gpuEnabled && screenshot)
+        vm.gpu.screenshot();
 
     SDL_Delay(delay);
 

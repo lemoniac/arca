@@ -24,6 +24,8 @@ public:
     unsigned memory(unsigned address);
     unsigned vram_size() const;
 
+    void screenshot();
+
 protected:
     SDL_Window *window;
     SDL_Surface *surface;

@@ -77,7 +77,7 @@ protected:
     MousePos mousePos;
 
     bool interruptsEnabled = false;
-    bool gpuEnabled = false;
+    bool gpuEnabled = true;
 };
 
 #endif//ARCA__VM__H
