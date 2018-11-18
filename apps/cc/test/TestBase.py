@@ -36,9 +36,15 @@ class TestBase(unittest.TestCase):
         return (out, err)
 
 
-    def run_file(self, filename):
+    def run_file(self, filename, params):
         """run a file in the virtual machine and return the output and the return code"""
-        proc = popen(["../../../emu", "--no-gpu", filename])
+        args = ["../../../emu"]
+        if "gpu" not in params or not params["gpu"]:
+            args.append("--no-gpu")
+        if "screenshot" in params:
+            args.append("--screenshot")
+        args.append(filename)
+        proc = popen(args)
         self.assertGreaterEqual(proc.wait(), 0, "vm crashed")
         err = ""
         for line in proc.stderr:
@@ -50,6 +56,12 @@ class TestBase(unittest.TestCase):
         r1 = parse_vm_output(out)
 
         return (out, err, r1)
+
+
+    def diff_files(self, file1, file2):
+        proc = popen(["diff", file1, file2])
+        return proc.wait()
+
 
 
 def parse_vm_output(out):
