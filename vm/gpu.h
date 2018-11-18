@@ -24,6 +24,8 @@ public:
     unsigned memory(unsigned address);
     unsigned vram_size() const;
 
+    void text(unsigned address, uint32_t value);
+
     void screenshot();
 
 protected:
@@ -31,6 +33,10 @@ protected:
     SDL_Surface *surface;
 
     uint8_t font[128*256];
+
+    uint8_t text_memory[80 * 30 * 2] = {};
+    uint32_t palette[16];
+
     unsigned cursor_x = 0;
     unsigned cursor_y = 0;
 

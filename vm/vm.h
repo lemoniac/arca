@@ -39,6 +39,8 @@ public:
     bool step();
 
     const unsigned VRAM_BASEADDR = 0x10000000;
+    const unsigned TEXT_BASEADDR = 0x20000000;
+    const unsigned TEXT_BASEADDR_MAX = 0x20000000 + (80 * 30 * 2);
 
     void setGpuEnabled(bool enabled) { gpuEnabled = enabled; }
 

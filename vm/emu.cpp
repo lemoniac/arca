@@ -17,7 +17,7 @@ int main(int argc, char **argv)
         if(strcmp(argv[1], "--no-gpu") == 0)
             gpuEnabled = false;
         else if(strcmp(argv[1], "--screenshot") == 0)
-            screenshot = false;
+            screenshot = true;
     }
 
     if (argc != 2 && argc != 3)

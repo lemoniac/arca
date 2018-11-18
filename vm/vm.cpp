@@ -137,6 +137,10 @@ bool VM::step()
                 if(gpuEnabled)
                     gpu.memory(addr - VRAM_BASEADDR, value);
             }
+            else if(addr >= TEXT_BASEADDR && addr < TEXT_BASEADDR_MAX)
+            {
+                gpu.text(addr - TEXT_BASEADDR, value);
+            }
             else
             {
                 switch(width)

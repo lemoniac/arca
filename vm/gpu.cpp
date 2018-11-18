@@ -18,6 +18,23 @@ void GPU::init()
     fseek(file, 18, SEEK_SET);
     fread(font, 1, 128*256, file);
     fclose(file);
+
+    palette[0] = 0;
+    palette[1] = 0x0000AA;
+    palette[2] = 0x00AA00;
+    palette[3] = 0x00AAAA;
+    palette[4] = 0xAA0000;
+    palette[5] = 0xAA00AA;
+    palette[6] = 0xAA55AA;
+    palette[7] = 0xAAAAAA;
+    palette[8] = 0X555555;
+    palette[9] = 0x5555FF;
+    palette[10] = 0x55FF55;
+    palette[11] = 0x55FFFF;
+    palette[12] = 0xFF5555;
+    palette[13] = 0xFF55FF;
+    palette[14] = 0xFFFF55;
+    palette[15] = 0xFFFFFF;
 }
 
 void GPU::setForegroundColor(unsigned foregroundColor)
@@ -128,6 +145,10 @@ void GPU::drawChar(uint8_t c)
     unsigned offset_s = 4 * cursor_x + cursor_y * surface->pitch;
     uint8_t *s = (uint8_t *)surface->pixels;
 
+    uint8_t r = foreground_color;
+    uint8_t g = foreground_color >> 8;
+    uint8_t b = foreground_color >> 16;
+
     for(unsigned y = 0; y < 16; y++)
         for(unsigned x = 0; x < 8; x++)
         {
@@ -135,13 +156,11 @@ void GPU::drawChar(uint8_t c)
             uint8_t c = font[offset_c + (15 - y) * 128 + x];
             if(c != 0)
             {
-                s[o] = c;
-                s[o+1] = c;
-                s[o+2] = c;
+                s[o] = r;
+                s[o+1] = g;
+                s[o+2] = b;
             }
         }
-
-    SDL_UpdateWindowSurface(window);
 
     cursor_x += 8;
     if(cursor_x >= 640)
@@ -187,6 +206,17 @@ void GPU::draw(unsigned type, unsigned numVertex, int *vertices)
 
 void GPU::flush()
 {
+    for(unsigned y = 0; y < 30; y++)
+    for(unsigned x = 0; x < 80; x++)
+    {
+        unsigned offset = 2 * (x + y * 80);
+        uint8_t c = text_memory[offset];
+        uint8_t col = text_memory[offset + 1];
+        setCursor(x, y);
+        setForegroundColor(palette[col]);
+        drawChar(c);
+    }
+
     SDL_UpdateWindowSurface(window);
 }
 
@@ -203,6 +233,12 @@ unsigned GPU::memory(unsigned address)
 unsigned GPU::vram_size() const
 {
     return 640 * 480 * 4;
+}
+
+void GPU::text(unsigned address, uint32_t value)
+{
+    text_memory[2 * address] = value & 0xFF;
+    text_memory[2 * address + 1] = value >> 8;
 }
 
 void GPU::screenshot()
