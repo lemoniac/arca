@@ -25,7 +25,9 @@ class TestBase(unittest.TestCase):
         """Call the assembler"""
         open("out.s", "wt").write(code)
         proc = popen(["../../asm/asm", "out.s", "out"])
-        self.assertGreaterEqual(proc.wait(), 0, "assembler crashed")
+        exitcode = proc.wait()
+        self.assertGreaterEqual(exitcode, 0, "assembler crashed")
+        self.assertEqual(exitcode, 0, "assembler failed")
         err = ""
         for line in proc.stderr:
             err += line

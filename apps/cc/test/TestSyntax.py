@@ -13,6 +13,7 @@ class TestSyntax(TestBase):
         ["test_globals_000.c", False],
         ["test_main_000.c", False],
         ["test_struct_000.c", False],
+        ["test_text_000.c", False],
     ]
 
     def test_parse(self):
