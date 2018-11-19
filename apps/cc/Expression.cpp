@@ -73,11 +73,19 @@ ExpressionPtr BinaryOpExpr::simplify()
             case Op::Sub: value = left->value - right->value; break;
             case Op::Mul: value = left->value * right->value; break;
             case Op::Div: value = left->value / right->value; break;
+
+            case Op::And: value = left->value & right->value; break;
+            case Op::Or:  value = left->value | right->value; break;
+            case Op::Xor: value = left->value ^ right->value; break;
+
+            case Op::LShift: value = left->value << right->value; break;
+            case Op::RShift: value = left->value >> right->value; break;
+
             default: return nullptr;
         }
         return std::make_unique<IntConstant>(value);
     }
-    else if(left && (op == Op::Add || op == Op::Mul))
+    else if(left && (op == Op::Add || op == Op::Mul || op == Op::Or || op == Op::And))
     {
         std::swap(this->left, this->right);
     }

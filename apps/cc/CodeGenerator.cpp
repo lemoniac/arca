@@ -28,7 +28,7 @@ const char *type_to_str(const DeclarationSpecifier &declSpec)
         case Type::Char: return "char";
         case Type::Int: return "int";
         case Type::Short: return "uint16";
-        return "???";
+        default: return "???";
     }
 }
 

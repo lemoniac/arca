@@ -21,7 +21,7 @@ public:
 
 class IntConstant : public Expression {
 public:
-    IntConstant(int value): value(value) { }
+    explicit IntConstant(int value): value(value) { }
     int value;
 
     int visit(Visitor *visitor);

@@ -182,7 +182,7 @@ int Parser::expect(const std::string &str)
 #define EXPECT(str, ret) \
     if(expect(str) < 0) \
     { \
-        fprintf(stderr, "error: line %u found %s expected %s\n", yylineno, token.text.c_str(), str); \
+        fprintf(stderr, "error: line %i found %s expected %s\n", yylineno, token.text.c_str(), str); \
         return ret; \
     }
 
