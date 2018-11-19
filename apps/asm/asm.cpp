@@ -109,6 +109,8 @@ class Parser {
     bool useShortInstructions = true;
 
 public:
+    int errors = 0;
+
     void parse(const std::string &filename)
     {
         file = fopen(filename.c_str(), "rt");
@@ -165,6 +167,7 @@ public:
             {
                 std::cout << "???" << std::endl;
                 std::cout << l << std::endl;
+                errors++;
             }
         }
     }
@@ -832,6 +835,9 @@ int main(int argc, char **argv)
     parser.resolveUnknownLabels();
 
     parser.dump(argv[2]);
+
+    if(parser.errors > 0)
+        return 1;
 
     return 0;
 }
