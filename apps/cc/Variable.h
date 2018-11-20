@@ -23,6 +23,7 @@ struct Variable {
 
     bool isConstant() const;
     std::string getValue() const;
+    int getValueInt() const;
 };
 
 typedef std::unique_ptr<Variable> VariablePtr;

@@ -45,6 +45,7 @@ public:
     SymbolPtr symbol = nullptr;
 
     int visit(Visitor *visitor);
+    ExpressionPtr simplify();
     Type type() const { return symbol->type; }
 };
 

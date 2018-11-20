@@ -528,6 +528,14 @@ int CodeGenerator::visit(AssignmentExpr &expr)
     }
     else if(left.type == Res::Symbol)
     {
+        if(right.type == Res::Imm)
+        {
+            int r = allocateRegister();
+            res = Res::R(r);
+            std::cout << "    " << res.to_string() << " = " << right.to_string() << std::endl;
+            right = res;
+        }
+
         int r = allocateRegister();
         res = Res::R(r);
         std::cout << "    " << res.to_string() << " = " << left.to_string() << std::endl;

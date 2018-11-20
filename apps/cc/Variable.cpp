@@ -28,3 +28,11 @@ std::string Variable::getValue() const
     return "???";
 }
 
+int Variable::getValueInt() const
+{
+    IntConstant *n = dynamic_cast<IntConstant *>(value.get());
+    if(n)
+        return n->value;
+
+    return -1;
+}

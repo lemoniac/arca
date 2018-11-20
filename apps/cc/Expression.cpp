@@ -101,6 +101,17 @@ Type BinaryOpExpr::type() const
     return Type::Unknown;
 }
 
+ExpressionPtr IdentifierExpr::simplify()
+{
+    if(symbol->variable && symbol->variable->declSpec.isConst)
+    {
+        if(symbol->type == Type::Int)
+            return std::make_unique<IntConstant>(symbol->variable->getValueInt());
+    }
+
+    return 0;
+}
+
 ExpressionPtr MemberExpr::simplify()
 {
     ::simplify(parent);
