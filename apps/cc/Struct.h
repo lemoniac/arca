@@ -17,7 +17,13 @@ public:
     std::string varname;
     std::vector<Member> member;
 
-    int size() const { return member.size() * 4; }
+    int size() const
+    {
+        int s = 0;
+        for(const auto &m : member)
+            s += ::size(m.declSpec.type);
+        return s;
+    }
 };
 
 typedef std::shared_ptr<Struct> StructPtr;
