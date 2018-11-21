@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SDL2/SDL_image.h>
 #include "gpu.h"
+#include "font.h"
 
 void GPU::init()
 {
@@ -9,15 +10,7 @@ void GPU::init()
     window = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
     surface = SDL_GetWindowSurface(window);
 
-    FILE *file = fopen("vga8x12_extra_chars.tga", "rb");
-    if (!file)
-    {
-        std::cerr << "Couldn't open font file" << std::endl;
-        return;
-    }
-    fseek(file, 18, SEEK_SET);
-    fread(font, 1, 128*256, file);
-    fclose(file);
+    memcpy(font, ::font, 128*256);
 
     palette[0] = 0;
     palette[1] = 0x0000AA;
