@@ -67,6 +67,8 @@ protected:
 
     int generateLabel();
 
+    int tmp(int value);
+
     TranslationUnit *unit = nullptr;
 
     std::vector<Scope> scope;

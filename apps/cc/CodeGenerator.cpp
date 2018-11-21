@@ -521,20 +521,12 @@ int CodeGenerator::visit(AssignmentExpr &expr)
     Res right = res;
     if(left.pointer && right.type == Res::Imm)
     {
-        int r = allocateRegister();
-        res = Res::R(r);
-        std::cout << "    " << res.to_string() << " = " << right.to_string() << std::endl;
-        right = res;
+        right = Res::R(tmp(right.imm));
     }
     else if(left.type == Res::Symbol)
     {
         if(right.type == Res::Imm)
-        {
-            int r = allocateRegister();
-            res = Res::R(r);
-            std::cout << "    " << res.to_string() << " = " << right.to_string() << std::endl;
-            right = res;
-        }
+            right = Res::R(tmp(right.imm));
 
         int r = allocateRegister();
         res = Res::R(r);
@@ -563,4 +555,12 @@ int CodeGenerator::visit(FunctionCallExpr &f)
     IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
     std::cout << "    call " << function->name << std::endl;
     res = Res::R(1);
+}
+
+int CodeGenerator::tmp(int value)
+{
+    int r = allocateRegister();
+    std::cout << "    r" << r << " = " << value << std::endl;
+
+    return r;
 }
