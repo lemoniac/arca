@@ -387,7 +387,6 @@ protected:
 
     void assign_imm(const std::string &dst, const std::string &imm)
     {
-        std::cout << "r" << dst << " = " << imm << std::endl;
         int rd = std::stoi(dst);
 
         unsigned value;
@@ -397,9 +396,25 @@ protected:
             value = std::stoi(imm);
 
         if(useShortInstructions && value < 16 && rd < 16)
+        {
+            std::cout << "r" << dst << " = " << imm << std::endl;
             encodeShortB(SHORT_MOVI, rd, value);
+        }
         else
-            encodeC(MOVI, rd, value);
+        {
+            if(value > (1 << 20))
+            {
+                encodeC(MOVI, rd, value & 0xFFFFF);
+                encodeC(LUI, rd, value >> 20);
+                std::cout << "r" << dst << " = " << (value & 0xFFFFF) << std::endl;
+                std::cout << "LUI r" << dst << " " << (value >> 20) << std::endl;
+            }
+            else
+            {
+                std::cout << "r" << dst << " = " << value << std::endl;
+                encodeC(MOVI, rd, value);
+            }
+        }
     }
 
     void assign_reg(const std::string &dst, const std::string &src)

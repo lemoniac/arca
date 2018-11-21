@@ -110,7 +110,7 @@ bool VM::step()
 
         case LUI: {
             decodeC(dst, imm);
-            regs[dst] = imm << 12;
+            regs[dst] = imm << 20;
             break;
         }
 
