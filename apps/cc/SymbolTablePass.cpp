@@ -175,6 +175,14 @@ int SymbolTablePass::visit(UnaryOpExpr &op)
 int SymbolTablePass::visit(AssignmentExpr &expr)
 {
     VISIT(expr.lhs);
+
+    IdentifierExpr *left = dynamic_cast<IdentifierExpr *>(expr.lhs.get());
+    if(left && left->symbol->variable && left->symbol->variable->declSpec.isConst)
+    {
+        std::cerr << "error: assignment to const variable: " << left->name << std::endl;
+        return -1;
+    }
+
     return expr.rhs->visit(this);
 }
 

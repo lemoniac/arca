@@ -196,6 +196,8 @@ int Parser::expect(const std::string &str)
 
 int Parser::parseDeclarationSpecifiers(DeclarationSpecifier &declSpec)
 {
+    declSpec = DeclarationSpecifier();
+
     int next = peekToken();
     if(next == STATIC)
     {
