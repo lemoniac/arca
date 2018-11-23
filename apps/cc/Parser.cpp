@@ -614,7 +614,7 @@ StructPtr Parser::parseStruct()
             readToken();
             std::string identifier = token.text;
             next = peekToken();
-            int dim = checkDimensions(next);
+            declSpec.elems = checkDimensions(next);
             EXPECT(";", 0);
             s->member.push_back(Struct::Member{declSpec, identifier});
             next = peekToken();

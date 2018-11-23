@@ -21,7 +21,7 @@ public:
     {
         int s = 0;
         for(const auto &m : member)
-            s += ::size(m.declSpec.type);
+            s += ::size(m.declSpec.type) * ((m.declSpec.elems > 0)? m.declSpec.elems : 1);
         return s;
     }
 };

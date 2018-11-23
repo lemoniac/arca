@@ -9,6 +9,7 @@ struct DeclarationSpecifier {
 
     Type type;
     std::string structName;
+    int elems = 0;
     bool isConst = false;
     bool isSigned = true;
     bool isPointer = false;
