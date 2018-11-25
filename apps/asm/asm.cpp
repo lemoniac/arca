@@ -14,6 +14,7 @@ enum Segment {Data, Text};
 class Parser {
 
     #define NUMBER "-?\\d+|\\'.\\'"
+    #define ARRAY "(\\[(\\d+)\\])?"
 
     const std::regex label_re = std::regex("(\\S+):");
     const std::regex add_re = std::regex("r(\\d+) = r(\\d+) \\+ r(\\d+)");
@@ -58,9 +59,9 @@ class Parser {
     const std::regex org_re = std::regex("\\.org (\\d+)");
 
     const std::regex struct_re = std::regex("\\.struct (\\w+)");
-    const std::regex def_int_re = std::regex("int (\\w+)");
-    const std::regex def_char_re = std::regex("char (\\w+)(\\[(\\d+)\\])?");
-    const std::regex def_uint16_re = std::regex("uint16 (\\w+)");
+    const std::regex def_int_re = std::regex("int (\\w+)" ARRAY);
+    const std::regex def_char_re = std::regex("char (\\w+)" ARRAY);
+    const std::regex def_uint16_re = std::regex("uint16 (\\w+)" ARRAY);
 
     const std::regex data_int_re = std::regex("int (\\w+) = (\\d+)");
     const std::regex data_char_re = std::regex("char (\\w+) = \"(.*)\"");
@@ -756,9 +757,9 @@ protected:
         if(std::regex_match(l, match, def_char_re) && match.size() > 1)
             str.member.emplace_back(match.str(1), Type::Char, parseArraySize(match.str(3)));
         else if(std::regex_match(l, match, def_int_re) && match.size() > 1)
-            str.member.emplace_back(match.str(1), Type::Int, 1);
+            str.member.emplace_back(match.str(1), Type::Int, parseArraySize(match.str(3)));
         else if(std::regex_match(l, match, def_uint16_re) && match.size() > 1)
-            str.member.emplace_back(match.str(1), Type::UInt16, 1);
+            str.member.emplace_back(match.str(1), Type::UInt16, parseArraySize(match.str(3)));
     }
 
     void parseStruct(const std::string &name)
