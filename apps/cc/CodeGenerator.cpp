@@ -14,7 +14,6 @@ int size(Type type)
         case Type::Int: return 4;
         default:
             return -1;
-
     }
 }
 
@@ -247,8 +246,13 @@ int CodeGenerator::visit(TranslationUnit &unit)
         {
             std::cout << "    " << type_to_str(g->declSpec) << " " << g->name;
             if(g->elems > 0)
+            {
                 std::cout << "[" << g->elems << "]";
-            else {
+                if(g->valueSet)
+                    std::cout << " = " << g->getValue();
+            }
+            else
+            {
                 if(g->valueSet && g->isConstant())
                     std::cout << " = " << g->getValue();
                 else

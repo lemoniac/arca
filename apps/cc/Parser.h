@@ -56,6 +56,7 @@ protected:
     StatementPtr parseWhile();
     StatementPtr parseFor();
     StructPtr parseStruct();
+    ExpressionPtr parseInitializerList();
 
     int checkDimensions(int &next);
 

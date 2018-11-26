@@ -318,6 +318,10 @@ ExpressionPtr Parser::parseExpression()
             break;
         }
 
+        case '{':
+            res = parseInitializerList();
+            break;
+
         default:
             std::cerr << "error: invalid expression '" << token.text << "'" << std::endl;
             return 0;
@@ -595,7 +599,6 @@ StatementPtr Parser::parseFor()
     return f;
 }
 
-
 StructPtr Parser::parseStruct()
 {
     auto s = std::make_unique<Struct>();
@@ -639,6 +642,25 @@ StructPtr Parser::parseStruct()
     EXPECT(";", 0);
 
     return s;
+}
+
+ExpressionPtr Parser::parseInitializerList()
+{
+    auto list = std::make_unique<InitializerListExpr>();
+
+    int next = peekToken();
+    while(next != '}')
+    {
+        auto expr = parseExpression();
+        list->elements.push_back(std::move(expr));
+        next = peekToken();
+        if(next == ',')
+            readToken();
+    }
+
+    EXPECT("}", 0);
+
+    return list;
 }
 
 

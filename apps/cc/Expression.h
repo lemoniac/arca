@@ -133,6 +133,13 @@ public:
     int visit(Visitor *visitor);
 };
 
+class InitializerListExpr: public Expression {
+public:
+    std::vector<ExpressionPtr> elements;
+
+    int visit(Visitor *visitor);
+};
+
 void simplify(ExpressionPtr &expr);
 
 #endif//CC__EXPRESSION__H

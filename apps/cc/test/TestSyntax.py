@@ -6,6 +6,7 @@ class TestSyntax(TestBase):
     files = [
         ["test_array_000.c", False],
         ["test_array_001.c", False],
+        ["test_array_002.c", False],
         ["test_expressions_000.c", False],
         ["test_for_000.c", False],
         ["test_for_001.c", True],

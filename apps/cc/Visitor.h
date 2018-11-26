@@ -24,6 +24,7 @@ class BinaryOpExpr;
 class UnaryOpExpr;
 class AssignmentExpr;
 class FunctionCallExpr;
+class InitializerListExpr;
 
 #define VISITOR_VISIT(T)     virtual int visit(T &) { return 0; }
 
@@ -40,18 +41,19 @@ public:
     virtual int visit(Assignment &assignment) { return 0; }
     virtual int visit(GotoStatement &gotoStatement) { return 0; }
     virtual int visit(LabelStatement &label) { return 0; }
-    VISITOR_VISIT(AsmStatement);
+    VISITOR_VISIT(AsmStatement)
 
     virtual int visit(IntConstant &constant) { return 0; }
     virtual int visit(StringLiteral &constant) { return 0; }
     virtual int visit(IdentifierExpr &identifier) { return 0; }
     virtual int visit(MemberExpr &identifier) { return 0; }
     VISITOR_VISIT(SubscriptExpr)
-    virtual int visit(ParentExpr &par) { return 0; }
-    virtual int visit(BinaryOpExpr &op) { return 0; }
-    virtual int visit(UnaryOpExpr &op) { return 0; }
-    virtual int visit(AssignmentExpr &expr) { return 0; }
-    virtual int visit(FunctionCallExpr &function) { return 0; }
+    VISITOR_VISIT(ParentExpr)
+    VISITOR_VISIT(BinaryOpExpr)
+    VISITOR_VISIT(UnaryOpExpr)
+    VISITOR_VISIT(AssignmentExpr)
+    VISITOR_VISIT(FunctionCallExpr)
+    VISITOR_VISIT(InitializerListExpr)
 };
 
 #endif//CC__VISITOR__H

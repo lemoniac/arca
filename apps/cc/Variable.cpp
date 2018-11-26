@@ -25,6 +25,15 @@ std::string Variable::getValue() const
     if(s)
         return s->value;
 
+    InitializerListExpr *il = dynamic_cast<InitializerListExpr *>(value.get());
+    if(il)
+    {
+        std::string res;
+        for(auto &e : il->elements)
+            res += " ???";
+        return res;
+    }
+
     return "???";
 }
 

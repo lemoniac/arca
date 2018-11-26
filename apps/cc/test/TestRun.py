@@ -7,6 +7,7 @@ class TestRun(TestBase):
         ["test_for_000.c", 90, {}],
         ["test_main_000.c", 123, {}],
         #["test_array_001.c", 45, {}],
+        ["test_array_002.c", 45, {}],
         ["test_struct_001.c", 50, {}],
         ["test_text_000.c", 0, {"gpu": True, "screenshot": "test_text_000.png"}],
     ]

@@ -13,6 +13,7 @@ int BinaryOpExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int UnaryOpExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int AssignmentExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 int FunctionCallExpr::visit(Visitor *visitor) { visitor->visit(*this); }
+int InitializerListExpr::visit(Visitor *visitor) { visitor->visit(*this); }
 
 
 void BinaryOpExpr::setOp(int c)
@@ -118,7 +119,6 @@ ExpressionPtr MemberExpr::simplify()
 
     return 0;
 }
-
 
 ExpressionPtr SubscriptExpr::simplify()
 {
