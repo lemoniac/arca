@@ -266,6 +266,12 @@ protected:
             while(!str.eof())
             {
                 str >> elem;
+                if(str.fail())
+                {
+                    std::cerr << "error: parsing initializer, " << value << std::endl;
+                    errors++;
+                    return;
+                }
                 *(int *)(code + PC) = elem;
                 PC += ts;
             }
