@@ -65,7 +65,7 @@ class Parser {
 
     const std::regex data_int_re = std::regex("int (\\w+) = (\\d+)");
     const std::regex data_char_re = std::regex("char (\\w+) = \"(.*)\"");
-    const std::regex data_array_re = std::regex("(int|char|uint16) (\\w+)\\[(\\d+)\\]");
+    const std::regex data_array_re = std::regex("(int|char|uint16) (\\w+)\\[(\\d+)\\]( = (.+))?");
     const std::regex struct_def_re = std::regex("struct (\\w+) (\\w+)");
 
     struct Symbol {
@@ -225,7 +225,7 @@ protected:
         else if(std::regex_match(line, match, data_char_re) && match.size() > 1)
             createCharVariable(match.str(1), match.str(2));
         else if(std::regex_match(line, match, data_array_re) && match.size() > 1)
-            createArrayVariable(match.str(1), match.str(2), std::stoi(match.str(3)));
+            createArrayVariable(match.str(1), match.str(2), std::stoi(match.str(3)), match.str(5));
         else if(std::regex_match(line, match, include_re) && match.size() > 1)
             include(match.str(1));
         else if(std::regex_match(line, match, struct_def_re) && match.size() > 1)
@@ -245,7 +245,7 @@ protected:
         PC += 4;
     }
 
-    void createArrayVariable(const std::string &type, const std::string &name, int size)
+    void createArrayVariable(const std::string &type, const std::string &name, int size, const std::string &value)
     {
         Type t;
         unsigned ts = 0;
@@ -256,7 +256,22 @@ protected:
             fprintf(stderr, "unknown type\n");
 
         addLabel(t, name);
-        PC += size * ts;
+
+        if(value != "")
+        {
+            std::stringstream str;
+            str << value;
+            int elem;
+
+            while(!str.eof())
+            {
+                str >> elem;
+                *(int *)(code + PC) = elem;
+                PC += ts;
+            }
+        }
+        else
+            PC += size * ts;
     }
 
     void createStruct(const std::string &structName, const std::string &name)
