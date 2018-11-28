@@ -249,7 +249,7 @@ int CodeGenerator::visit(TranslationUnit &unit)
             {
                 std::cout << "[" << g->elems << "]";
                 if(g->valueSet)
-                    std::cout << " = " << g->getValue();
+                    std::cout << " =" << g->getValue();
             }
             else
             {

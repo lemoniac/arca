@@ -17,6 +17,8 @@ public:
     virtual int visit(Visitor *visitor) = 0;
     virtual ExpressionPtr simplify() { return nullptr; }
     virtual Type type() const { return Type::Unknown; }
+
+    virtual bool getValueInt(int &value) { return false; }
 };
 
 class IntConstant : public Expression {
@@ -26,6 +28,8 @@ public:
 
     int visit(Visitor *visitor);
     Type type() const { return Type::Int; }
+
+    virtual bool getValueInt(int &value) { value = this->value; return true; }
 };
 
 class StringLiteral: public Expression {

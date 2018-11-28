@@ -30,7 +30,13 @@ std::string Variable::getValue() const
     {
         std::string res;
         for(auto &e : il->elements)
-            res += " ???";
+        {
+            int value;
+            if(e->getValueInt(value))
+                res += " " + std::to_string(value);
+            else
+                return "???";
+        }
         return res;
     }
 
