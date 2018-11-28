@@ -9,7 +9,11 @@ bool Variable::isConstant() const
         if(n) return true;
 
         StringLiteral *s = dynamic_cast<StringLiteral *>(value.get());
-        return s != nullptr;
+        if(s) return true;
+
+        InitializerListExpr *i = dynamic_cast<InitializerListExpr *>(value.get());
+        if(i)
+            return true;
     }
 
     return false;
