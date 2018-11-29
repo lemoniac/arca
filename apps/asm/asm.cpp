@@ -23,6 +23,8 @@ class Parser {
     const std::regex subi_re = std::regex("r(\\d+) = r(\\d+) \\- (" NUMBER ")");
     const std::regex mul_re = std::regex("r(\\d+) = r(\\d+) \\* r(\\d+)");
     const std::regex muli_re = std::regex("r(\\d+) = r(\\d+) \\* (" NUMBER ")");
+    const std::regex div_re = std::regex("r(\\d+) = r(\\d+) / r(\\d+)");
+    const std::regex divi_re = std::regex("r(\\d+) = r(\\d+) / (" NUMBER ")");
     const std::regex shri_re = std::regex("r(\\d+) = r(\\d+) >> (\\d+)");
     const std::regex shli_re = std::regex("r(\\d+) = r(\\d+) << (" NUMBER ")");
     const std::regex and_re = std::regex("r(\\d+) = r(\\d+) & r(\\d+)");
@@ -323,6 +325,10 @@ protected:
             arith(ALU_MUL, "*", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, muli_re) && match.size() > 1)
             arithi(MULI, "*", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, div_re) && match.size() > 1)
+            arith(ALU_DIV, "/", match.str(1), match.str(2), match.str(3));
+        else if(std::regex_match(line, match, divi_re) && match.size() > 1)
+            arithi(DIVI, "/", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, shri_re) && match.size() > 1)
             arithi(SHRI, ">>", match.str(1), match.str(2), match.str(3));
         else if(std::regex_match(line, match, shli_re) && match.size() > 1)
