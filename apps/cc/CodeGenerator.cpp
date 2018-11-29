@@ -544,8 +544,16 @@ int CodeGenerator::visit(AssignmentExpr &expr)
         left = res;
     }
 
-    std::cout << "    " << left.to_string() << " " << AssignmentExpr::to_str(AssignmentExpr::Kind(expr.kind))
-        << " " << right.to_string() << std::endl;
+    if(expr.kind == AssignmentExpr::Kind::Assign)
+    {
+        std::cout << "    " << left.to_string() << " = " << right.to_string() << std::endl;
+    }
+    else
+    {
+        std::cout << "    " << left.to_string() << " = " << left.to_string() << " "
+            << AssignmentExpr::to_str(AssignmentExpr::Kind(expr.kind))
+            << " " << right.to_string() << std::endl;
+    }
 
     usedRegisters = oldRegisters;
 

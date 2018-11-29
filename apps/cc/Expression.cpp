@@ -176,9 +176,12 @@ const char *AssignmentExpr::to_str(AssignmentExpr::Kind kind)
     switch(kind)
     {
         case Kind::Assign: return "=";
-        case Kind::Add: return "+=";
-        case Kind::Sub: return "-=";
-        case Kind::Mul: return "*=";
+        case Kind::Add: return "+";
+        case Kind::Sub: return "-";
+        case Kind::Mul: return "*";
+        case Kind::Div: return "/";
+        case Kind::And: return "&";
+        case Kind::Or: return "|";
     }
 
     return "?";
