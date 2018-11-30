@@ -21,13 +21,13 @@ class TestBase(unittest.TestCase):
         return (out, err)
 
 
-    def assemble(self, code):
+    def assemble(self, code, name = ""):
         """Call the assembler"""
         open("out.s", "wt").write(code)
         proc = popen(["../../asm/asm", "out.s", "out"])
         exitcode = proc.wait()
-        self.assertGreaterEqual(exitcode, 0, "assembler crashed")
-        self.assertEqual(exitcode, 0, "assembler failed")
+        self.assertGreaterEqual(exitcode, 0, "assembler crashed: " + name)
+        self.assertEqual(exitcode, 0, "assembler failed: " + name)
         err = ""
         for line in proc.stderr:
             err += line

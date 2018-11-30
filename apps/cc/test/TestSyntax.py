@@ -27,7 +27,7 @@ class TestSyntax(TestBase):
         for item in self.files:
             if not item[1]:
                 (out, err) = self.compile_file(item[0])
-                self.assemble(out)
+                self.assemble(out, item[0])
 
 if __name__ == '__main__':
     unittest.main()
