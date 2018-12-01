@@ -4,17 +4,22 @@ RISC 32 bits load/store architecture
 
 ## Registers
 
-There are 32 32bit registers, the last 16 can only be accessed on privileged mode.
+There are 32 32bit registers, the last 16 can't be used in the short versions of the instructions.
 
 r0 - always 0
 r1-r13 - user mode registers
 r14 - stack register
 r15 - link register
 
-r16-r31 - kernel mode registers
 
-r29 - code pointer
-r30 - data pointer
+### Control and Status Registers
+
+CR_ENTRYPOINT 0 - entry point of the kernel
+CR_RETURNADDR 1 - where to return when we return from the kernel
+CR_COUNTER   10 - instruction counter
+CR_TIME      11
+CR_IDT       12
+CR_BASEADDR  20 - base address of the process
 
 
 ## Instructions
