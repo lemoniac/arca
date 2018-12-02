@@ -261,21 +261,32 @@ protected:
 
         if(value != "")
         {
-            std::stringstream str;
-            str << value;
-            int elem;
-
-            while(!str.eof())
+            if(value.size() >= 2 && value[0] == '"')
             {
-                str >> elem;
-                if(str.fail())
+                for(unsigned i = 1; i < value.size() - 1; i++)
                 {
-                    std::cerr << "error: parsing initializer, " << value << std::endl;
-                    errors++;
-                    return;
+                    *(int *)(code + PC) = value[i];
+                    PC++;
                 }
-                *(int *)(code + PC) = elem;
-                PC += ts;
+            }
+            else
+            {
+                std::stringstream str;
+                str << value;
+                int elem;
+
+                while(!str.eof())
+                {
+                    str >> elem;
+                    if(str.fail())
+                    {
+                        std::cerr << "error: parsing initializer, " << value << std::endl;
+                        errors++;
+                        return;
+                    }
+                    *(int *)(code + PC) = elem;
+                    PC += ts;
+                }
             }
         }
         else

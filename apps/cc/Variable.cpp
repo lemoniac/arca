@@ -33,11 +33,16 @@ std::string Variable::getValue() const
     if(il)
     {
         std::string res;
+        bool first = true;
         for(auto &e : il->elements)
         {
             int value;
+            if(first)
+                first = false;
+            else
+                res += " ";
             if(e->getValueInt(value))
-                res += " " + std::to_string(value);
+                res += std::to_string(value);
             else
                 return "???";
         }
