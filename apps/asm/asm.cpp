@@ -65,7 +65,7 @@ class Parser {
     const std::regex def_char_re = std::regex("char (\\w+)" ARRAY);
     const std::regex def_uint16_re = std::regex("uint16 (\\w+)" ARRAY);
 
-    const std::regex data_int_re = std::regex("int (\\w+) = (\\d+)");
+    const std::regex data_int_re = std::regex("(int|char|uint16) (\\w+) = (\\d+)");
     const std::regex data_char_re = std::regex("char (\\w+) = \"(.*)\"");
     const std::regex data_array_re = std::regex("(int|char|uint16) (\\w+)\\[(\\d+)\\]( = (.+))?");
     const std::regex struct_def_re = std::regex("struct (\\w+) (\\w+)");
@@ -223,7 +223,7 @@ protected:
     {
         std::smatch match;
         if(std::regex_match(line, match, data_int_re) && match.size() > 1)
-            createIntVariable(match.str(1), std::stoi(match.str(2)));
+            createIntVariable(match.str(1), match.str(2), std::stoi(match.str(3)));
         else if(std::regex_match(line, match, data_char_re) && match.size() > 1)
             createCharVariable(match.str(1), match.str(2));
         else if(std::regex_match(line, match, data_array_re) && match.size() > 1)
@@ -240,22 +240,33 @@ protected:
         return true;
     }
 
-    void createIntVariable(const std::string &name, int value)
+    void str2type(const std::string &str, Type &type, unsigned &size)
     {
-        *(int *)(code + PC) = value;
-        addLabel(Type::Int, name);
-        PC += 4;
+        if(str == "char") { type = Type::Char; size = 1; }
+        else if(str == "uint16") { type = Type::UInt16; size = 2; }
+        else if(str == "int") { type = Type::Int; size = 4; }
+    }
+
+    void createIntVariable(const std::string &type, const std::string &name, int value)
+    {
+        Type t;
+        unsigned size;
+        str2type(type, t, size);
+        switch(t)
+        {
+            case Type::Char: *(char *)(code + PC) = value; break;
+            case Type::Int: *(int *)(code + PC) = value; break;
+            case Type::UInt16: *(uint16_t *)(code + PC) = value; break;
+        }
+        addLabel(t, name);
+        PC += size;
     }
 
     void createArrayVariable(const std::string &type, const std::string &name, int size, const std::string &value)
     {
         Type t;
         unsigned ts = 0;
-        if(type == "char") { t = Type::Char; ts = 1; }
-        else if(type == "uint16") { t = Type::UInt16; ts = 2; }
-        else if(type == "int") { t = Type::Int; ts = 4; }
-        else
-            fprintf(stderr, "unknown type\n");
+        str2type(type, t, ts);
 
         addLabel(t, name);
 
