@@ -532,6 +532,12 @@ int CodeGenerator::visit(AssignmentExpr &expr)
     {
         right = Res::R(tmp(right.imm));
     }
+    else if(left.pointer && right.pointer)
+    {
+        Res tmp = Res::R(allocateRegister());
+        std::cout << "    " << tmp.to_string() << " = " << right.to_string() << std::endl;
+        right = tmp;
+    }
     else if(left.type == Res::Symbol)
     {
         if(right.type == Res::Imm)
