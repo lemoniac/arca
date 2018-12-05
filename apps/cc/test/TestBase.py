@@ -7,10 +7,13 @@ def popen(args):
 
 
 class TestBase(unittest.TestCase):
-    def compile_file(self, filename):
+    def compile_file(self, filename, assert_if_fail = False):
         """compiles 'filename' and returns the standard output and error"""
         proc = popen(["../cc", filename])
-        self.assertGreaterEqual(proc.wait(), 0, "compiler crash " + filename)
+        exitcode = proc.wait()
+        self.assertGreaterEqual(exitcode, 0, "compiler crash " + filename)
+        if assert_if_fail:
+            self.assertEqual(exitcode, 0, "compiler failed: " + filename)
         err = ""
         for line in proc.stderr:
             err += line

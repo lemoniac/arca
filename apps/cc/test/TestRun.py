@@ -14,7 +14,7 @@ class TestRun(TestBase):
 
     def test_run(self):
         for item in self.files:
-            (out, err) = self.compile_file(item[0])
+            (out, err) = self.compile_file(item[0], True)
             self.assemble(out, item[0])
             (out, err, retcode) = self.run_file("out", item[2])
             self.assertEqual(item[1], retcode, "return value " + str(item[1]) + " != " + str(retcode))

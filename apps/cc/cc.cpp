@@ -32,7 +32,8 @@ int main(int argc, char **argv)
         return 1;
 
     SimplifyExpressions simplifier;
-    simplifier.visit(parser.unit);
+    if(simplifier.visit(parser.unit) < 0)
+        return 1;
 /*
     PrintVisitor v;
     v.visit(parser.unit);

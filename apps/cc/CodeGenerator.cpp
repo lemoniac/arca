@@ -145,7 +145,11 @@ int CodeGenerator::visit(StatementBlock &block)
     for(auto &l : block.locals)
     {
         int r = getFreeRegister();
-        if(r < 0) return -1;
+        if(r < 0)
+        {
+            std::cerr << "error: allocating register" << std::endl;
+            return -1;
+        }
         l->reg = r;
         usedRegisters[r] = 1;
 
@@ -160,13 +164,13 @@ int CodeGenerator::visit(StatementBlock &block)
         if(l->valueSet)
         {
             rdest = r;
-            l->value->visit(this);
+            VISIT(l->value);
             std::cout << "    r" << r << " = " << res.to_string() << std::endl;
         }
     }
 
     for(const auto &s : block.statements)
-        s->visit(this);
+        VISIT(s);
 
     // unassign registers
     for(auto &l : block.locals)
@@ -183,7 +187,7 @@ int CodeGenerator::visit(ReturnStatement &ret)
 
     if(ret.returnValue)
     {
-        ret.returnValue->visit(this);
+        VISIT(ret.returnValue);
         std::cout << "    r1 = " << res.to_string() << std::endl;
     }
 
@@ -271,14 +275,14 @@ int CodeGenerator::visit(TranslationUnit &unit)
             {
                 int r = getFreeRegister();
                 rdest = r;
-                g->value->visit(this);
+                VISIT(g->value);
                 std::cout << "    *" << g->name << " = r" << r << std::endl;
             }
         }
     }
 
     for(auto &f : unit.functions)
-        f->visit(this);
+        VISIT(f);
 }
 
 int CodeGenerator::getFreeRegister()
@@ -345,9 +349,15 @@ int CodeGenerator::visit(IdentifierExpr &identifier)
 
 int CodeGenerator::visit(MemberExpr &member)
 {
-    member.parent->visit(this);
+    VISIT(member.parent);
 
     IdentifierExpr *identifier = dynamic_cast<IdentifierExpr *>(member.parent.get());
+    if(!identifier)
+    {
+        std::cerr << "error: NULL identifier" << std::endl;
+        return -1;
+    }
+
     const auto symbol = scope.back().symbols->find(identifier->name);
 
     res.name = symbol->variable->declSpec.structName;
@@ -362,9 +372,9 @@ int CodeGenerator::visit(SubscriptExpr &expr)
     int r = getFreeRegister();
     usedRegisters[r] = 1;
 
-    expr.lhs->visit(this);
+    VISIT(expr.lhs);
     auto lhs = res;
-    expr.rhs->visit(this);
+    VISIT(expr.rhs);
     auto rhs = res;
 
     std::cout << "    r" << r << " = " << lhs.to_string() << " + " << rhs.to_string() << std::endl;
@@ -381,16 +391,18 @@ int CodeGenerator::visit(SubscriptExpr &expr)
 
 int CodeGenerator::visit(ParentExpr &expr)
 {
-    return expr.expr->visit(this);
+    VISIT(expr.expr);
+
+    return 0;
 }
 
 int CodeGenerator::visit(BinaryOpExpr &op)
 {
     int r = getFreeRegister();
     usedRegisters[r] = 1;
-    op.left->visit(this);
+    VISIT(op.left);
     auto left = res;
-    op.right->visit(this);
+    VISIT(op.right);
     auto right = res;
 
     std::cout << "    r" << r << " = " << left.to_string() << " " << op.to_str() << " " << right.to_string() << std::endl;
@@ -403,17 +415,17 @@ int CodeGenerator::visit(UnaryOpExpr &op)
     switch(op.op)
     {
         case UnaryOpExpr::Op::PreInc:
-            op.expr->visit(this);
+            VISIT(op.expr);
             std::cout << "    " << res.to_string() << " = " << res.to_string() << " + 1" << std::endl;
             break;
 
         case UnaryOpExpr::Op::PreDec:
-            op.expr->visit(this);
+            VISIT(op.expr);
             std::cout << "    " << res.to_string() << " = " << res.to_string() << " - 1" << std::endl;
             break;
 
         case UnaryOpExpr::Op::Neg: {
-            op.expr->visit(this);
+            VISIT(op.expr);
             int r = getFreeRegister();
             usedRegisters[r] = 1;
             std::cout << "    r" << r << " = r0 - " << res.to_string() << std::endl;
@@ -454,12 +466,12 @@ int CodeGenerator::visit(UnaryOpExpr &op)
 
 int CodeGenerator::visit(If &ifStatement)
 {
-    ifStatement.expression->visit(this);
+    VISIT(ifStatement.expression);
     
     int label = generateLabel();
     std::cout << "    if " << res.to_string() << " == r0 goto if_" << label << std::endl;
 
-    ifStatement.statement->visit(this);
+    VISIT(ifStatement.statement);
 
     std::cout << "if_" << label << ":" << std::endl;
 
@@ -471,10 +483,10 @@ int CodeGenerator::visit(While &statement)
     int label = generateLabel();
 
     std::cout << "while_" << label << ":" << std::endl;
-    statement.expression->visit(this);
+    VISIT(statement.expression);
     std::cout << "    if " << res.to_string() << " == r0 goto while_end_" << label << std::endl;
 
-    statement.statement->visit(this);
+    VISIT(statement.statement);
 
     std::cout << "    jmp while_" << label << std::endl;
     std::cout << "while_end_" << label << ":" << std::endl;
@@ -485,15 +497,15 @@ int CodeGenerator::visit(While &statement)
 int CodeGenerator::visit(For &statement)
 {
     int label = generateLabel();
-    statement.clause1->visit(this);
+    VISIT(statement.clause1);
 
     std::cout << "for_" << label << ":" << std::endl;
-    statement.expression2->visit(this);
+    VISIT(statement.expression2);
     std::cout << "    if " << res.to_string() << " == r0 goto for_end_" << label << std::endl;
 
-    statement.statement->visit(this);
+    VISIT(statement.statement);
 
-    statement.expression3->visit(this);
+    VISIT(statement.expression3);
     std::cout << "    jmp for_" << label << std::endl;
     std::cout << "for_end_" << label << ":" << std::endl;
 
@@ -524,9 +536,9 @@ int CodeGenerator::visit(AssignmentExpr &expr)
 {
     std::bitset<32> oldRegisters = usedRegisters;
 
-    expr.lhs->visit(this);
+    VISIT(expr.lhs);
     Res left = res;
-    expr.rhs->visit(this);
+    VISIT(expr.rhs);
     Res right = res;
     if(left.pointer && right.type == Res::Imm)
     {
@@ -571,7 +583,7 @@ int CodeGenerator::visit(FunctionCallExpr &f)
     int r = 1;
     for(const auto &arg : f.arguments)
     {
-        arg->visit(this);
+        VISIT(arg);
         std::cout << "    r" << r << " = " << res.to_string() << std::endl;
         r++;
     }

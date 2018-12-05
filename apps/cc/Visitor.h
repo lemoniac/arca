@@ -28,6 +28,8 @@ class InitializerListExpr;
 
 #define VISITOR_VISIT(T)     virtual int visit(T &) { return 0; }
 
+#define VISIT(a) if(a->visit(this) < 0) return -1;
+
 class Visitor {
 public:
     virtual int visit(TranslationUnit &unit) { return 0; }

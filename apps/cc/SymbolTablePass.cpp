@@ -3,8 +3,6 @@
 #include "SymbolTablePass.h"
 #include "SymbolTable.h"
 
-#define VISIT(a) if(a->visit(this) < 0) return -1;
-
 int SymbolTablePass::visit(Function &f)
 {
     unit.symbolTable.addFunction(f.name, &f);
