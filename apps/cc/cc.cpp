@@ -25,7 +25,8 @@ int main(int argc, char **argv)
     //cpp.preprocess(argv[1]);
 
     Parser parser;
-    parser.parse(argv[1]);
+    if(parser.parse(argv[1]) < 0)
+        return 1;
 
     SymbolTablePass stp(parser.unit);
     if(stp.visit(parser.unit) < 0)

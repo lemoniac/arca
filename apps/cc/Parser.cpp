@@ -193,6 +193,7 @@ int Parser::expect(const std::string &str)
         return -1; \
     }
 
+#define NOT_NULL(expr, ret) if ((expr) == nullptr) return ret;
 
 int Parser::parseDeclarationSpecifiers(DeclarationSpecifier &declSpec)
 {
@@ -290,7 +291,7 @@ ExpressionPtr Parser::parseExpression()
 
         case '(': {
             auto par = std::make_unique<ParentExpr>();
-            par->expr = parseExpression();
+            NOT_NULL(par->expr = parseExpression(), 0);
             res = std::move(par);
             EXPECT(")", 0);
             break;
@@ -300,7 +301,7 @@ ExpressionPtr Parser::parseExpression()
         {
             EXPECT("(", 0);
             auto s = std::make_unique<UnaryOpExpr>(UnaryOpExpr::Op::SizeOf);
-            s->expr = parseExpression();
+            NOT_NULL(s->expr = parseExpression(), 0);
             res = std::move(s);
             EXPECT(")", 0);
             break;
@@ -313,7 +314,7 @@ ExpressionPtr Parser::parseExpression()
         case '*':
         {
             auto s = std::make_unique<UnaryOpExpr>(UnaryOpExpr::from_token(token.token));
-            s->expr = parseExpression();
+            NOT_NULL(s->expr = parseExpression(), 0);
             res = std::move(s);
             break;
         }
@@ -336,7 +337,7 @@ ExpressionPtr Parser::parseExpression()
         readToken();
         auto subscript = std::make_unique<SubscriptExpr>();
         subscript->lhs = std::move(res);
-        subscript->rhs = parseExpression();
+        NOT_NULL(subscript->rhs = parseExpression(), 0);
         EXPECT("]", 0);
         res = std::move(subscript);
         next = peekToken();
@@ -358,7 +359,7 @@ ExpressionPtr Parser::parseExpression()
         readToken();
         auto op = std::make_unique<BinaryOpExpr>(token_to_op(next));
         op->left = std::move(res);
-        op->right = parseExpression();
+        NOT_NULL(op->right = parseExpression(), 0);
 
         return std::move(op);
     }
@@ -369,7 +370,7 @@ ExpressionPtr Parser::parseExpression()
         expr->lhs = std::move(res);
         readToken();
         expr->kind = token_to_assignment(token.token);
-        expr->rhs = parseExpression();
+        NOT_NULL(expr->rhs = parseExpression(), 0);
         return expr;
     }
 
@@ -378,7 +379,7 @@ ExpressionPtr Parser::parseExpression()
         readToken();
         auto call = std::make_unique<FunctionCallExpr>();
         call->function = std::move(res);
-        parseArguments(call->arguments);
+        if(parseArguments(call->arguments) < 0) return 0;
         return call;
     }
 
@@ -396,7 +397,9 @@ int Parser::parseArguments(std::vector<ExpressionPtr> &arguments)
 
     while(next != ')')
     {
-        arguments.push_back(parseExpression());
+        auto expr = parseExpression();
+        NOT_NULL(expr, -1);
+        arguments.push_back(std::move(expr));
         readToken();
         if(token.token == ',')
             next = peekToken();
@@ -440,6 +443,7 @@ StatementBlockPtr Parser::parseStatementBlock()
     // statements
     while(next != 0 && next != '}') {
         auto statement = parseStatement();
+        NOT_NULL(statement, 0);
         block->add(std::move(statement));
         next = peekToken();
     };
@@ -467,7 +471,7 @@ StatementPtr Parser::parseStatement()
             readToken();
             auto ret = std::make_unique<ReturnStatement>();
             if(peekToken() != ';')
-                ret->returnValue = parseExpression();
+                NOT_NULL(ret->returnValue = parseExpression(), 0);
             EXPECT(";", 0);
 
             statement = std::move(ret);
@@ -727,7 +731,7 @@ int Parser::parse(const char *filename)
                 auto var = createVariable(declSpec, name);
                 if(next == '=' && !parseVariableDefinition(var))
                     return -1;
-                EXPECT(";", 0);
+                EXPECT(";", -1);
                 var->isGlobal = true;
                 var->elems = dim;
                 unit.globals.push_back(std::move(var));
