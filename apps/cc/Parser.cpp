@@ -332,25 +332,27 @@ ExpressionPtr Parser::parseExpression()
     if (next == ';' || next == ')' || next == ',' || next == ']' || next == ':' || next == 0)
         return res;
 
-    while(next == '[')
+    while(next == '[' || next == '.' || next == PTR_OP)
     {
-        readToken();
-        auto subscript = std::make_unique<SubscriptExpr>();
-        subscript->lhs = std::move(res);
-        NOT_NULL(subscript->rhs = parseExpression(), 0);
-        EXPECT("]", 0);
-        res = std::move(subscript);
-        next = peekToken();
-    }
+        if(next == '[')
+        {
+            readToken();
+            auto subscript = std::make_unique<SubscriptExpr>();
+            subscript->lhs = std::move(res);
+            NOT_NULL(subscript->rhs = parseExpression(), 0);
+            EXPECT("]", 0);
+            res = std::move(subscript);
+        }
+        else if(next == '.' || next == PTR_OP)
+        {
+            readToken();
+            readToken();
+            auto member = std::make_unique<MemberExpr>();
+            member->name = token.text;
+            member->parent = std::move(res);
+            res = std::move(member);
+        }
 
-    if(next == '.' || next == PTR_OP)
-    {
-        readToken();
-        readToken();
-        auto member = std::make_unique<MemberExpr>();
-        member->name = token.text;
-        member->parent = std::move(res);
-        res = std::move(member);
         next = peekToken();
     }
 

@@ -16,7 +16,7 @@ void f()
     struct A c[10];
 
     a.a = 1;
-    //a.c[1] = 1;
+    a.c[1] = 1;
 
     g_a.a = a.a;
 
