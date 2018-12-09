@@ -11,6 +11,7 @@ class TestSyntax(TestBase):
         ["test_for_000.c", False],
         ["test_for_001.c", True],
         ["test_function_000.c", False],
+        ["test_function_001.c", False],
         ["test_globals_000.c", False],
         ["test_main_000.c", False],
         ["test_struct_000.c", False],

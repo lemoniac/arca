@@ -5,6 +5,7 @@ from TestBase import TestBase
 class TestRun(TestBase):
     files = [
         ["test_for_000.c", 90, {}],
+        ["test_function_001.c", 24, {}],
         ["test_main_000.c", 123, {}],
         #["test_array_001.c", 45, {}],
         ["test_array_002.c", 45, {}],

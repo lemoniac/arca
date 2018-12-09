@@ -588,7 +588,9 @@ int CodeGenerator::visit(FunctionCallExpr &f)
         r++;
     }
     IdentifierExpr *function = dynamic_cast<IdentifierExpr *>(f.function.get());
+    std::cout << "    push r15" << std::endl;
     std::cout << "    call " << function->name << std::endl;
+    std::cout << "    pop r15" << std::endl;
     res = Res::R(1);
 }
 
