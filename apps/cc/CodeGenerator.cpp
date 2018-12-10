@@ -282,6 +282,15 @@ int CodeGenerator::visit(TranslationUnit &unit)
     }
 
     for(auto &f : unit.functions)
+    {
+        if(f->name == "main")
+        {
+            std::cout << "    jmp main" << std::endl;
+            break;
+        }
+    }
+
+    for(auto &f : unit.functions)
         VISIT(f);
 }
 
