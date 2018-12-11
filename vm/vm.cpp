@@ -434,7 +434,7 @@ bool VM::step()
                 case COND_LT: jmp = regs[src0] < regs[src1]; break;
                 case COND_GE: jmp = regs[src0] >= regs[src1]; break;
                 case COND_EQ: jmp = regs[src0] == regs[src1]; break;
-                case COND_NE: jmp = regs[src0] == regs[src1]; break;
+                case COND_NE: jmp = regs[src0] != regs[src1]; break;
             }
             if(jmp)
                 PC = (imm << 1) - 4;
