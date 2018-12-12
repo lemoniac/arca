@@ -62,8 +62,8 @@ protected:
         SymbolTable *symbols = nullptr;
     };
 
-    int getFreeRegister();
-    int allocateRegister();
+    int getFreeRegister(int min = 1, int max = 31);
+    int allocateRegister(int min = 1, int max = 31);
 
     int generateLabel();
 

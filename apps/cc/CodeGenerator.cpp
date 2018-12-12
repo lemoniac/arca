@@ -110,7 +110,7 @@ int CodeGenerator::visit(Function &f)
     unsigned soff = 0;
     for(unsigned i = 0; i < f.parameters.size(); i++)
     {
-        int r = i + 1;
+        int r = i + 10;
         f.parameters[i]->reg = r;
         usedRegisters[r] = 1;
 
@@ -294,18 +294,18 @@ int CodeGenerator::visit(TranslationUnit &unit)
         VISIT(f);
 }
 
-int CodeGenerator::getFreeRegister()
+int CodeGenerator::getFreeRegister(int min, int max)
 {
-    for(unsigned i = 1; i < usedRegisters.size(); i++)
+    for(unsigned i = min; i < max; i++)
         if(!usedRegisters[i])
             return i;
 
     return -1;
 }
 
-int CodeGenerator::allocateRegister()
+int CodeGenerator::allocateRegister(int min, int max)
 {
-    int r = getFreeRegister();
+    int r = getFreeRegister(min, max);
     usedRegisters[r] = true;
     return r;
 }
@@ -589,7 +589,7 @@ int CodeGenerator::visit(AssignmentExpr &expr)
 
 int CodeGenerator::visit(FunctionCallExpr &f)
 {
-    int r = 1;
+    int r = 10;
     for(const auto &arg : f.arguments)
     {
         VISIT(arg);
