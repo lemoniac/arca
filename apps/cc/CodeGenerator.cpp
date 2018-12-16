@@ -442,6 +442,16 @@ int CodeGenerator::visit(UnaryOpExpr &op)
             break;
         }
 
+        case UnaryOpExpr::Op::Not: {
+            VISIT(op.expr);
+            int r = getFreeRegister();
+            usedRegisters[r] = 1;
+            std::cout << "    r" << r << " = 1" << std::endl;
+            std::cout << "    r" << r << " = r" << r << " - " << res.to_string() << std::endl;
+            res = Res::R(r);
+            break;
+        }
+
         case UnaryOpExpr::Op::AddrOf: {
             const IdentifierExpr *id = dynamic_cast<const IdentifierExpr *>(op.expr.get());
             if(id)

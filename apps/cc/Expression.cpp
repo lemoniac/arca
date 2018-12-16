@@ -90,6 +90,11 @@ ExpressionPtr BinaryOpExpr::simplify()
     {
         std::swap(this->left, this->right);
     }
+    else if(op == BinaryOpExpr::Op::GT)
+    {
+        op = BinaryOpExpr::Op::LT;
+        std::swap(this->left, this->right);
+    }
 
     return nullptr;
 }
@@ -155,7 +160,7 @@ UnaryOpExpr::Op UnaryOpExpr::from_token(int token)
         case '-': return Op::Neg;
         case '&': return Op::AddrOf;
         case '*': return Op::Ref;
-        case '!': return Op::Neg;
+        case '!': return Op::Not;
         case INC_OP: return Op::PreInc;
         case DEC_OP: return Op::PreDec;
     }

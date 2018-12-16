@@ -102,7 +102,7 @@ public:
 
 class UnaryOpExpr: public Expression {
 public:
-    enum class Op {Neg, AddrOf, Ref, SizeOf, PreInc, PostInc, PreDec, PostDec};
+    enum class Op {Neg, AddrOf, Ref, SizeOf, PreInc, PostInc, PreDec, PostDec, Not};
 
     UnaryOpExpr(Op op): op(op) { }
 
