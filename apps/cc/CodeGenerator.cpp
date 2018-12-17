@@ -416,6 +416,8 @@ int CodeGenerator::visit(BinaryOpExpr &op)
 
     std::cout << "    r" << r << " = " << left.to_string() << " " << op.to_str() << " " << right.to_string() << std::endl;
     res = Res::R(r);
+    if(op.op == BinaryOpExpr::Op::LE)
+        std::cout << "    " << res.to_string() << " = " << res.to_string() << " ^ 1" << std::endl;
     return 0;
 }
 

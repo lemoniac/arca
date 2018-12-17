@@ -49,8 +49,8 @@ const char *BinaryOpExpr::to_str() const
         case Op::NEq: return "|";
         case Op::LT: return "<";
         case Op::GT: return ">";
-        case Op::LE: return "<=";
-        case Op::GE: return ">=";
+        case Op::LE: return ">"; // ^= 1
+        case Op::GE: return "<"; // ^= 1
     }
 
     return "?";
@@ -93,6 +93,14 @@ ExpressionPtr BinaryOpExpr::simplify()
     else if(op == BinaryOpExpr::Op::GT)
     {
         op = BinaryOpExpr::Op::LT;
+        std::swap(this->left, this->right);
+    }
+    else if(op == BinaryOpExpr::Op::LE)
+    {
+        op = BinaryOpExpr::Op::GE;
+    }
+    else if(op == BinaryOpExpr::Op::GE)
+    {
         std::swap(this->left, this->right);
     }
 
