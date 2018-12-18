@@ -414,6 +414,12 @@ int CodeGenerator::visit(BinaryOpExpr &op)
     VISIT(op.right);
     auto right = res;
 
+    if(op.op == BinaryOpExpr::Op::LT && left.type == Res::Type::Imm)
+    {
+        std::cout << "    r" << r << " = " << left.to_string() << std::endl;
+        left = Res::R(r);
+    }
+
     std::cout << "    r" << r << " = " << left.to_string() << " " << op.to_str() << " " << right.to_string() << std::endl;
     res = Res::R(r);
     if(op.op == BinaryOpExpr::Op::LE)

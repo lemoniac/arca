@@ -10,8 +10,11 @@ int main()
             {
                 if(0 >= a)
                 {
-                    if(a > -1)
-                        return 1;
+                    if(!(a > 0))
+                    {
+                        if(a > -1)
+                            return 1;
+                    }
                 }
             }
         }
