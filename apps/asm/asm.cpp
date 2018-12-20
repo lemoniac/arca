@@ -301,7 +301,10 @@ protected:
             }
         }
         else
+        {
+            memset(code + PC, 0, size * ts);
             PC += size * ts;
+        }
     }
 
     void createStruct(const std::string &structName, const std::string &name)
