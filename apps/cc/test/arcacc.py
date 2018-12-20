@@ -1,8 +1,11 @@
 import subprocess
 import re
 
+valgrind = False
 
 def popen(args):
+    if valgrind:
+        args = ["valgrind"] + args
     return subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
 def compile_file(filename):
